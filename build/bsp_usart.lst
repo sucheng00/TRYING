@@ -1,0 +1,615 @@
+ARM GAS  /tmp/ccyVF7Yp.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_usart.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.usart1_tx_dma_init,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	usart1_tx_dma_init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	usart1_tx_dma_init:
+  28              	.LFB235:
+  29              		.file 1 "bsp/boards/Src/bsp_usart.c"
+   1:bsp/boards/Src/bsp_usart.c **** #include "bsp_usart.h"
+   2:bsp/boards/Src/bsp_usart.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_usart.c **** 
+   4:bsp/boards/Src/bsp_usart.c **** extern UART_HandleTypeDef huart1;
+   5:bsp/boards/Src/bsp_usart.c **** extern DMA_HandleTypeDef hdma_usart1_tx;
+   6:bsp/boards/Src/bsp_usart.c **** extern UART_HandleTypeDef huart6;
+   7:bsp/boards/Src/bsp_usart.c **** extern DMA_HandleTypeDef hdma_usart6_rx;
+   8:bsp/boards/Src/bsp_usart.c **** extern DMA_HandleTypeDef hdma_usart6_tx;
+   9:bsp/boards/Src/bsp_usart.c **** 
+  10:bsp/boards/Src/bsp_usart.c **** void usart1_tx_dma_init(void)
+  11:bsp/boards/Src/bsp_usart.c **** {
+  30              		.loc 1 11 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+  12:bsp/boards/Src/bsp_usart.c **** 
+  13:bsp/boards/Src/bsp_usart.c ****     //enable the DMA transfer for the receiver and tramsmit request
+  14:bsp/boards/Src/bsp_usart.c ****     //使能DMA串口接收和发送
+  15:bsp/boards/Src/bsp_usart.c ****     SET_BIT(huart1.Instance->CR3, USART_CR3_DMAR);
+  35              		.loc 1 15 5 view .LVU1
+  36 0000 0C4B     		ldr	r3, .L10
+  16:bsp/boards/Src/bsp_usart.c ****     SET_BIT(huart1.Instance->CR3, USART_CR3_DMAT);
+  17:bsp/boards/Src/bsp_usart.c **** 
+  18:bsp/boards/Src/bsp_usart.c ****     //disable DMA
+  19:bsp/boards/Src/bsp_usart.c ****     //失效DMA
+  20:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_DISABLE(&hdma_usart1_tx);
+  37              		.loc 1 20 5 is_stmt 0 view .LVU2
+  38 0002 0D4A     		ldr	r2, .L10+4
+ARM GAS  /tmp/ccyVF7Yp.s 			page 2
+
+
+  15:bsp/boards/Src/bsp_usart.c ****     SET_BIT(huart1.Instance->CR3, USART_CR3_DMAT);
+  39              		.loc 1 15 5 view .LVU3
+  40 0004 1B68     		ldr	r3, [r3]
+  41              		.loc 1 20 5 view .LVU4
+  42 0006 1268     		ldr	r2, [r2]
+  15:bsp/boards/Src/bsp_usart.c ****     SET_BIT(huart1.Instance->CR3, USART_CR3_DMAT);
+  43              		.loc 1 15 5 view .LVU5
+  44 0008 5969     		ldr	r1, [r3, #20]
+  45 000a 41F04001 		orr	r1, r1, #64
+  46 000e 5961     		str	r1, [r3, #20]
+  16:bsp/boards/Src/bsp_usart.c ****     SET_BIT(huart1.Instance->CR3, USART_CR3_DMAT);
+  47              		.loc 1 16 5 is_stmt 1 view .LVU6
+  48 0010 5969     		ldr	r1, [r3, #20]
+  49 0012 41F08001 		orr	r1, r1, #128
+  50 0016 5961     		str	r1, [r3, #20]
+  51              	.L8:
+  52              		.loc 1 20 5 view .LVU7
+  53 0018 1368     		ldr	r3, [r2]
+  54 001a 23F00103 		bic	r3, r3, #1
+  55 001e 1360     		str	r3, [r2]
+  21:bsp/boards/Src/bsp_usart.c **** 
+  22:bsp/boards/Src/bsp_usart.c ****     while(hdma_usart1_tx.Instance->CR & DMA_SxCR_EN)
+  56              		.loc 1 22 5 view .LVU8
+  57              		.loc 1 22 10 view .LVU9
+  58              		.loc 1 22 34 is_stmt 0 view .LVU10
+  59 0020 1368     		ldr	r3, [r2]
+  60              		.loc 1 22 10 view .LVU11
+  61 0022 DB07     		lsls	r3, r3, #31
+  62 0024 F8D4     		bmi	.L8
+  23:bsp/boards/Src/bsp_usart.c ****     {
+  24:bsp/boards/Src/bsp_usart.c ****         __HAL_DMA_DISABLE(&hdma_usart1_tx);
+  25:bsp/boards/Src/bsp_usart.c ****     }
+  26:bsp/boards/Src/bsp_usart.c **** 
+  27:bsp/boards/Src/bsp_usart.c ****     hdma_usart1_tx.Instance->PAR = (uint32_t) & (USART1->DR);
+  63              		.loc 1 27 5 is_stmt 1 view .LVU12
+  28:bsp/boards/Src/bsp_usart.c ****     hdma_usart1_tx.Instance->M0AR = (uint32_t)(NULL);
+  64              		.loc 1 28 35 is_stmt 0 view .LVU13
+  65 0026 0023     		movs	r3, #0
+  27:bsp/boards/Src/bsp_usart.c ****     hdma_usart1_tx.Instance->M0AR = (uint32_t)(NULL);
+  66              		.loc 1 27 34 view .LVU14
+  67 0028 0449     		ldr	r1, .L10+8
+  68 002a 9160     		str	r1, [r2, #8]
+  69              		.loc 1 28 5 is_stmt 1 view .LVU15
+  70              		.loc 1 28 35 is_stmt 0 view .LVU16
+  71 002c D360     		str	r3, [r2, #12]
+  29:bsp/boards/Src/bsp_usart.c ****     hdma_usart1_tx.Instance->NDTR = 0;
+  72              		.loc 1 29 5 is_stmt 1 view .LVU17
+  73              		.loc 1 29 35 is_stmt 0 view .LVU18
+  74 002e 5360     		str	r3, [r2, #4]
+  30:bsp/boards/Src/bsp_usart.c **** 
+  31:bsp/boards/Src/bsp_usart.c **** 
+  32:bsp/boards/Src/bsp_usart.c **** }
+  75              		.loc 1 32 1 view .LVU19
+  76 0030 7047     		bx	lr
+  77              	.L11:
+  78 0032 00BF     		.align	2
+  79              	.L10:
+ARM GAS  /tmp/ccyVF7Yp.s 			page 3
+
+
+  80 0034 00000000 		.word	huart1
+  81 0038 00000000 		.word	hdma_usart1_tx
+  82 003c 04100140 		.word	1073811460
+  83              		.cfi_endproc
+  84              	.LFE235:
+  86              		.section	.text.usart1_tx_dma_enable,"ax",%progbits
+  87              		.align	1
+  88              		.p2align 2,,3
+  89              		.global	usart1_tx_dma_enable
+  90              		.syntax unified
+  91              		.thumb
+  92              		.thumb_func
+  94              	usart1_tx_dma_enable:
+  95              	.LVL0:
+  96              	.LFB236:
+  33:bsp/boards/Src/bsp_usart.c **** void usart1_tx_dma_enable(uint8_t *data, uint16_t len)
+  34:bsp/boards/Src/bsp_usart.c **** {
+  97              		.loc 1 34 1 is_stmt 1 view -0
+  98              		.cfi_startproc
+  99              		@ args = 0, pretend = 0, frame = 0
+ 100              		@ frame_needed = 0, uses_anonymous_args = 0
+ 101              		@ link register save eliminated.
+  35:bsp/boards/Src/bsp_usart.c ****     //disable DMA
+  36:bsp/boards/Src/bsp_usart.c ****     //失效DMA
+  37:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_DISABLE(&hdma_usart1_tx);
+ 102              		.loc 1 37 5 view .LVU21
+  34:bsp/boards/Src/bsp_usart.c ****     //disable DMA
+ 103              		.loc 1 34 1 is_stmt 0 view .LVU22
+ 104 0000 10B4     		push	{r4}
+ 105              		.cfi_def_cfa_offset 4
+ 106              		.cfi_offset 4, -4
+ 107              		.loc 1 37 5 view .LVU23
+ 108 0002 144B     		ldr	r3, .L26
+ 109 0004 1B68     		ldr	r3, [r3]
+ 110              	.L24:
+ 111 0006 1A68     		ldr	r2, [r3]
+ 112 0008 22F00102 		bic	r2, r2, #1
+ 113 000c 1A60     		str	r2, [r3]
+  38:bsp/boards/Src/bsp_usart.c **** 
+  39:bsp/boards/Src/bsp_usart.c ****     while(hdma_usart1_tx.Instance->CR & DMA_SxCR_EN)
+ 114              		.loc 1 39 5 is_stmt 1 view .LVU24
+ 115              		.loc 1 39 10 view .LVU25
+ 116              		.loc 1 39 34 is_stmt 0 view .LVU26
+ 117 000e 1A68     		ldr	r2, [r3]
+ 118              		.loc 1 39 10 view .LVU27
+ 119 0010 D207     		lsls	r2, r2, #31
+ 120 0012 F8D4     		bmi	.L24
+  40:bsp/boards/Src/bsp_usart.c ****     {
+  41:bsp/boards/Src/bsp_usart.c ****         __HAL_DMA_DISABLE(&hdma_usart1_tx);
+  42:bsp/boards/Src/bsp_usart.c ****     }
+  43:bsp/boards/Src/bsp_usart.c **** 
+  44:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_HISR_TCIF7);
+ 121              		.loc 1 44 5 is_stmt 1 view .LVU28
+ 122 0014 104A     		ldr	r2, .L26+4
+ 123 0016 9342     		cmp	r3, r2
+ 124 0018 0AD8     		bhi	.L25
+ 125              		.loc 1 44 5 is_stmt 0 discriminator 2 view .LVU29
+ARM GAS  /tmp/ccyVF7Yp.s 			page 4
+
+
+ 126 001a 104A     		ldr	r2, .L26+8
+ 127 001c 9342     		cmp	r3, r2
+ 128 001e 04D9     		bls	.L17
+ 129              		.loc 1 44 5 discriminator 3 view .LVU30
+ 130 0020 4FF00064 		mov	r4, #134217728
+ 131 0024 C2F85043 		str	r4, [r2, #848]
+ 132 0028 06E0     		b	.L16
+ 133              	.L17:
+ 134              		.loc 1 44 5 discriminator 4 view .LVU31
+ 135 002a 0D4A     		ldr	r2, .L26+12
+ 136 002c 9342     		cmp	r3, r2
+ 137 002e 0CD9     		bls	.L18
+ 138              	.L25:
+ 139              		.loc 1 44 5 discriminator 6 view .LVU32
+ 140 0030 4FF00064 		mov	r4, #134217728
+ 141 0034 42F84C4C 		str	r4, [r2, #-76]
+ 142              	.L16:
+  45:bsp/boards/Src/bsp_usart.c **** 
+  46:bsp/boards/Src/bsp_usart.c ****     hdma_usart1_tx.Instance->M0AR = (uint32_t)(data);
+ 143              		.loc 1 46 5 is_stmt 1 view .LVU33
+ 144              		.loc 1 46 35 is_stmt 0 view .LVU34
+ 145 0038 D860     		str	r0, [r3, #12]
+  47:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_SET_COUNTER(&hdma_usart1_tx, len);
+ 146              		.loc 1 47 5 is_stmt 1 view .LVU35
+ 147 003a 5960     		str	r1, [r3, #4]
+  48:bsp/boards/Src/bsp_usart.c **** 
+  49:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_ENABLE(&hdma_usart1_tx);
+ 148              		.loc 1 49 5 view .LVU36
+ 149 003c 1A68     		ldr	r2, [r3]
+  50:bsp/boards/Src/bsp_usart.c **** }
+ 150              		.loc 1 50 1 is_stmt 0 view .LVU37
+ 151 003e 5DF8044B 		ldr	r4, [sp], #4
+ 152              		.cfi_remember_state
+ 153              		.cfi_restore 4
+ 154              		.cfi_def_cfa_offset 0
+  49:bsp/boards/Src/bsp_usart.c **** }
+ 155              		.loc 1 49 5 view .LVU38
+ 156 0042 42F00102 		orr	r2, r2, #1
+ 157 0046 1A60     		str	r2, [r3]
+ 158              		.loc 1 50 1 view .LVU39
+ 159 0048 7047     		bx	lr
+ 160              	.L18:
+ 161              		.cfi_restore_state
+  44:bsp/boards/Src/bsp_usart.c **** 
+ 162              		.loc 1 44 5 discriminator 7 view .LVU40
+ 163 004a 064A     		ldr	r2, .L26+16
+ 164 004c 4FF00064 		mov	r4, #134217728
+ 165 0050 9460     		str	r4, [r2, #8]
+ 166 0052 F1E7     		b	.L16
+ 167              	.L27:
+ 168              		.align	2
+ 169              	.L26:
+ 170 0054 00000000 		.word	hdma_usart1_tx
+ 171 0058 58640240 		.word	1073898584
+ 172 005c B8600240 		.word	1073897656
+ 173 0060 58600240 		.word	1073897560
+ 174 0064 00600240 		.word	1073897472
+ARM GAS  /tmp/ccyVF7Yp.s 			page 5
+
+
+ 175              		.cfi_endproc
+ 176              	.LFE236:
+ 178              		.section	.text.usart6_init,"ax",%progbits
+ 179              		.align	1
+ 180              		.p2align 2,,3
+ 181              		.global	usart6_init
+ 182              		.syntax unified
+ 183              		.thumb
+ 184              		.thumb_func
+ 186              	usart6_init:
+ 187              	.LVL1:
+ 188              	.LFB237:
+  51:bsp/boards/Src/bsp_usart.c **** 
+  52:bsp/boards/Src/bsp_usart.c **** 
+  53:bsp/boards/Src/bsp_usart.c **** 
+  54:bsp/boards/Src/bsp_usart.c **** void usart6_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
+  55:bsp/boards/Src/bsp_usart.c **** {
+ 189              		.loc 1 55 1 is_stmt 1 view -0
+ 190              		.cfi_startproc
+ 191              		@ args = 0, pretend = 0, frame = 0
+ 192              		@ frame_needed = 0, uses_anonymous_args = 0
+ 193              		@ link register save eliminated.
+  56:bsp/boards/Src/bsp_usart.c **** 
+  57:bsp/boards/Src/bsp_usart.c ****     //enable the DMA transfer for the receiver and tramsmit request
+  58:bsp/boards/Src/bsp_usart.c ****     //使能DMA串口接收和发送
+  59:bsp/boards/Src/bsp_usart.c ****     SET_BIT(huart6.Instance->CR3, USART_CR3_DMAR);
+ 194              		.loc 1 59 5 view .LVU42
+ 195 0000 244B     		ldr	r3, .L49
+ 196 0002 1B68     		ldr	r3, [r3]
+  55:bsp/boards/Src/bsp_usart.c **** 
+ 197              		.loc 1 55 1 is_stmt 0 view .LVU43
+ 198 0004 30B4     		push	{r4, r5}
+ 199              		.cfi_def_cfa_offset 8
+ 200              		.cfi_offset 4, -8
+ 201              		.cfi_offset 5, -4
+ 202              		.loc 1 59 5 view .LVU44
+ 203 0006 5C69     		ldr	r4, [r3, #20]
+ 204 0008 44F04004 		orr	r4, r4, #64
+ 205 000c 5C61     		str	r4, [r3, #20]
+  60:bsp/boards/Src/bsp_usart.c ****     SET_BIT(huart6.Instance->CR3, USART_CR3_DMAT);
+ 206              		.loc 1 60 5 is_stmt 1 view .LVU45
+ 207 000e 5C69     		ldr	r4, [r3, #20]
+ 208 0010 44F08004 		orr	r4, r4, #128
+ 209 0014 5C61     		str	r4, [r3, #20]
+  61:bsp/boards/Src/bsp_usart.c **** 
+  62:bsp/boards/Src/bsp_usart.c ****     //enalbe idle interrupt
+  63:bsp/boards/Src/bsp_usart.c ****     //使能空闲中断
+  64:bsp/boards/Src/bsp_usart.c ****     __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
+ 210              		.loc 1 64 5 view .LVU46
+ 211 0016 DC68     		ldr	r4, [r3, #12]
+ 212 0018 44F01004 		orr	r4, r4, #16
+ 213 001c DC60     		str	r4, [r3, #12]
+  65:bsp/boards/Src/bsp_usart.c **** 
+  66:bsp/boards/Src/bsp_usart.c **** 
+  67:bsp/boards/Src/bsp_usart.c **** 
+  68:bsp/boards/Src/bsp_usart.c ****     //disable DMA
+  69:bsp/boards/Src/bsp_usart.c ****     //失效DMA
+ARM GAS  /tmp/ccyVF7Yp.s 			page 6
+
+
+  70:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_DISABLE(&hdma_usart6_rx);
+ 214              		.loc 1 70 5 view .LVU47
+ 215 001e 1E4B     		ldr	r3, .L49+4
+ 216 0020 1B68     		ldr	r3, [r3]
+ 217              	.L46:
+ 218 0022 1C68     		ldr	r4, [r3]
+ 219 0024 24F00104 		bic	r4, r4, #1
+ 220 0028 1C60     		str	r4, [r3]
+  71:bsp/boards/Src/bsp_usart.c ****     
+  72:bsp/boards/Src/bsp_usart.c ****     while(hdma_usart6_rx.Instance->CR & DMA_SxCR_EN)
+ 221              		.loc 1 72 5 view .LVU48
+ 222              		.loc 1 72 10 view .LVU49
+ 223              		.loc 1 72 34 is_stmt 0 view .LVU50
+ 224 002a 1C68     		ldr	r4, [r3]
+ 225              		.loc 1 72 10 view .LVU51
+ 226 002c E407     		lsls	r4, r4, #31
+ 227 002e F8D4     		bmi	.L46
+  73:bsp/boards/Src/bsp_usart.c ****     {
+  74:bsp/boards/Src/bsp_usart.c ****         __HAL_DMA_DISABLE(&hdma_usart6_rx);
+  75:bsp/boards/Src/bsp_usart.c ****     }
+  76:bsp/boards/Src/bsp_usart.c **** 
+  77:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_CLEAR_FLAG(&hdma_usart6_rx, DMA_LISR_TCIF1);
+ 228              		.loc 1 77 5 is_stmt 1 view .LVU52
+ 229 0030 1A4C     		ldr	r4, .L49+8
+ 230 0032 A342     		cmp	r3, r4
+ 231 0034 0AD8     		bhi	.L47
+ 232              		.loc 1 77 5 is_stmt 0 discriminator 2 view .LVU53
+ 233 0036 1A4C     		ldr	r4, .L49+12
+ 234 0038 A342     		cmp	r3, r4
+ 235 003a 04D9     		bls	.L33
+ 236              		.loc 1 77 5 discriminator 3 view .LVU54
+ 237 003c 4FF40065 		mov	r5, #2048
+ 238 0040 C4F85053 		str	r5, [r4, #848]
+ 239 0044 06E0     		b	.L32
+ 240              	.L33:
+ 241              		.loc 1 77 5 discriminator 4 view .LVU55
+ 242 0046 174C     		ldr	r4, .L49+16
+ 243 0048 A342     		cmp	r3, r4
+ 244 004a 1DD9     		bls	.L34
+ 245              	.L47:
+ 246              		.loc 1 77 5 discriminator 6 view .LVU56
+ 247 004c 4FF40065 		mov	r5, #2048
+ 248 0050 44F84C5C 		str	r5, [r4, #-76]
+ 249              	.L32:
+  78:bsp/boards/Src/bsp_usart.c **** 
+  79:bsp/boards/Src/bsp_usart.c ****     hdma_usart6_rx.Instance->PAR = (uint32_t) & (USART6->DR);
+ 250              		.loc 1 79 5 is_stmt 1 view .LVU57
+ 251              		.loc 1 79 34 is_stmt 0 view .LVU58
+ 252 0054 144C     		ldr	r4, .L49+20
+ 253 0056 9C60     		str	r4, [r3, #8]
+  80:bsp/boards/Src/bsp_usart.c ****     //memory buffer 1
+  81:bsp/boards/Src/bsp_usart.c ****     //内存缓冲区1
+  82:bsp/boards/Src/bsp_usart.c ****     hdma_usart6_rx.Instance->M0AR = (uint32_t)(rx1_buf);
+ 254              		.loc 1 82 5 is_stmt 1 view .LVU59
+ 255              		.loc 1 82 35 is_stmt 0 view .LVU60
+ 256 0058 D860     		str	r0, [r3, #12]
+  83:bsp/boards/Src/bsp_usart.c ****     //memory buffer 2
+ARM GAS  /tmp/ccyVF7Yp.s 			page 7
+
+
+  84:bsp/boards/Src/bsp_usart.c ****     //内存缓冲区2
+  85:bsp/boards/Src/bsp_usart.c ****     hdma_usart6_rx.Instance->M1AR = (uint32_t)(rx2_buf);
+ 257              		.loc 1 85 5 is_stmt 1 view .LVU61
+ 258              		.loc 1 85 35 is_stmt 0 view .LVU62
+ 259 005a 1961     		str	r1, [r3, #16]
+  86:bsp/boards/Src/bsp_usart.c ****     //data length
+  87:bsp/boards/Src/bsp_usart.c ****     //数据长度
+  88:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_SET_COUNTER(&hdma_usart6_rx, dma_buf_num);
+ 260              		.loc 1 88 5 is_stmt 1 view .LVU63
+ 261 005c 5A60     		str	r2, [r3, #4]
+  89:bsp/boards/Src/bsp_usart.c **** 
+  90:bsp/boards/Src/bsp_usart.c ****     //enable double memory buffer
+  91:bsp/boards/Src/bsp_usart.c ****     //使能双缓冲区
+  92:bsp/boards/Src/bsp_usart.c ****     SET_BIT(hdma_usart6_rx.Instance->CR, DMA_SxCR_DBM);
+ 262              		.loc 1 92 5 view .LVU64
+ 263 005e 1A68     		ldr	r2, [r3]
+ 264              	.LVL2:
+  93:bsp/boards/Src/bsp_usart.c **** 
+  94:bsp/boards/Src/bsp_usart.c ****     //enable DMA
+  95:bsp/boards/Src/bsp_usart.c ****     //使能DMA
+  96:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_ENABLE(&hdma_usart6_rx);
+  97:bsp/boards/Src/bsp_usart.c **** 
+  98:bsp/boards/Src/bsp_usart.c **** 
+  99:bsp/boards/Src/bsp_usart.c ****     //disable DMA
+ 100:bsp/boards/Src/bsp_usart.c ****     //失效DMA
+ 101:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_DISABLE(&hdma_usart6_tx);
+ 265              		.loc 1 101 5 is_stmt 0 view .LVU65
+ 266 0060 1248     		ldr	r0, .L49+24
+ 267              	.LVL3:
+  92:bsp/boards/Src/bsp_usart.c **** 
+ 268              		.loc 1 92 5 view .LVU66
+ 269 0062 42F48022 		orr	r2, r2, #262144
+ 270 0066 1A60     		str	r2, [r3]
+  96:bsp/boards/Src/bsp_usart.c **** 
+ 271              		.loc 1 96 5 is_stmt 1 view .LVU67
+ 272 0068 1968     		ldr	r1, [r3]
+ 273              	.LVL4:
+ 274              		.loc 1 101 5 is_stmt 0 view .LVU68
+ 275 006a 0268     		ldr	r2, [r0]
+  96:bsp/boards/Src/bsp_usart.c **** 
+ 276              		.loc 1 96 5 view .LVU69
+ 277 006c 41F00101 		orr	r1, r1, #1
+ 278 0070 1960     		str	r1, [r3]
+ 279              	.L48:
+ 280              		.loc 1 101 5 is_stmt 1 view .LVU70
+ 281 0072 1368     		ldr	r3, [r2]
+ 282 0074 23F00103 		bic	r3, r3, #1
+ 283 0078 1360     		str	r3, [r2]
+ 102:bsp/boards/Src/bsp_usart.c **** 
+ 103:bsp/boards/Src/bsp_usart.c ****     while(hdma_usart6_tx.Instance->CR & DMA_SxCR_EN)
+ 284              		.loc 1 103 5 view .LVU71
+ 285              		.loc 1 103 10 view .LVU72
+ 286              		.loc 1 103 34 is_stmt 0 view .LVU73
+ 287 007a 1368     		ldr	r3, [r2]
+ 288              		.loc 1 103 10 view .LVU74
+ 289 007c DB07     		lsls	r3, r3, #31
+ 290 007e F8D4     		bmi	.L48
+ARM GAS  /tmp/ccyVF7Yp.s 			page 8
+
+
+ 104:bsp/boards/Src/bsp_usart.c ****     {
+ 105:bsp/boards/Src/bsp_usart.c ****         __HAL_DMA_DISABLE(&hdma_usart6_tx);
+ 106:bsp/boards/Src/bsp_usart.c ****     }
+ 107:bsp/boards/Src/bsp_usart.c **** 
+ 108:bsp/boards/Src/bsp_usart.c ****     hdma_usart6_tx.Instance->PAR = (uint32_t) & (USART6->DR);
+ 291              		.loc 1 108 5 is_stmt 1 view .LVU75
+ 292              		.loc 1 108 34 is_stmt 0 view .LVU76
+ 293 0080 094B     		ldr	r3, .L49+20
+ 294 0082 9360     		str	r3, [r2, #8]
+ 109:bsp/boards/Src/bsp_usart.c **** 
+ 110:bsp/boards/Src/bsp_usart.c **** }
+ 295              		.loc 1 110 1 view .LVU77
+ 296 0084 30BC     		pop	{r4, r5}
+ 297              		.cfi_remember_state
+ 298              		.cfi_restore 5
+ 299              		.cfi_restore 4
+ 300              		.cfi_def_cfa_offset 0
+ 301 0086 7047     		bx	lr
+ 302              	.LVL5:
+ 303              	.L34:
+ 304              		.cfi_restore_state
+  77:bsp/boards/Src/bsp_usart.c **** 
+ 305              		.loc 1 77 5 discriminator 7 view .LVU78
+ 306 0088 094C     		ldr	r4, .L49+28
+ 307 008a 4FF40065 		mov	r5, #2048
+ 308 008e A560     		str	r5, [r4, #8]
+ 309 0090 E0E7     		b	.L32
+ 310              	.L50:
+ 311 0092 00BF     		.align	2
+ 312              	.L49:
+ 313 0094 00000000 		.word	huart6
+ 314 0098 00000000 		.word	hdma_usart6_rx
+ 315 009c 58640240 		.word	1073898584
+ 316 00a0 B8600240 		.word	1073897656
+ 317 00a4 58600240 		.word	1073897560
+ 318 00a8 04140140 		.word	1073812484
+ 319 00ac 00000000 		.word	hdma_usart6_tx
+ 320 00b0 00600240 		.word	1073897472
+ 321              		.cfi_endproc
+ 322              	.LFE237:
+ 324              		.section	.text.usart6_tx_dma_enable,"ax",%progbits
+ 325              		.align	1
+ 326              		.p2align 2,,3
+ 327              		.global	usart6_tx_dma_enable
+ 328              		.syntax unified
+ 329              		.thumb
+ 330              		.thumb_func
+ 332              	usart6_tx_dma_enable:
+ 333              	.LVL6:
+ 334              	.LFB238:
+ 111:bsp/boards/Src/bsp_usart.c **** 
+ 112:bsp/boards/Src/bsp_usart.c **** 
+ 113:bsp/boards/Src/bsp_usart.c **** 
+ 114:bsp/boards/Src/bsp_usart.c **** void usart6_tx_dma_enable(uint8_t *data, uint16_t len)
+ 115:bsp/boards/Src/bsp_usart.c **** {
+ 335              		.loc 1 115 1 is_stmt 1 view -0
+ 336              		.cfi_startproc
+ARM GAS  /tmp/ccyVF7Yp.s 			page 9
+
+
+ 337              		@ args = 0, pretend = 0, frame = 0
+ 338              		@ frame_needed = 0, uses_anonymous_args = 0
+ 339              		@ link register save eliminated.
+ 116:bsp/boards/Src/bsp_usart.c ****     //disable DMA
+ 117:bsp/boards/Src/bsp_usart.c ****     //失效DMA
+ 118:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_DISABLE(&hdma_usart6_tx);
+ 340              		.loc 1 118 5 view .LVU80
+ 115:bsp/boards/Src/bsp_usart.c ****     //disable DMA
+ 341              		.loc 1 115 1 is_stmt 0 view .LVU81
+ 342 0000 10B4     		push	{r4}
+ 343              		.cfi_def_cfa_offset 4
+ 344              		.cfi_offset 4, -4
+ 345              		.loc 1 118 5 view .LVU82
+ 346 0002 144B     		ldr	r3, .L65
+ 347 0004 1B68     		ldr	r3, [r3]
+ 348              	.L63:
+ 349 0006 1A68     		ldr	r2, [r3]
+ 350 0008 22F00102 		bic	r2, r2, #1
+ 351 000c 1A60     		str	r2, [r3]
+ 119:bsp/boards/Src/bsp_usart.c **** 
+ 120:bsp/boards/Src/bsp_usart.c ****     while(hdma_usart6_tx.Instance->CR & DMA_SxCR_EN)
+ 352              		.loc 1 120 5 is_stmt 1 view .LVU83
+ 353              		.loc 1 120 10 view .LVU84
+ 354              		.loc 1 120 34 is_stmt 0 view .LVU85
+ 355 000e 1A68     		ldr	r2, [r3]
+ 356              		.loc 1 120 10 view .LVU86
+ 357 0010 D207     		lsls	r2, r2, #31
+ 358 0012 F8D4     		bmi	.L63
+ 121:bsp/boards/Src/bsp_usart.c ****     {
+ 122:bsp/boards/Src/bsp_usart.c ****         __HAL_DMA_DISABLE(&hdma_usart6_tx);
+ 123:bsp/boards/Src/bsp_usart.c ****     }
+ 124:bsp/boards/Src/bsp_usart.c **** 
+ 125:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_CLEAR_FLAG(&hdma_usart6_tx, DMA_HISR_TCIF6);
+ 359              		.loc 1 125 5 is_stmt 1 view .LVU87
+ 360 0014 104A     		ldr	r2, .L65+4
+ 361 0016 9342     		cmp	r3, r2
+ 362 0018 0AD8     		bhi	.L64
+ 363              		.loc 1 125 5 is_stmt 0 discriminator 2 view .LVU88
+ 364 001a 104A     		ldr	r2, .L65+8
+ 365 001c 9342     		cmp	r3, r2
+ 366 001e 04D9     		bls	.L56
+ 367              		.loc 1 125 5 discriminator 3 view .LVU89
+ 368 0020 4FF40014 		mov	r4, #2097152
+ 369 0024 C2F85043 		str	r4, [r2, #848]
+ 370 0028 06E0     		b	.L55
+ 371              	.L56:
+ 372              		.loc 1 125 5 discriminator 4 view .LVU90
+ 373 002a 0D4A     		ldr	r2, .L65+12
+ 374 002c 9342     		cmp	r3, r2
+ 375 002e 0CD9     		bls	.L57
+ 376              	.L64:
+ 377              		.loc 1 125 5 discriminator 6 view .LVU91
+ 378 0030 4FF40014 		mov	r4, #2097152
+ 379 0034 42F84C4C 		str	r4, [r2, #-76]
+ 380              	.L55:
+ 126:bsp/boards/Src/bsp_usart.c **** 
+ 127:bsp/boards/Src/bsp_usart.c ****     hdma_usart6_tx.Instance->M0AR = (uint32_t)(data);
+ARM GAS  /tmp/ccyVF7Yp.s 			page 10
+
+
+ 381              		.loc 1 127 5 is_stmt 1 view .LVU92
+ 382              		.loc 1 127 35 is_stmt 0 view .LVU93
+ 383 0038 D860     		str	r0, [r3, #12]
+ 128:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_SET_COUNTER(&hdma_usart6_tx, len);
+ 384              		.loc 1 128 5 is_stmt 1 view .LVU94
+ 385 003a 5960     		str	r1, [r3, #4]
+ 129:bsp/boards/Src/bsp_usart.c **** 
+ 130:bsp/boards/Src/bsp_usart.c ****     __HAL_DMA_ENABLE(&hdma_usart6_tx);
+ 386              		.loc 1 130 5 view .LVU95
+ 387 003c 1A68     		ldr	r2, [r3]
+ 131:bsp/boards/Src/bsp_usart.c **** }
+ 388              		.loc 1 131 1 is_stmt 0 view .LVU96
+ 389 003e 5DF8044B 		ldr	r4, [sp], #4
+ 390              		.cfi_remember_state
+ 391              		.cfi_restore 4
+ 392              		.cfi_def_cfa_offset 0
+ 130:bsp/boards/Src/bsp_usart.c **** }
+ 393              		.loc 1 130 5 view .LVU97
+ 394 0042 42F00102 		orr	r2, r2, #1
+ 395 0046 1A60     		str	r2, [r3]
+ 396              		.loc 1 131 1 view .LVU98
+ 397 0048 7047     		bx	lr
+ 398              	.L57:
+ 399              		.cfi_restore_state
+ 125:bsp/boards/Src/bsp_usart.c **** 
+ 400              		.loc 1 125 5 discriminator 7 view .LVU99
+ 401 004a 064A     		ldr	r2, .L65+16
+ 402 004c 4FF40014 		mov	r4, #2097152
+ 403 0050 9460     		str	r4, [r2, #8]
+ 404 0052 F1E7     		b	.L55
+ 405              	.L66:
+ 406              		.align	2
+ 407              	.L65:
+ 408 0054 00000000 		.word	hdma_usart6_tx
+ 409 0058 58640240 		.word	1073898584
+ 410 005c B8600240 		.word	1073897656
+ 411 0060 58600240 		.word	1073897560
+ 412 0064 00600240 		.word	1073897472
+ 413              		.cfi_endproc
+ 414              	.LFE238:
+ 416              		.text
+ 417              	.Letext0:
+ 418              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 419              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 420              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 421              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 422              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 423              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h"
+ARM GAS  /tmp/ccyVF7Yp.s 			page 11
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_usart.c
+     /tmp/ccyVF7Yp.s:20     .text.usart1_tx_dma_init:0000000000000000 $t
+     /tmp/ccyVF7Yp.s:27     .text.usart1_tx_dma_init:0000000000000000 usart1_tx_dma_init
+     /tmp/ccyVF7Yp.s:80     .text.usart1_tx_dma_init:0000000000000034 $d
+     /tmp/ccyVF7Yp.s:87     .text.usart1_tx_dma_enable:0000000000000000 $t
+     /tmp/ccyVF7Yp.s:94     .text.usart1_tx_dma_enable:0000000000000000 usart1_tx_dma_enable
+     /tmp/ccyVF7Yp.s:170    .text.usart1_tx_dma_enable:0000000000000054 $d
+     /tmp/ccyVF7Yp.s:179    .text.usart6_init:0000000000000000 $t
+     /tmp/ccyVF7Yp.s:186    .text.usart6_init:0000000000000000 usart6_init
+     /tmp/ccyVF7Yp.s:313    .text.usart6_init:0000000000000094 $d
+     /tmp/ccyVF7Yp.s:325    .text.usart6_tx_dma_enable:0000000000000000 $t
+     /tmp/ccyVF7Yp.s:332    .text.usart6_tx_dma_enable:0000000000000000 usart6_tx_dma_enable
+     /tmp/ccyVF7Yp.s:408    .text.usart6_tx_dma_enable:0000000000000054 $d
+
+UNDEFINED SYMBOLS
+huart1
+hdma_usart1_tx
+huart6
+hdma_usart6_rx
+hdma_usart6_tx

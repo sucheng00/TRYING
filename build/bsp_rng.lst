@@ -1,0 +1,206 @@
+ARM GAS  /tmp/ccz5wF1E.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_rng.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.RNG_get_random_num,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	RNG_get_random_num
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	RNG_get_random_num:
+  28              	.LFB235:
+  29              		.file 1 "bsp/boards/Src/bsp_rng.c"
+   1:bsp/boards/Src/bsp_rng.c **** #include "bsp_rng.h"
+   2:bsp/boards/Src/bsp_rng.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_rng.c **** 
+   4:bsp/boards/Src/bsp_rng.c **** extern RNG_HandleTypeDef hrng;
+   5:bsp/boards/Src/bsp_rng.c **** 
+   6:bsp/boards/Src/bsp_rng.c **** uint32_t RNG_get_random_num(void)
+   7:bsp/boards/Src/bsp_rng.c **** {
+  30              		.loc 1 7 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+   8:bsp/boards/Src/bsp_rng.c ****     static uint32_t rng;
+  34              		.loc 1 8 5 view .LVU1
+   9:bsp/boards/Src/bsp_rng.c ****     HAL_RNG_GenerateRandomNumber(&hrng, &rng);
+  35              		.loc 1 9 5 view .LVU2
+   7:bsp/boards/Src/bsp_rng.c ****     static uint32_t rng;
+  36              		.loc 1 7 1 is_stmt 0 view .LVU3
+  37 0000 10B5     		push	{r4, lr}
+  38              		.cfi_def_cfa_offset 8
+  39              		.cfi_offset 4, -8
+  40              		.cfi_offset 14, -4
+  41              		.loc 1 9 5 view .LVU4
+  42 0002 034C     		ldr	r4, .L4
+  43 0004 0348     		ldr	r0, .L4+4
+  44 0006 2146     		mov	r1, r4
+  45 0008 FFF7FEFF 		bl	HAL_RNG_GenerateRandomNumber
+  46              	.LVL0:
+  10:bsp/boards/Src/bsp_rng.c ****     return rng;
+  47              		.loc 1 10 5 is_stmt 1 view .LVU5
+ARM GAS  /tmp/ccz5wF1E.s 			page 2
+
+
+  11:bsp/boards/Src/bsp_rng.c **** }
+  48              		.loc 1 11 1 is_stmt 0 view .LVU6
+  49 000c 2068     		ldr	r0, [r4]
+  50 000e 10BD     		pop	{r4, pc}
+  51              	.L5:
+  52              		.align	2
+  53              	.L4:
+  54 0010 00000000 		.word	.LANCHOR0
+  55 0014 00000000 		.word	hrng
+  56              		.cfi_endproc
+  57              	.LFE235:
+  59              		.section	.text.RNG_get_random_rangle,"ax",%progbits
+  60              		.align	1
+  61              		.p2align 2,,3
+  62              		.global	RNG_get_random_rangle
+  63              		.syntax unified
+  64              		.thumb
+  65              		.thumb_func
+  67              	RNG_get_random_rangle:
+  68              	.LVL1:
+  69              	.LFB236:
+  12:bsp/boards/Src/bsp_rng.c **** 
+  13:bsp/boards/Src/bsp_rng.c **** int32_t RNG_get_random_rangle(int min, int max)
+  14:bsp/boards/Src/bsp_rng.c **** {
+  70              		.loc 1 14 1 is_stmt 1 view -0
+  71              		.cfi_startproc
+  72              		@ args = 0, pretend = 0, frame = 0
+  73              		@ frame_needed = 0, uses_anonymous_args = 0
+  15:bsp/boards/Src/bsp_rng.c ****     static int32_t random;
+  74              		.loc 1 15 5 view .LVU8
+  16:bsp/boards/Src/bsp_rng.c ****     random = (RNG_get_random_num() % (max - min + 1)) + min;
+  75              		.loc 1 16 5 view .LVU9
+  76              	.LBB4:
+  77              	.LBI4:
+   6:bsp/boards/Src/bsp_rng.c **** {
+  78              		.loc 1 6 10 view .LVU10
+  79              	.LBB5:
+   8:bsp/boards/Src/bsp_rng.c ****     HAL_RNG_GenerateRandomNumber(&hrng, &rng);
+  80              		.loc 1 8 5 view .LVU11
+   9:bsp/boards/Src/bsp_rng.c ****     return rng;
+  81              		.loc 1 9 5 view .LVU12
+  82              	.LBE5:
+  83              	.LBE4:
+  14:bsp/boards/Src/bsp_rng.c ****     static int32_t random;
+  84              		.loc 1 14 1 is_stmt 0 view .LVU13
+  85 0000 70B5     		push	{r4, r5, r6, lr}
+  86              		.cfi_def_cfa_offset 16
+  87              		.cfi_offset 4, -16
+  88              		.cfi_offset 5, -12
+  89              		.cfi_offset 6, -8
+  90              		.cfi_offset 14, -4
+  91              	.LBB8:
+  92              	.LBB6:
+   9:bsp/boards/Src/bsp_rng.c ****     return rng;
+  93              		.loc 1 9 5 view .LVU14
+  94 0002 084E     		ldr	r6, .L8
+  95              	.LBE6:
+ARM GAS  /tmp/ccz5wF1E.s 			page 3
+
+
+  96              	.LBE8:
+  14:bsp/boards/Src/bsp_rng.c ****     static int32_t random;
+  97              		.loc 1 14 1 view .LVU15
+  98 0004 0546     		mov	r5, r0
+  99 0006 0C46     		mov	r4, r1
+ 100              	.LBB9:
+ 101              	.LBB7:
+   9:bsp/boards/Src/bsp_rng.c ****     return rng;
+ 102              		.loc 1 9 5 view .LVU16
+ 103 0008 0748     		ldr	r0, .L8+4
+ 104              	.LVL2:
+   9:bsp/boards/Src/bsp_rng.c ****     return rng;
+ 105              		.loc 1 9 5 view .LVU17
+ 106 000a 3146     		mov	r1, r6
+ 107              	.LVL3:
+   9:bsp/boards/Src/bsp_rng.c ****     return rng;
+ 108              		.loc 1 9 5 view .LVU18
+ 109 000c FFF7FEFF 		bl	HAL_RNG_GenerateRandomNumber
+ 110              	.LVL4:
+  10:bsp/boards/Src/bsp_rng.c **** }
+ 111              		.loc 1 10 5 is_stmt 1 view .LVU19
+ 112              	.LBE7:
+ 113              	.LBE9:
+  17:bsp/boards/Src/bsp_rng.c ****     return random;
+ 114              		.loc 1 17 5 view .LVU20
+  16:bsp/boards/Src/bsp_rng.c ****     return random;
+ 115              		.loc 1 16 36 is_stmt 0 view .LVU21
+ 116 0010 3068     		ldr	r0, [r6]
+  16:bsp/boards/Src/bsp_rng.c ****     return random;
+ 117              		.loc 1 16 43 view .LVU22
+ 118 0012 611B     		subs	r1, r4, r5
+  16:bsp/boards/Src/bsp_rng.c ****     return random;
+ 119              		.loc 1 16 49 view .LVU23
+ 120 0014 0131     		adds	r1, r1, #1
+  16:bsp/boards/Src/bsp_rng.c ****     return random;
+ 121              		.loc 1 16 36 view .LVU24
+ 122 0016 B0FBF1F3 		udiv	r3, r0, r1
+ 123 001a 01FB1300 		mls	r0, r1, r3, r0
+  18:bsp/boards/Src/bsp_rng.c **** }
+ 124              		.loc 1 18 1 view .LVU25
+ 125 001e 2844     		add	r0, r0, r5
+ 126 0020 70BD     		pop	{r4, r5, r6, pc}
+ 127              	.LVL5:
+ 128              	.L9:
+ 129              		.loc 1 18 1 view .LVU26
+ 130 0022 00BF     		.align	2
+ 131              	.L8:
+ 132 0024 00000000 		.word	.LANCHOR0
+ 133 0028 00000000 		.word	hrng
+ 134              		.cfi_endproc
+ 135              	.LFE236:
+ 137              		.section	.bss.rng.1,"aw",%nobits
+ 138              		.align	2
+ 139              		.set	.LANCHOR0,. + 0
+ 142              	rng.1:
+ 143 0000 00000000 		.space	4
+ 144              		.text
+ARM GAS  /tmp/ccz5wF1E.s 			page 4
+
+
+ 145              	.Letext0:
+ 146              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 147              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 148              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 149              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 150              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rng.h"
+ARM GAS  /tmp/ccz5wF1E.s 			page 5
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_rng.c
+     /tmp/ccz5wF1E.s:20     .text.RNG_get_random_num:0000000000000000 $t
+     /tmp/ccz5wF1E.s:27     .text.RNG_get_random_num:0000000000000000 RNG_get_random_num
+     /tmp/ccz5wF1E.s:54     .text.RNG_get_random_num:0000000000000010 $d
+     /tmp/ccz5wF1E.s:60     .text.RNG_get_random_rangle:0000000000000000 $t
+     /tmp/ccz5wF1E.s:67     .text.RNG_get_random_rangle:0000000000000000 RNG_get_random_rangle
+     /tmp/ccz5wF1E.s:132    .text.RNG_get_random_rangle:0000000000000024 $d
+     /tmp/ccz5wF1E.s:138    .bss.rng.1:0000000000000000 $d
+     /tmp/ccz5wF1E.s:142    .bss.rng.1:0000000000000000 rng.1
+
+UNDEFINED SYMBOLS
+HAL_RNG_GenerateRandomNumber
+hrng

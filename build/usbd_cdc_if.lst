@@ -1,0 +1,2311 @@
+ARM GAS  /tmp/cc3zUKGa.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"usbd_cdc_if.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.CDC_DeInit_FS,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	CDC_DeInit_FS:
+  27              	.LFB246:
+  28              		.file 1 "USB_DEVICE/App/usbd_cdc_if.c"
+   1:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE BEGIN Header */
+   2:USB_DEVICE/App/usbd_cdc_if.c **** /**
+   3:USB_DEVICE/App/usbd_cdc_if.c ****   ******************************************************************************
+   4:USB_DEVICE/App/usbd_cdc_if.c ****   * @file           : usbd_cdc_if.c
+   5:USB_DEVICE/App/usbd_cdc_if.c ****   * @version        : v1.0_Cube
+   6:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief          : Usb device for Virtual Com Port.
+   7:USB_DEVICE/App/usbd_cdc_if.c ****   ******************************************************************************
+   8:USB_DEVICE/App/usbd_cdc_if.c ****   * @attention
+   9:USB_DEVICE/App/usbd_cdc_if.c ****   *
+  10:USB_DEVICE/App/usbd_cdc_if.c ****   * Copyright (c) 2022 STMicroelectronics.
+  11:USB_DEVICE/App/usbd_cdc_if.c ****   * All rights reserved.
+  12:USB_DEVICE/App/usbd_cdc_if.c ****   *
+  13:USB_DEVICE/App/usbd_cdc_if.c ****   * This software is licensed under terms that can be found in the LICENSE file
+  14:USB_DEVICE/App/usbd_cdc_if.c ****   * in the root directory of this software component.
+  15:USB_DEVICE/App/usbd_cdc_if.c ****   * If no LICENSE file comes with this software, it is provided AS-IS.
+  16:USB_DEVICE/App/usbd_cdc_if.c ****   *
+  17:USB_DEVICE/App/usbd_cdc_if.c ****   ******************************************************************************
+  18:USB_DEVICE/App/usbd_cdc_if.c ****   */
+  19:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE END Header */
+  20:USB_DEVICE/App/usbd_cdc_if.c **** 
+  21:USB_DEVICE/App/usbd_cdc_if.c **** /* Includes ------------------------------------------------------------------*/
+  22:USB_DEVICE/App/usbd_cdc_if.c **** #include "usbd_cdc_if.h"
+  23:USB_DEVICE/App/usbd_cdc_if.c **** 
+  24:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE BEGIN INCLUDE */
+  25:USB_DEVICE/App/usbd_cdc_if.c **** #include "FreeRTOS.h"
+  26:USB_DEVICE/App/usbd_cdc_if.c **** #include "ring_buffer.h"
+  27:USB_DEVICE/App/usbd_cdc_if.c **** #include "semphr.h"
+  28:USB_DEVICE/App/usbd_cdc_if.c **** #include <uxr/client/profile/multithread/multithread.h>
+  29:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE END INCLUDE */
+  30:USB_DEVICE/App/usbd_cdc_if.c **** 
+ARM GAS  /tmp/cc3zUKGa.s 			page 2
+
+
+  31:USB_DEVICE/App/usbd_cdc_if.c **** /* Private typedef -----------------------------------------------------------*/
+  32:USB_DEVICE/App/usbd_cdc_if.c **** /* Private define ------------------------------------------------------------*/
+  33:USB_DEVICE/App/usbd_cdc_if.c **** /* Private macro -------------------------------------------------------------*/
+  34:USB_DEVICE/App/usbd_cdc_if.c **** 
+  35:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE BEGIN PV */
+  36:USB_DEVICE/App/usbd_cdc_if.c **** /* Private variables ---------------------------------------------------------*/
+  37:USB_DEVICE/App/usbd_cdc_if.c **** 
+  38:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE END PV */
+  39:USB_DEVICE/App/usbd_cdc_if.c **** 
+  40:USB_DEVICE/App/usbd_cdc_if.c **** /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
+  41:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief Usb device library.
+  42:USB_DEVICE/App/usbd_cdc_if.c ****   * @{
+  43:USB_DEVICE/App/usbd_cdc_if.c ****   */
+  44:USB_DEVICE/App/usbd_cdc_if.c **** 
+  45:USB_DEVICE/App/usbd_cdc_if.c **** /** @addtogroup USBD_CDC_IF
+  46:USB_DEVICE/App/usbd_cdc_if.c ****   * @{
+  47:USB_DEVICE/App/usbd_cdc_if.c ****   */
+  48:USB_DEVICE/App/usbd_cdc_if.c **** 
+  49:USB_DEVICE/App/usbd_cdc_if.c **** /** @defgroup USBD_CDC_IF_Private_TypesDefinitions USBD_CDC_IF_Private_TypesDefinitions
+  50:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief Private types.
+  51:USB_DEVICE/App/usbd_cdc_if.c ****   * @{
+  52:USB_DEVICE/App/usbd_cdc_if.c ****   */
+  53:USB_DEVICE/App/usbd_cdc_if.c **** 
+  54:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE BEGIN PRIVATE_TYPES */
+  55:USB_DEVICE/App/usbd_cdc_if.c **** 
+  56:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE END PRIVATE_TYPES */
+  57:USB_DEVICE/App/usbd_cdc_if.c **** 
+  58:USB_DEVICE/App/usbd_cdc_if.c **** /**
+  59:USB_DEVICE/App/usbd_cdc_if.c ****   * @}
+  60:USB_DEVICE/App/usbd_cdc_if.c ****   */
+  61:USB_DEVICE/App/usbd_cdc_if.c **** 
+  62:USB_DEVICE/App/usbd_cdc_if.c **** /** @defgroup USBD_CDC_IF_Private_Defines USBD_CDC_IF_Private_Defines
+  63:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief Private defines.
+  64:USB_DEVICE/App/usbd_cdc_if.c ****   * @{
+  65:USB_DEVICE/App/usbd_cdc_if.c ****   */
+  66:USB_DEVICE/App/usbd_cdc_if.c **** 
+  67:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE BEGIN PRIVATE_DEFINES */
+  68:USB_DEVICE/App/usbd_cdc_if.c **** 
+  69:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE END PRIVATE_DEFINES */
+  70:USB_DEVICE/App/usbd_cdc_if.c **** 
+  71:USB_DEVICE/App/usbd_cdc_if.c **** /**
+  72:USB_DEVICE/App/usbd_cdc_if.c ****   * @}
+  73:USB_DEVICE/App/usbd_cdc_if.c ****   */
+  74:USB_DEVICE/App/usbd_cdc_if.c **** 
+  75:USB_DEVICE/App/usbd_cdc_if.c **** /** @defgroup USBD_CDC_IF_Private_Macros USBD_CDC_IF_Private_Macros
+  76:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief Private macros.
+  77:USB_DEVICE/App/usbd_cdc_if.c ****   * @{
+  78:USB_DEVICE/App/usbd_cdc_if.c ****   */
+  79:USB_DEVICE/App/usbd_cdc_if.c **** 
+  80:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE BEGIN PRIVATE_MACRO */
+  81:USB_DEVICE/App/usbd_cdc_if.c **** 
+  82:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE END PRIVATE_MACRO */
+  83:USB_DEVICE/App/usbd_cdc_if.c **** 
+  84:USB_DEVICE/App/usbd_cdc_if.c **** /**
+  85:USB_DEVICE/App/usbd_cdc_if.c ****   * @}
+  86:USB_DEVICE/App/usbd_cdc_if.c ****   */
+  87:USB_DEVICE/App/usbd_cdc_if.c **** 
+ARM GAS  /tmp/cc3zUKGa.s 			page 3
+
+
+  88:USB_DEVICE/App/usbd_cdc_if.c **** /** @defgroup USBD_CDC_IF_Private_Variables USBD_CDC_IF_Private_Variables
+  89:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief Private variables.
+  90:USB_DEVICE/App/usbd_cdc_if.c ****   * @{
+  91:USB_DEVICE/App/usbd_cdc_if.c ****   */
+  92:USB_DEVICE/App/usbd_cdc_if.c **** /* Create buffer for reception and transmission           */
+  93:USB_DEVICE/App/usbd_cdc_if.c **** /* It's up to user to redefine and/or remove those define */
+  94:USB_DEVICE/App/usbd_cdc_if.c **** /** Received data over USB are stored in this buffer      */
+  95:USB_DEVICE/App/usbd_cdc_if.c **** uint8_t UserRxBufferFS[APP_RX_DATA_SIZE]; // USB 接收硬件缓冲区
+  96:USB_DEVICE/App/usbd_cdc_if.c **** 
+  97:USB_DEVICE/App/usbd_cdc_if.c **** /** Data to send over USB CDC are stored in this buffer   */
+  98:USB_DEVICE/App/usbd_cdc_if.c **** uint8_t UserTxBufferFS[APP_TX_DATA_SIZE]; // USB 发送硬件缓冲区
+  99:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 100:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE BEGIN PRIVATE_VARIABLES */
+ 101:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 102:USB_DEVICE/App/usbd_cdc_if.c **** // 发送/接收环形缓冲区的预分配内存
+ 103:USB_DEVICE/App/usbd_cdc_if.c **** static uint8_t tx_buf_mem[TX_RINGBUF_SIZE];
+ 104:USB_DEVICE/App/usbd_cdc_if.c **** static uint8_t rx_buf_mem[RX_RINGBUF_SIZE];
+ 105:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 106:USB_DEVICE/App/usbd_cdc_if.c **** // 发送/接收环形缓冲区
+ 107:USB_DEVICE/App/usbd_cdc_if.c **** static ringbuf_t tx_buf;
+ 108:USB_DEVICE/App/usbd_cdc_if.c **** static ringbuf_t rx_buf;
+ 109:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 110:USB_DEVICE/App/usbd_cdc_if.c **** // 目前在 usb_transport_read 函数中等待新数据的线程，若无则为 NULL
+ 111:USB_DEVICE/App/usbd_cdc_if.c **** static TaskHandle_t rx_waiting_task = NULL;
+ 112:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 113:USB_DEVICE/App/usbd_cdc_if.c **** // USB 是否正在发送数据
+ 114:USB_DEVICE/App/usbd_cdc_if.c **** static bool usb_transmitting = false;
+ 115:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 116:USB_DEVICE/App/usbd_cdc_if.c **** // 发送/接收错误码
+ 117:USB_DEVICE/App/usbd_cdc_if.c **** static uint8_t tx_errcode = 0;
+ 118:USB_DEVICE/App/usbd_cdc_if.c **** static uint8_t rx_errcode = 0;
+ 119:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 120:USB_DEVICE/App/usbd_cdc_if.c **** // 自上次成功接收到数据后，上位机程序是否发生过重启
+ 121:USB_DEVICE/App/usbd_cdc_if.c **** static bool host_restarted = false;
+ 122:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 123:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE END PRIVATE_VARIABLES */
+ 124:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 125:USB_DEVICE/App/usbd_cdc_if.c **** /**
+ 126:USB_DEVICE/App/usbd_cdc_if.c ****   * @}
+ 127:USB_DEVICE/App/usbd_cdc_if.c ****   */
+ 128:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 129:USB_DEVICE/App/usbd_cdc_if.c **** /** @defgroup USBD_CDC_IF_Exported_Variables USBD_CDC_IF_Exported_Variables
+ 130:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief Public variables.
+ 131:USB_DEVICE/App/usbd_cdc_if.c ****   * @{
+ 132:USB_DEVICE/App/usbd_cdc_if.c ****   */
+ 133:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 134:USB_DEVICE/App/usbd_cdc_if.c **** extern USBD_HandleTypeDef hUsbDeviceFS;
+ 135:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 136:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE BEGIN EXPORTED_VARIABLES */
+ 137:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 138:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE END EXPORTED_VARIABLES */
+ 139:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 140:USB_DEVICE/App/usbd_cdc_if.c **** /**
+ 141:USB_DEVICE/App/usbd_cdc_if.c ****   * @}
+ 142:USB_DEVICE/App/usbd_cdc_if.c ****   */
+ 143:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 144:USB_DEVICE/App/usbd_cdc_if.c **** /** @defgroup USBD_CDC_IF_Private_FunctionPrototypes USBD_CDC_IF_Private_FunctionPrototypes
+ARM GAS  /tmp/cc3zUKGa.s 			page 4
+
+
+ 145:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief Private functions declaration.
+ 146:USB_DEVICE/App/usbd_cdc_if.c ****   * @{
+ 147:USB_DEVICE/App/usbd_cdc_if.c ****   */
+ 148:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 149:USB_DEVICE/App/usbd_cdc_if.c **** static int8_t CDC_Init_FS(void);
+ 150:USB_DEVICE/App/usbd_cdc_if.c **** static int8_t CDC_DeInit_FS(void);
+ 151:USB_DEVICE/App/usbd_cdc_if.c **** static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
+ 152:USB_DEVICE/App/usbd_cdc_if.c **** static int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
+ 153:USB_DEVICE/App/usbd_cdc_if.c **** static int8_t CDC_TransmitCplt_FS(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
+ 154:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 155:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE BEGIN PRIVATE_FUNCTIONS_DECLARATION */
+ 156:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 157:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE END PRIVATE_FUNCTIONS_DECLARATION */
+ 158:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 159:USB_DEVICE/App/usbd_cdc_if.c **** /**
+ 160:USB_DEVICE/App/usbd_cdc_if.c ****   * @}
+ 161:USB_DEVICE/App/usbd_cdc_if.c ****   */
+ 162:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 163:USB_DEVICE/App/usbd_cdc_if.c **** USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
+ 164:USB_DEVICE/App/usbd_cdc_if.c **** {
+ 165:USB_DEVICE/App/usbd_cdc_if.c ****   CDC_Init_FS,
+ 166:USB_DEVICE/App/usbd_cdc_if.c ****   CDC_DeInit_FS,
+ 167:USB_DEVICE/App/usbd_cdc_if.c ****   CDC_Control_FS,
+ 168:USB_DEVICE/App/usbd_cdc_if.c ****   CDC_Receive_FS,
+ 169:USB_DEVICE/App/usbd_cdc_if.c ****   CDC_TransmitCplt_FS
+ 170:USB_DEVICE/App/usbd_cdc_if.c **** };
+ 171:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 172:USB_DEVICE/App/usbd_cdc_if.c **** /* Private functions ---------------------------------------------------------*/
+ 173:USB_DEVICE/App/usbd_cdc_if.c **** /**
+ 174:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief  Initializes the CDC media low layer over the FS USB IP
+ 175:USB_DEVICE/App/usbd_cdc_if.c ****   * @retval USBD_OK if all operations are OK else USBD_FAIL
+ 176:USB_DEVICE/App/usbd_cdc_if.c ****   */
+ 177:USB_DEVICE/App/usbd_cdc_if.c **** static int8_t CDC_Init_FS(void)
+ 178:USB_DEVICE/App/usbd_cdc_if.c **** {
+ 179:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 3 */
+ 180:USB_DEVICE/App/usbd_cdc_if.c ****   /* Set Application Buffers */
+ 181:USB_DEVICE/App/usbd_cdc_if.c ****   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
+ 182:USB_DEVICE/App/usbd_cdc_if.c ****   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+ 183:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 184:USB_DEVICE/App/usbd_cdc_if.c ****   // ISR 中进入临界区
+ 185:USB_DEVICE/App/usbd_cdc_if.c ****   UBaseType_t uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
+ 186:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 187:USB_DEVICE/App/usbd_cdc_if.c ****   // 初始化环形缓冲区，丢弃其中数据
+ 188:USB_DEVICE/App/usbd_cdc_if.c ****   ringbuf_init(&tx_buf, tx_buf_mem, TX_RINGBUF_SIZE);
+ 189:USB_DEVICE/App/usbd_cdc_if.c ****   ringbuf_init(&rx_buf, rx_buf_mem, RX_RINGBUF_SIZE);
+ 190:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 191:USB_DEVICE/App/usbd_cdc_if.c ****   // 清除错误码
+ 192:USB_DEVICE/App/usbd_cdc_if.c ****   tx_errcode = 0;
+ 193:USB_DEVICE/App/usbd_cdc_if.c ****   rx_errcode = 0;
+ 194:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 195:USB_DEVICE/App/usbd_cdc_if.c ****   // 清除传输状态设置
+ 196:USB_DEVICE/App/usbd_cdc_if.c ****   // 当 USB 断连时，传输完成的回调（CDC_TransmitCplt_FS）始终不会被调用
+ 197:USB_DEVICE/App/usbd_cdc_if.c ****   // 而当 USB 重新连接时，HAL 不会传送先前数据，而是会先调用 CDC_DeInit_FS
+ 198:USB_DEVICE/App/usbd_cdc_if.c ****   // 释放旧的介质层，再调用 CDC_Init_FS 初始化新的介质层，因此需要在此处
+ 199:USB_DEVICE/App/usbd_cdc_if.c ****   // usb_transmitting 标志。
+ 200:USB_DEVICE/App/usbd_cdc_if.c ****   usb_transmitting = false;
+ 201:USB_DEVICE/App/usbd_cdc_if.c **** 
+ARM GAS  /tmp/cc3zUKGa.s 			page 5
+
+
+ 202:USB_DEVICE/App/usbd_cdc_if.c ****   taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
+ 203:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 204:USB_DEVICE/App/usbd_cdc_if.c ****   return (USBD_OK);
+ 205:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 3 */
+ 206:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 207:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 208:USB_DEVICE/App/usbd_cdc_if.c **** /**
+ 209:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief  DeInitializes the CDC media low layer
+ 210:USB_DEVICE/App/usbd_cdc_if.c ****   * @retval USBD_OK if all operations are OK else USBD_FAIL
+ 211:USB_DEVICE/App/usbd_cdc_if.c ****   */
+ 212:USB_DEVICE/App/usbd_cdc_if.c **** static int8_t CDC_DeInit_FS(void)
+ 213:USB_DEVICE/App/usbd_cdc_if.c **** {
+  29              		.loc 1 213 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+ 214:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 4 */
+ 215:USB_DEVICE/App/usbd_cdc_if.c ****   return (USBD_OK);
+  34              		.loc 1 215 3 view .LVU1
+ 216:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 4 */
+ 217:USB_DEVICE/App/usbd_cdc_if.c **** }
+  35              		.loc 1 217 1 is_stmt 0 view .LVU2
+  36 0000 0020     		movs	r0, #0
+  37 0002 7047     		bx	lr
+  38              		.cfi_endproc
+  39              	.LFE246:
+  41              		.section	.text.CDC_Control_FS,"ax",%progbits
+  42              		.align	1
+  43              		.p2align 2,,3
+  44              		.syntax unified
+  45              		.thumb
+  46              		.thumb_func
+  48              	CDC_Control_FS:
+  49              	.LVL0:
+  50              	.LFB247:
+ 218:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 219:USB_DEVICE/App/usbd_cdc_if.c **** /**
+ 220:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief  Manage the CDC class requests
+ 221:USB_DEVICE/App/usbd_cdc_if.c ****   * @param  cmd: Command code
+ 222:USB_DEVICE/App/usbd_cdc_if.c ****   * @param  pbuf: Buffer containing command data (request parameters)
+ 223:USB_DEVICE/App/usbd_cdc_if.c ****   * @param  length: Number of data to be sent (in bytes)
+ 224:USB_DEVICE/App/usbd_cdc_if.c ****   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
+ 225:USB_DEVICE/App/usbd_cdc_if.c ****   */
+ 226:USB_DEVICE/App/usbd_cdc_if.c **** static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
+ 227:USB_DEVICE/App/usbd_cdc_if.c **** {
+  51              		.loc 1 227 1 is_stmt 1 view -0
+  52              		.cfi_startproc
+  53              		@ args = 0, pretend = 0, frame = 0
+  54              		@ frame_needed = 0, uses_anonymous_args = 0
+  55              		@ link register save eliminated.
+ 228:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 5 */
+ 229:USB_DEVICE/App/usbd_cdc_if.c ****   switch(cmd)
+  56              		.loc 1 229 3 view .LVU4
+  57 0000 2228     		cmp	r0, #34
+  58 0002 02D1     		bne	.L4
+ 230:USB_DEVICE/App/usbd_cdc_if.c ****   {
+ARM GAS  /tmp/cc3zUKGa.s 			page 6
+
+
+ 231:USB_DEVICE/App/usbd_cdc_if.c ****     case CDC_SEND_ENCAPSULATED_COMMAND:
+ 232:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 233:USB_DEVICE/App/usbd_cdc_if.c ****     break;
+ 234:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 235:USB_DEVICE/App/usbd_cdc_if.c ****     case CDC_GET_ENCAPSULATED_RESPONSE:
+ 236:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 237:USB_DEVICE/App/usbd_cdc_if.c ****     break;
+ 238:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 239:USB_DEVICE/App/usbd_cdc_if.c ****     case CDC_SET_COMM_FEATURE:
+ 240:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 241:USB_DEVICE/App/usbd_cdc_if.c ****     break;
+ 242:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 243:USB_DEVICE/App/usbd_cdc_if.c ****     case CDC_GET_COMM_FEATURE:
+ 244:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 245:USB_DEVICE/App/usbd_cdc_if.c ****     break;
+ 246:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 247:USB_DEVICE/App/usbd_cdc_if.c ****     case CDC_CLEAR_COMM_FEATURE:
+ 248:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 249:USB_DEVICE/App/usbd_cdc_if.c ****     break;
+ 250:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 251:USB_DEVICE/App/usbd_cdc_if.c ****   /*******************************************************************************/
+ 252:USB_DEVICE/App/usbd_cdc_if.c ****   /* Line Coding Structure                                                       */
+ 253:USB_DEVICE/App/usbd_cdc_if.c ****   /*-----------------------------------------------------------------------------*/
+ 254:USB_DEVICE/App/usbd_cdc_if.c ****   /* Offset | Field       | Size | Value  | Description                          */
+ 255:USB_DEVICE/App/usbd_cdc_if.c ****   /* 0      | dwDTERate   |   4  | Number |Data terminal rate, in bits per second*/
+ 256:USB_DEVICE/App/usbd_cdc_if.c ****   /* 4      | bCharFormat |   1  | Number | Stop bits                            */
+ 257:USB_DEVICE/App/usbd_cdc_if.c ****   /*                                        0 - 1 Stop bit                       */
+ 258:USB_DEVICE/App/usbd_cdc_if.c ****   /*                                        1 - 1.5 Stop bits                    */
+ 259:USB_DEVICE/App/usbd_cdc_if.c ****   /*                                        2 - 2 Stop bits                      */
+ 260:USB_DEVICE/App/usbd_cdc_if.c ****   /* 5      | bParityType |  1   | Number | Parity                               */
+ 261:USB_DEVICE/App/usbd_cdc_if.c ****   /*                                        0 - None                             */
+ 262:USB_DEVICE/App/usbd_cdc_if.c ****   /*                                        1 - Odd                              */
+ 263:USB_DEVICE/App/usbd_cdc_if.c ****   /*                                        2 - Even                             */
+ 264:USB_DEVICE/App/usbd_cdc_if.c ****   /*                                        3 - Mark                             */
+ 265:USB_DEVICE/App/usbd_cdc_if.c ****   /*                                        4 - Space                            */
+ 266:USB_DEVICE/App/usbd_cdc_if.c ****   /* 6      | bDataBits  |   1   | Number Data bits (5, 6, 7, 8 or 16).          */
+ 267:USB_DEVICE/App/usbd_cdc_if.c ****   /*******************************************************************************/
+ 268:USB_DEVICE/App/usbd_cdc_if.c ****     case CDC_SET_LINE_CODING:
+ 269:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 270:USB_DEVICE/App/usbd_cdc_if.c ****     break;
+ 271:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 272:USB_DEVICE/App/usbd_cdc_if.c ****     case CDC_GET_LINE_CODING:
+ 273:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 274:USB_DEVICE/App/usbd_cdc_if.c ****     break;
+ 275:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 276:USB_DEVICE/App/usbd_cdc_if.c ****     case CDC_SET_CONTROL_LINE_STATE:
+ 277:USB_DEVICE/App/usbd_cdc_if.c ****     // 当上位机打开 USB 串口时，会发送 CDC_SET_CONTROL_LINE_STATE 命令
+ 278:USB_DEVICE/App/usbd_cdc_if.c ****     host_restarted = true;
+  59              		.loc 1 278 5 view .LVU5
+  60              		.loc 1 278 20 is_stmt 0 view .LVU6
+  61 0004 024B     		ldr	r3, .L5
+  62 0006 0122     		movs	r2, #1
+  63              	.LVL1:
+  64              		.loc 1 278 20 view .LVU7
+  65 0008 1A70     		strb	r2, [r3]
+ 279:USB_DEVICE/App/usbd_cdc_if.c ****     break;
+  66              		.loc 1 279 5 is_stmt 1 view .LVU8
+ARM GAS  /tmp/cc3zUKGa.s 			page 7
+
+
+  67              	.L4:
+ 280:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 281:USB_DEVICE/App/usbd_cdc_if.c ****     case CDC_SEND_BREAK:
+ 282:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 283:USB_DEVICE/App/usbd_cdc_if.c ****     break;
+ 284:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 285:USB_DEVICE/App/usbd_cdc_if.c ****   default:
+ 286:USB_DEVICE/App/usbd_cdc_if.c ****     break;
+ 287:USB_DEVICE/App/usbd_cdc_if.c ****   }
+ 288:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 289:USB_DEVICE/App/usbd_cdc_if.c ****   return (USBD_OK);
+  68              		.loc 1 289 3 view .LVU9
+ 290:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 5 */
+ 291:USB_DEVICE/App/usbd_cdc_if.c **** }
+  69              		.loc 1 291 1 is_stmt 0 view .LVU10
+  70 000a 0020     		movs	r0, #0
+  71              	.LVL2:
+  72              		.loc 1 291 1 view .LVU11
+  73 000c 7047     		bx	lr
+  74              	.L6:
+  75 000e 00BF     		.align	2
+  76              	.L5:
+  77 0010 00000000 		.word	.LANCHOR0
+  78              		.cfi_endproc
+  79              	.LFE247:
+  81              		.section	.text.CDC_Receive_FS,"ax",%progbits
+  82              		.align	1
+  83              		.p2align 2,,3
+  84              		.syntax unified
+  85              		.thumb
+  86              		.thumb_func
+  88              	CDC_Receive_FS:
+  89              	.LVL3:
+  90              	.LFB248:
+ 292:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 293:USB_DEVICE/App/usbd_cdc_if.c **** /**
+ 294:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief  Data received over USB OUT endpoint are sent over CDC interface
+ 295:USB_DEVICE/App/usbd_cdc_if.c ****   *         through this function.
+ 296:USB_DEVICE/App/usbd_cdc_if.c ****   *
+ 297:USB_DEVICE/App/usbd_cdc_if.c ****   *         @note
+ 298:USB_DEVICE/App/usbd_cdc_if.c ****   *         This function will issue a NAK packet on any OUT packet received on
+ 299:USB_DEVICE/App/usbd_cdc_if.c ****   *         USB endpoint until exiting this function. If you exit this function
+ 300:USB_DEVICE/App/usbd_cdc_if.c ****   *         before transfer is complete on CDC interface (ie. using DMA controller)
+ 301:USB_DEVICE/App/usbd_cdc_if.c ****   *         it will result in receiving more data while previous ones are still
+ 302:USB_DEVICE/App/usbd_cdc_if.c ****   *         not sent.
+ 303:USB_DEVICE/App/usbd_cdc_if.c ****   *
+ 304:USB_DEVICE/App/usbd_cdc_if.c ****   * @param  Buf: Buffer of data to be received
+ 305:USB_DEVICE/App/usbd_cdc_if.c ****   * @param  Len: Number of data received (in bytes)
+ 306:USB_DEVICE/App/usbd_cdc_if.c ****   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
+ 307:USB_DEVICE/App/usbd_cdc_if.c ****   */
+ 308:USB_DEVICE/App/usbd_cdc_if.c **** static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
+ 309:USB_DEVICE/App/usbd_cdc_if.c **** {
+  91              		.loc 1 309 1 is_stmt 1 view -0
+  92              		.cfi_startproc
+  93              		@ args = 0, pretend = 0, frame = 8
+  94              		@ frame_needed = 0, uses_anonymous_args = 0
+ 310:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 6 */
+ARM GAS  /tmp/cc3zUKGa.s 			page 8
+
+
+ 311:USB_DEVICE/App/usbd_cdc_if.c ****   // 当 USB 接收完一个数据包后，调用此函数
+ 312:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 313:USB_DEVICE/App/usbd_cdc_if.c ****   // ISR 中进入临界区
+ 314:USB_DEVICE/App/usbd_cdc_if.c ****   UBaseType_t uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
+  95              		.loc 1 314 3 view .LVU13
+  96              	.LBB20:
+  97              	.LBI20:
+  98              		.file 2 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h"
+   1:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*
+   2:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * FreeRTOS Kernel V10.3.1
+   3:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+   4:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+   5:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * Permission is hereby granted, free of charge, to any person obtaining a copy of
+   6:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * this software and associated documentation files (the "Software"), to deal in
+   7:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * the Software without restriction, including without limitation the rights to
+   8:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+   9:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * the Software, and to permit persons to whom the Software is furnished to do so,
+  10:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * subject to the following conditions:
+  11:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  12:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * The above copyright notice and this permission notice shall be included in all
+  13:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * copies or substantial portions of the Software.
+  14:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  15:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  16:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+  17:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+  18:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+  19:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  20:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  21:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  22:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * http://www.FreeRTOS.org
+  23:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * http://aws.amazon.com/freertos
+  24:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  25:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * 1 tab == 4 spaces!
+  26:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  */
+  27:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  28:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  29:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifndef PORTMACRO_H
+  30:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define PORTMACRO_H
+  31:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  32:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifdef __cplusplus
+  33:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** extern "C" {
+  34:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+  35:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  36:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------
+  37:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * Port specific definitions.
+  38:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  39:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * The settings in this file configure FreeRTOS correctly for the
+  40:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * given hardware and compiler.
+  41:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  42:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * These settings should not be altered.
+  43:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *-----------------------------------------------------------
+  44:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  */
+  45:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  46:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Type definitions. */
+  47:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portCHAR		char
+  48:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portFLOAT		float
+  49:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portDOUBLE		double
+ARM GAS  /tmp/cc3zUKGa.s 			page 9
+
+
+  50:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portLONG		long
+  51:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portSHORT		short
+  52:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portSTACK_TYPE	uint32_t
+  53:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portBASE_TYPE	long
+  54:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  55:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** typedef portSTACK_TYPE StackType_t;
+  56:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** typedef long BaseType_t;
+  57:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** typedef unsigned long UBaseType_t;
+  58:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  59:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #if( configUSE_16_BIT_TICKS == 1 )
+  60:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	typedef uint16_t TickType_t;
+  61:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portMAX_DELAY ( TickType_t ) 0xffff
+  62:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #else
+  63:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	typedef uint32_t TickType_t;
+  64:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portMAX_DELAY ( TickType_t ) 0xffffffffUL
+  65:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  66:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* 32-bit tick type on a 32-bit architecture, so reads of the tick count do
+  67:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	not need to be guarded with a critical section. */
+  68:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portTICK_TYPE_IS_ATOMIC 1
+  69:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+  70:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+  71:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  72:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Architecture specifics. */
+  73:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portSTACK_GROWTH			( -1 )
+  74:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portTICK_PERIOD_MS			( ( TickType_t ) 1000 / configTICK_RATE_HZ )
+  75:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portBYTE_ALIGNMENT			8
+  76:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+  77:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  78:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Scheduler utilities. */
+  79:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portYIELD() 															\
+  80:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {																				\
+  81:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Set a PendSV to request a context switch. */								\
+  82:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;								\
+  83:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 																				\
+  84:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Barriers are normally not required but do ensure the code is completely	\
+  85:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	within the specified behaviour for the architecture. */						\
+  86:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__asm volatile( "dsb" ::: "memory" );										\
+  87:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__asm volatile( "isb" );													\
+  88:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+  89:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  90:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portNVIC_INT_CTRL_REG		( * ( ( volatile uint32_t * ) 0xe000ed04 ) )
+  91:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portNVIC_PENDSVSET_BIT		( 1UL << 28UL )
+  92:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portEND_SWITCHING_ISR( xSwitchRequired ) if( xSwitchRequired != pdFALSE ) portYIELD()
+  93:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portYIELD_FROM_ISR( x ) portEND_SWITCHING_ISR( x )
+  94:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+  95:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  96:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Critical section management. */
+  97:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** extern void vPortEnterCritical( void );
+  98:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** extern void vPortExitCritical( void );
+  99:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portSET_INTERRUPT_MASK_FROM_ISR()		ulPortRaiseBASEPRI()
+ 100:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	vPortSetBASEPRI(x)
+ 101:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portDISABLE_INTERRUPTS()				vPortRaiseBASEPRI()
+ 102:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portENABLE_INTERRUPTS()					vPortSetBASEPRI(0)
+ 103:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portENTER_CRITICAL()					vPortEnterCritical()
+ 104:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portEXIT_CRITICAL()						vPortExitCritical()
+ 105:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 106:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ARM GAS  /tmp/cc3zUKGa.s 			page 10
+
+
+ 107:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 108:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Task function macros as described on the FreeRTOS.org WEB site.  These are
+ 109:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** not necessary for to use this port.  They are defined so the common demo files
+ 110:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** (which build with all the ports) will build. */
+ 111:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portTASK_FUNCTION_PROTO( vFunction, pvParameters ) void vFunction( void *pvParameters )
+ 112:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portTASK_FUNCTION( vFunction, pvParameters ) void vFunction( void *pvParameters )
+ 113:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ 114:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 115:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Tickless idle/low power functionality. */
+ 116:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifndef portSUPPRESS_TICKS_AND_SLEEP
+ 117:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	extern void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime );
+ 118:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portSUPPRESS_TICKS_AND_SLEEP( xExpectedIdleTime ) vPortSuppressTicksAndSleep( xExpectedIdl
+ 119:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+ 120:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ 121:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 122:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Architecture specific optimisations. */
+ 123:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifndef configUSE_PORT_OPTIMISED_TASK_SELECTION
+ 124:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
+ 125:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+ 126:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 127:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #if configUSE_PORT_OPTIMISED_TASK_SELECTION == 1
+ 128:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 129:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Generic helper function. */
+ 130:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__attribute__( ( always_inline ) ) static inline uint8_t ucPortCountLeadingZeros( uint32_t ulBitma
+ 131:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	{
+ 132:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	uint8_t ucReturn;
+ 133:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 134:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		__asm volatile ( "clz %0, %1" : "=r" ( ucReturn ) : "r" ( ulBitmap ) : "memory" );
+ 135:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		return ucReturn;
+ 136:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	}
+ 137:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 138:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Check the configuration. */
+ 139:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#if( configMAX_PRIORITIES > 32 )
+ 140:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		#error configUSE_PORT_OPTIMISED_TASK_SELECTION can only be set to 1 when configMAX_PRIORITIES is 
+ 141:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#endif
+ 142:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 143:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Store/clear the ready priorities in a bit map. */
+ 144:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portRECORD_READY_PRIORITY( uxPriority, uxReadyPriorities ) ( uxReadyPriorities ) |= ( 1UL 
+ 145:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portRESET_READY_PRIORITY( uxPriority, uxReadyPriorities ) ( uxReadyPriorities ) &= ~( 1UL 
+ 146:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 147:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/*-----------------------------------------------------------*/
+ 148:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 149:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31UL - ( ui
+ 150:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 151:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif /* configUSE_PORT_OPTIMISED_TASK_SELECTION */
+ 152:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 153:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ 154:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 155:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifdef configASSERT
+ 156:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	void vPortValidateInterruptPriority( void );
+ 157:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portASSERT_IF_INTERRUPT_PRIORITY_INVALID() 	vPortValidateInterruptPriority()
+ 158:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+ 159:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 160:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* portNOP() is not required by this port. */
+ 161:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portNOP()
+ 162:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 163:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portINLINE	__inline
+ARM GAS  /tmp/cc3zUKGa.s 			page 11
+
+
+ 164:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 165:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifndef portFORCE_INLINE
+ 166:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portFORCE_INLINE inline __attribute__(( always_inline))
+ 167:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+ 168:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 169:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** portFORCE_INLINE static BaseType_t xPortIsInsideInterrupt( void )
+ 170:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 171:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** uint32_t ulCurrentInterrupt;
+ 172:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** BaseType_t xReturn;
+ 173:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 174:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Obtain the number of the currently executing interrupt. */
+ 175:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__asm volatile( "mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) :: "memory" );
+ 176:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 177:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	if( ulCurrentInterrupt == 0 )
+ 178:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	{
+ 179:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		xReturn = pdFALSE;
+ 180:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	}
+ 181:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	else
+ 182:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	{
+ 183:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		xReturn = pdTRUE;
+ 184:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	}
+ 185:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 186:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	return xReturn;
+ 187:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+ 188:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 189:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ 190:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 191:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** portFORCE_INLINE static void vPortRaiseBASEPRI( void )
+ 192:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 193:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** uint32_t ulNewBASEPRI;
+ 194:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 195:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__asm volatile
+ 196:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	(
+ 197:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		"	mov %0, %1												\n"	\
+ 198:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		"	msr basepri, %0											\n" \
+ 199:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		"	isb														\n" \
+ 200:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		"	dsb														\n" \
+ 201:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		:"=r" (ulNewBASEPRI) : "i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ) : "memory"
+ 202:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	);
+ 203:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+ 204:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 205:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ 206:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 207:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** portFORCE_INLINE static uint32_t ulPortRaiseBASEPRI( void )
+  99              		.loc 2 207 34 view .LVU14
+ 100              	.LBB21:
+ 208:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 209:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** uint32_t ulOriginalBASEPRI, ulNewBASEPRI;
+ 101              		.loc 2 209 1 view .LVU15
+ 210:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 211:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__asm volatile
+ 102              		.loc 2 211 2 view .LVU16
+ 103              	.LBE21:
+ 104              	.LBE20:
+ 309:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 6 */
+ 105              		.loc 1 309 1 is_stmt 0 view .LVU17
+ 106 0000 70B5     		push	{r4, r5, r6, lr}
+ARM GAS  /tmp/cc3zUKGa.s 			page 12
+
+
+ 107              		.cfi_def_cfa_offset 16
+ 108              		.cfi_offset 4, -16
+ 109              		.cfi_offset 5, -12
+ 110              		.cfi_offset 6, -8
+ 111              		.cfi_offset 14, -4
+ 112 0002 0446     		mov	r4, r0
+ 113 0004 84B0     		sub	sp, sp, #16
+ 114              		.cfi_def_cfa_offset 32
+ 115              	.LBB23:
+ 116              	.LBB22:
+ 117              		.loc 2 211 2 view .LVU18
+ 118              		.syntax unified
+ 119              	@ 211 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 120 0006 EFF31186 			mrs r6, basepri											
+ 121 000a 4FF05003 		mov r3, #80												
+ 122 000e 83F31188 		msr basepri, r3											
+ 123 0012 BFF36F8F 		isb														
+ 124 0016 BFF34F8F 		dsb														
+ 125              	
+ 126              	@ 0 "" 2
+ 127              	.LVL4:
+ 212:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	(
+ 213:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		"	mrs %0, basepri											\n" \
+ 214:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		"	mov %1, %2												\n"	\
+ 215:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		"	msr basepri, %1											\n" \
+ 216:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		"	isb														\n" \
+ 217:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		"	dsb														\n" \
+ 218:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		:"=r" (ulOriginalBASEPRI), "=r" (ulNewBASEPRI) : "i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ) : "
+ 219:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	);
+ 220:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 221:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* This return will not be reached but is necessary to prevent compiler
+ 222:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	warnings. */
+ 223:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	return ulOriginalBASEPRI;
+ 128              		.loc 2 223 2 is_stmt 1 view .LVU19
+ 129              		.loc 2 223 2 is_stmt 0 view .LVU20
+ 130              		.thumb
+ 131              		.syntax unified
+ 132              	.LBE22:
+ 133              	.LBE23:
+ 315:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 316:USB_DEVICE/App/usbd_cdc_if.c ****   // 将接收到的数据写入缓冲区
+ 317:USB_DEVICE/App/usbd_cdc_if.c ****   size_t overflow = ringbuf_write(&rx_buf, Buf, *Len);
+ 134              		.loc 1 317 3 is_stmt 1 view .LVU21
+ 135              		.loc 1 317 21 is_stmt 0 view .LVU22
+ 136 001a 1848     		ldr	r0, .L21
+ 137              	.LVL5:
+ 138              		.loc 1 317 21 view .LVU23
+ 139 001c 0A68     		ldr	r2, [r1]
+ 140 001e 2146     		mov	r1, r4
+ 141              	.LVL6:
+ 142              		.loc 1 317 21 view .LVU24
+ 143 0020 FFF7FEFF 		bl	ringbuf_write
+ 144              	.LVL7:
+ 318:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 319:USB_DEVICE/App/usbd_cdc_if.c ****   // 将当前正在等待数据的线程取到 taskToNotify 中，并清除等待线程
+ 320:USB_DEVICE/App/usbd_cdc_if.c ****   TaskHandle_t taskToNotify = rx_waiting_task;
+ 145              		.loc 1 320 3 is_stmt 1 view .LVU25
+ARM GAS  /tmp/cc3zUKGa.s 			page 13
+
+
+ 146              		.loc 1 320 16 is_stmt 0 view .LVU26
+ 147 0024 164B     		ldr	r3, .L21+4
+ 321:USB_DEVICE/App/usbd_cdc_if.c ****   rx_waiting_task = NULL;
+ 148              		.loc 1 321 19 view .LVU27
+ 149 0026 0022     		movs	r2, #0
+ 320:USB_DEVICE/App/usbd_cdc_if.c ****   rx_waiting_task = NULL;
+ 150              		.loc 1 320 16 view .LVU28
+ 151 0028 1D68     		ldr	r5, [r3]
+ 152              	.LVL8:
+ 153              		.loc 1 321 3 is_stmt 1 view .LVU29
+ 154              		.loc 1 321 19 is_stmt 0 view .LVU30
+ 155 002a 1A60     		str	r2, [r3]
+ 322:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 323:USB_DEVICE/App/usbd_cdc_if.c ****   if (overflow) {
+ 156              		.loc 1 323 3 is_stmt 1 view .LVU31
+ 157              		.loc 1 323 6 is_stmt 0 view .LVU32
+ 158 002c 20B1     		cbz	r0, .L8
+ 324:USB_DEVICE/App/usbd_cdc_if.c **** 	  // 若发生缓冲区溢出造成的覆盖，则设置错误标志位
+ 325:USB_DEVICE/App/usbd_cdc_if.c **** 	  rx_errcode |= USB_ERR_RINGBUF_OVERFLOW;
+ 159              		.loc 1 325 4 is_stmt 1 view .LVU33
+ 160              		.loc 1 325 15 is_stmt 0 view .LVU34
+ 161 002e 154A     		ldr	r2, .L21+8
+ 162 0030 1378     		ldrb	r3, [r2]	@ zero_extendqisi2
+ 163 0032 43F00103 		orr	r3, r3, #1
+ 164 0036 1370     		strb	r3, [r2]
+ 165              	.L8:
+ 326:USB_DEVICE/App/usbd_cdc_if.c ****   }
+ 327:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 328:USB_DEVICE/App/usbd_cdc_if.c ****   // 退出临界区
+ 329:USB_DEVICE/App/usbd_cdc_if.c ****   taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
+ 166              		.loc 1 329 3 is_stmt 1 view .LVU35
+ 167              	.LVL9:
+ 168              	.LBB24:
+ 169              	.LBI24:
+ 224:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+ 225:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ 226:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 227:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** portFORCE_INLINE static void vPortSetBASEPRI( uint32_t ulNewMaskValue )
+ 170              		.loc 2 227 30 view .LVU36
+ 171              	.LBB25:
+ 228:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 229:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__asm volatile
+ 172              		.loc 2 229 2 view .LVU37
+ 173              		.syntax unified
+ 174              	@ 229 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 175 0038 86F31188 			msr basepri, r6	
+ 176              	@ 0 "" 2
+ 177              	.LVL10:
+ 178              		.loc 2 229 2 is_stmt 0 view .LVU38
+ 179              		.thumb
+ 180              		.syntax unified
+ 181              	.LBE25:
+ 182              	.LBE24:
+ 330:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 331:USB_DEVICE/App/usbd_cdc_if.c ****   // 准备接收下一个包
+ 332:USB_DEVICE/App/usbd_cdc_if.c ****   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+ 183              		.loc 1 332 3 is_stmt 1 view .LVU39
+ARM GAS  /tmp/cc3zUKGa.s 			page 14
+
+
+ 184 003c 1248     		ldr	r0, .L21+12
+ 185              	.LVL11:
+ 186              		.loc 1 332 3 is_stmt 0 view .LVU40
+ 187 003e 2146     		mov	r1, r4
+ 188 0040 FFF7FEFF 		bl	USBD_CDC_SetRxBuffer
+ 189              	.LVL12:
+ 333:USB_DEVICE/App/usbd_cdc_if.c ****   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+ 190              		.loc 1 333 3 is_stmt 1 view .LVU41
+ 191 0044 1048     		ldr	r0, .L21+12
+ 192 0046 FFF7FEFF 		bl	USBD_CDC_ReceivePacket
+ 193              	.LVL13:
+ 334:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 335:USB_DEVICE/App/usbd_cdc_if.c ****   // 若有线程在等待数据，则唤醒它
+ 336:USB_DEVICE/App/usbd_cdc_if.c ****   if (taskToNotify != NULL) {
+ 194              		.loc 1 336 3 view .LVU42
+ 195              		.loc 1 336 6 is_stmt 0 view .LVU43
+ 196 004a 9DB1     		cbz	r5, .L9
+ 197              	.LBB26:
+ 337:USB_DEVICE/App/usbd_cdc_if.c **** 	  BaseType_t higherPriorityTaskWoken;
+ 198              		.loc 1 337 4 is_stmt 1 view .LVU44
+ 338:USB_DEVICE/App/usbd_cdc_if.c **** 	  xTaskNotifyFromISR(taskToNotify, 0, eNoAction, &higherPriorityTaskWoken);
+ 199              		.loc 1 338 4 view .LVU45
+ 200 004c 0023     		movs	r3, #0
+ 201 004e 03AA     		add	r2, sp, #12
+ 202 0050 0092     		str	r2, [sp]
+ 203 0052 1946     		mov	r1, r3
+ 204 0054 1A46     		mov	r2, r3
+ 205 0056 2846     		mov	r0, r5
+ 206 0058 FFF7FEFF 		bl	xTaskGenericNotifyFromISR
+ 207              	.LVL14:
+ 339:USB_DEVICE/App/usbd_cdc_if.c **** 	  portYIELD_FROM_ISR(
+ 208              		.loc 1 339 4 view .LVU46
+ 209 005c 039B     		ldr	r3, [sp, #12]
+ 210 005e 4BB1     		cbz	r3, .L9
+ 211              		.loc 1 339 4 discriminator 1 view .LVU47
+ 212 0060 4FF0E023 		mov	r3, #-536813568
+ 213 0064 4FF08052 		mov	r2, #268435456
+ 214 0068 C3F8042D 		str	r2, [r3, #3332]
+ 215              		.loc 1 339 4 discriminator 1 view .LVU48
+ 216              		.syntax unified
+ 217              	@ 339 "USB_DEVICE/App/usbd_cdc_if.c" 1
+ 218 006c BFF34F8F 		dsb
+ 219              	@ 0 "" 2
+ 220              		.loc 1 339 4 discriminator 1 view .LVU49
+ 221              	@ 339 "USB_DEVICE/App/usbd_cdc_if.c" 1
+ 222 0070 BFF36F8F 		isb
+ 223              	@ 0 "" 2
+ 340:USB_DEVICE/App/usbd_cdc_if.c **** 		  higherPriorityTaskWoken); // 若唤醒的线程优先级更高，则允许其抢占
+ 224              		.loc 1 340 29 discriminator 1 view .LVU50
+ 225              		.thumb
+ 226              		.syntax unified
+ 227              	.L9:
+ 228              		.loc 1 340 29 is_stmt 0 discriminator 1 view .LVU51
+ 229              	.LBE26:
+ 341:USB_DEVICE/App/usbd_cdc_if.c ****   }
+ 342:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 343:USB_DEVICE/App/usbd_cdc_if.c ****   return USBD_OK;
+ARM GAS  /tmp/cc3zUKGa.s 			page 15
+
+
+ 230              		.loc 1 343 3 is_stmt 1 view .LVU52
+ 344:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 6 */
+ 345:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 231              		.loc 1 345 1 is_stmt 0 view .LVU53
+ 232 0074 0020     		movs	r0, #0
+ 233 0076 04B0     		add	sp, sp, #16
+ 234              		.cfi_def_cfa_offset 16
+ 235              		@ sp needed
+ 236 0078 70BD     		pop	{r4, r5, r6, pc}
+ 237              	.LVL15:
+ 238              	.L22:
+ 239              		.loc 1 345 1 view .LVU54
+ 240 007a 00BF     		.align	2
+ 241              	.L21:
+ 242 007c 00000000 		.word	.LANCHOR1
+ 243 0080 00000000 		.word	.LANCHOR2
+ 244 0084 00000000 		.word	.LANCHOR3
+ 245 0088 00000000 		.word	hUsbDeviceFS
+ 246              		.cfi_endproc
+ 247              	.LFE248:
+ 249              		.section	.text.CDC_Init_FS,"ax",%progbits
+ 250              		.align	1
+ 251              		.p2align 2,,3
+ 252              		.syntax unified
+ 253              		.thumb
+ 254              		.thumb_func
+ 256              	CDC_Init_FS:
+ 257              	.LFB245:
+ 178:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 3 */
+ 258              		.loc 1 178 1 is_stmt 1 view -0
+ 259              		.cfi_startproc
+ 260              		@ args = 0, pretend = 0, frame = 0
+ 261              		@ frame_needed = 0, uses_anonymous_args = 0
+ 181:USB_DEVICE/App/usbd_cdc_if.c ****   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+ 262              		.loc 1 181 3 view .LVU56
+ 178:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 3 */
+ 263              		.loc 1 178 1 is_stmt 0 view .LVU57
+ 264 0000 10B5     		push	{r4, lr}
+ 265              		.cfi_def_cfa_offset 8
+ 266              		.cfi_offset 4, -8
+ 267              		.cfi_offset 14, -4
+ 181:USB_DEVICE/App/usbd_cdc_if.c ****   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+ 268              		.loc 1 181 3 view .LVU58
+ 269 0002 154C     		ldr	r4, .L25
+ 270 0004 1549     		ldr	r1, .L25+4
+ 271 0006 0022     		movs	r2, #0
+ 272 0008 2046     		mov	r0, r4
+ 273 000a FFF7FEFF 		bl	USBD_CDC_SetTxBuffer
+ 274              	.LVL16:
+ 182:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 275              		.loc 1 182 3 is_stmt 1 view .LVU59
+ 276 000e 1449     		ldr	r1, .L25+8
+ 277 0010 2046     		mov	r0, r4
+ 278 0012 FFF7FEFF 		bl	USBD_CDC_SetRxBuffer
+ 279              	.LVL17:
+ 185:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 280              		.loc 1 185 3 view .LVU60
+ARM GAS  /tmp/cc3zUKGa.s 			page 16
+
+
+ 281              	.LBB27:
+ 282              	.LBI27:
+ 207:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 283              		.loc 2 207 34 view .LVU61
+ 284              	.LBB28:
+ 209:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 285              		.loc 2 209 1 view .LVU62
+ 211:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	(
+ 286              		.loc 2 211 2 view .LVU63
+ 287              		.syntax unified
+ 288              	@ 211 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 289 0016 EFF31184 			mrs r4, basepri											
+ 290 001a 4FF05003 		mov r3, #80												
+ 291 001e 83F31188 		msr basepri, r3											
+ 292 0022 BFF36F8F 		isb														
+ 293 0026 BFF34F8F 		dsb														
+ 294              	
+ 295              	@ 0 "" 2
+ 296              	.LVL18:
+ 223:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+ 297              		.loc 2 223 2 view .LVU64
+ 223:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+ 298              		.loc 2 223 2 is_stmt 0 view .LVU65
+ 299              		.thumb
+ 300              		.syntax unified
+ 301              	.LBE28:
+ 302              	.LBE27:
+ 188:USB_DEVICE/App/usbd_cdc_if.c ****   ringbuf_init(&rx_buf, rx_buf_mem, RX_RINGBUF_SIZE);
+ 303              		.loc 1 188 3 is_stmt 1 view .LVU66
+ 304 002a 0E49     		ldr	r1, .L25+12
+ 305 002c 0E48     		ldr	r0, .L25+16
+ 306 002e 4FF40062 		mov	r2, #2048
+ 307 0032 FFF7FEFF 		bl	ringbuf_init
+ 308              	.LVL19:
+ 189:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 309              		.loc 1 189 3 view .LVU67
+ 310 0036 0D49     		ldr	r1, .L25+20
+ 311 0038 0D48     		ldr	r0, .L25+24
+ 312 003a 4FF40062 		mov	r2, #2048
+ 313 003e FFF7FEFF 		bl	ringbuf_init
+ 314              	.LVL20:
+ 192:USB_DEVICE/App/usbd_cdc_if.c ****   rx_errcode = 0;
+ 315              		.loc 1 192 3 view .LVU68
+ 192:USB_DEVICE/App/usbd_cdc_if.c ****   rx_errcode = 0;
+ 316              		.loc 1 192 14 is_stmt 0 view .LVU69
+ 317 0042 0C49     		ldr	r1, .L25+28
+ 193:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 318              		.loc 1 193 14 view .LVU70
+ 319 0044 0C4A     		ldr	r2, .L25+32
+ 200:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 320              		.loc 1 200 20 view .LVU71
+ 321 0046 0D4B     		ldr	r3, .L25+36
+ 192:USB_DEVICE/App/usbd_cdc_if.c ****   rx_errcode = 0;
+ 322              		.loc 1 192 14 view .LVU72
+ 323 0048 0020     		movs	r0, #0
+ 324 004a 0870     		strb	r0, [r1]
+ 193:USB_DEVICE/App/usbd_cdc_if.c **** 
+ARM GAS  /tmp/cc3zUKGa.s 			page 17
+
+
+ 325              		.loc 1 193 3 is_stmt 1 view .LVU73
+ 193:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 326              		.loc 1 193 14 is_stmt 0 view .LVU74
+ 327 004c 1070     		strb	r0, [r2]
+ 200:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 328              		.loc 1 200 3 is_stmt 1 view .LVU75
+ 200:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 329              		.loc 1 200 20 is_stmt 0 view .LVU76
+ 330 004e 1870     		strb	r0, [r3]
+ 202:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 331              		.loc 1 202 3 is_stmt 1 view .LVU77
+ 332              	.LVL21:
+ 333              	.LBB29:
+ 334              	.LBI29:
+ 227:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 335              		.loc 2 227 30 view .LVU78
+ 336              	.LBB30:
+ 337              		.loc 2 229 2 view .LVU79
+ 338              		.syntax unified
+ 339              	@ 229 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 340 0050 84F31188 			msr basepri, r4	
+ 341              	@ 0 "" 2
+ 342              	.LVL22:
+ 343              		.loc 2 229 2 is_stmt 0 view .LVU80
+ 344              		.thumb
+ 345              		.syntax unified
+ 346              	.LBE30:
+ 347              	.LBE29:
+ 204:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 3 */
+ 348              		.loc 1 204 3 is_stmt 1 view .LVU81
+ 206:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 349              		.loc 1 206 1 is_stmt 0 view .LVU82
+ 350 0054 10BD     		pop	{r4, pc}
+ 351              	.LVL23:
+ 352              	.L26:
+ 206:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 353              		.loc 1 206 1 view .LVU83
+ 354 0056 00BF     		.align	2
+ 355              	.L25:
+ 356 0058 00000000 		.word	hUsbDeviceFS
+ 357 005c 00000000 		.word	.LANCHOR4
+ 358 0060 00000000 		.word	.LANCHOR5
+ 359 0064 00000000 		.word	.LANCHOR6
+ 360 0068 00000000 		.word	.LANCHOR7
+ 361 006c 00000000 		.word	.LANCHOR8
+ 362 0070 00000000 		.word	.LANCHOR1
+ 363 0074 00000000 		.word	.LANCHOR9
+ 364 0078 00000000 		.word	.LANCHOR3
+ 365 007c 00000000 		.word	.LANCHOR10
+ 366              		.cfi_endproc
+ 367              	.LFE245:
+ 369              		.section	.text.CDC_TransmitCplt_FS,"ax",%progbits
+ 370              		.align	1
+ 371              		.p2align 2,,3
+ 372              		.syntax unified
+ 373              		.thumb
+ 374              		.thumb_func
+ARM GAS  /tmp/cc3zUKGa.s 			page 18
+
+
+ 376              	CDC_TransmitCplt_FS:
+ 377              	.LVL24:
+ 378              	.LFB250:
+ 346:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 347:USB_DEVICE/App/usbd_cdc_if.c **** /**
+ 348:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief  CDC_Transmit_FS
+ 349:USB_DEVICE/App/usbd_cdc_if.c ****   *         Data to send over USB IN endpoint are sent over CDC interface
+ 350:USB_DEVICE/App/usbd_cdc_if.c ****   *         through this function.
+ 351:USB_DEVICE/App/usbd_cdc_if.c ****   *         @note
+ 352:USB_DEVICE/App/usbd_cdc_if.c ****   *
+ 353:USB_DEVICE/App/usbd_cdc_if.c ****   *
+ 354:USB_DEVICE/App/usbd_cdc_if.c ****   * @param  Buf: Buffer of data to be sent
+ 355:USB_DEVICE/App/usbd_cdc_if.c ****   * @param  Len: Number of data to be sent (in bytes)
+ 356:USB_DEVICE/App/usbd_cdc_if.c ****   * @retval USBD_OK if all operations are OK else USBD_FAIL or USBD_BUSY
+ 357:USB_DEVICE/App/usbd_cdc_if.c ****   */
+ 358:USB_DEVICE/App/usbd_cdc_if.c **** uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
+ 359:USB_DEVICE/App/usbd_cdc_if.c **** {
+ 360:USB_DEVICE/App/usbd_cdc_if.c ****   uint8_t result = USBD_OK;
+ 361:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 7 */
+ 362:USB_DEVICE/App/usbd_cdc_if.c ****   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****   if (hcdc->TxState != 0){
+ 364:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 365:USB_DEVICE/App/usbd_cdc_if.c ****   }
+ 366:USB_DEVICE/App/usbd_cdc_if.c ****   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
+ 367:USB_DEVICE/App/usbd_cdc_if.c ****   result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+ 368:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 7 */
+ 369:USB_DEVICE/App/usbd_cdc_if.c ****   return result;
+ 370:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 371:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 372:USB_DEVICE/App/usbd_cdc_if.c **** /**
+ 373:USB_DEVICE/App/usbd_cdc_if.c ****   * @brief  CDC_TransmitCplt_FS
+ 374:USB_DEVICE/App/usbd_cdc_if.c ****   *         Data transmitted callback
+ 375:USB_DEVICE/App/usbd_cdc_if.c ****   *
+ 376:USB_DEVICE/App/usbd_cdc_if.c ****   *         @note
+ 377:USB_DEVICE/App/usbd_cdc_if.c ****   *         This function is IN transfer complete callback used to inform user that
+ 378:USB_DEVICE/App/usbd_cdc_if.c ****   *         the submitted Data is successfully sent over USB.
+ 379:USB_DEVICE/App/usbd_cdc_if.c ****   *
+ 380:USB_DEVICE/App/usbd_cdc_if.c ****   * @param  Buf: Buffer of data to be received
+ 381:USB_DEVICE/App/usbd_cdc_if.c ****   * @param  Len: Number of data received (in bytes)
+ 382:USB_DEVICE/App/usbd_cdc_if.c ****   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
+ 383:USB_DEVICE/App/usbd_cdc_if.c ****   */
+ 384:USB_DEVICE/App/usbd_cdc_if.c **** static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
+ 385:USB_DEVICE/App/usbd_cdc_if.c **** {
+ 379              		.loc 1 385 1 is_stmt 1 view -0
+ 380              		.cfi_startproc
+ 381              		@ args = 0, pretend = 0, frame = 0
+ 382              		@ frame_needed = 0, uses_anonymous_args = 0
+ 386:USB_DEVICE/App/usbd_cdc_if.c ****   uint8_t result = USBD_OK;
+ 383              		.loc 1 386 3 view .LVU85
+ 387:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 13 */
+ 388:USB_DEVICE/App/usbd_cdc_if.c ****   // 当 USB 数据包发送成功后，调用此回调函数
+ 389:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 390:USB_DEVICE/App/usbd_cdc_if.c ****   // ISR 中进入临界区
+ 391:USB_DEVICE/App/usbd_cdc_if.c ****   UBaseType_t uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
+ 384              		.loc 1 391 3 view .LVU86
+ 385              	.LBB44:
+ 386              	.LBI44:
+ARM GAS  /tmp/cc3zUKGa.s 			page 19
+
+
+ 207:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 387              		.loc 2 207 34 view .LVU87
+ 388              	.LBB45:
+ 209:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 389              		.loc 2 209 1 view .LVU88
+ 211:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	(
+ 390              		.loc 2 211 2 view .LVU89
+ 391              	.LBE45:
+ 392              	.LBE44:
+ 385:USB_DEVICE/App/usbd_cdc_if.c ****   uint8_t result = USBD_OK;
+ 393              		.loc 1 385 1 is_stmt 0 view .LVU90
+ 394 0000 10B5     		push	{r4, lr}
+ 395              		.cfi_def_cfa_offset 8
+ 396              		.cfi_offset 4, -8
+ 397              		.cfi_offset 14, -4
+ 398              	.LBB47:
+ 399              	.LBB46:
+ 211:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	(
+ 400              		.loc 2 211 2 view .LVU91
+ 401              		.syntax unified
+ 402              	@ 211 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 403 0002 EFF31184 			mrs r4, basepri											
+ 404 0006 4FF05003 		mov r3, #80												
+ 405 000a 83F31188 		msr basepri, r3											
+ 406 000e BFF36F8F 		isb														
+ 407 0012 BFF34F8F 		dsb														
+ 408              	
+ 409              	@ 0 "" 2
+ 410              	.LVL25:
+ 223:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+ 411              		.loc 2 223 2 is_stmt 1 view .LVU92
+ 223:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+ 412              		.loc 2 223 2 is_stmt 0 view .LVU93
+ 413              		.thumb
+ 414              		.syntax unified
+ 415              	.LBE46:
+ 416              	.LBE47:
+ 392:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 393:USB_DEVICE/App/usbd_cdc_if.c ****   // 从发送缓冲区中取最多 64 个字节
+ 394:USB_DEVICE/App/usbd_cdc_if.c ****   size_t read_n = ringbuf_read(&tx_buf, UserTxBufferFS, APP_TX_DATA_SIZE);
+ 417              		.loc 1 394 3 is_stmt 1 view .LVU94
+ 418              		.loc 1 394 19 is_stmt 0 view .LVU95
+ 419 0016 1949     		ldr	r1, .L39
+ 420              	.LVL26:
+ 421              		.loc 1 394 19 view .LVU96
+ 422 0018 1948     		ldr	r0, .L39+4
+ 423              	.LVL27:
+ 424              		.loc 1 394 19 view .LVU97
+ 425 001a 4022     		movs	r2, #64
+ 426              	.LVL28:
+ 427              		.loc 1 394 19 view .LVU98
+ 428 001c FFF7FEFF 		bl	ringbuf_read
+ 429              	.LVL29:
+ 395:USB_DEVICE/App/usbd_cdc_if.c ****   if (read_n == 0) {
+ 430              		.loc 1 395 3 is_stmt 1 view .LVU99
+ 431              		.loc 1 395 6 is_stmt 0 view .LVU100
+ 432 0020 08B9     		cbnz	r0, .L28
+ARM GAS  /tmp/cc3zUKGa.s 			page 20
+
+
+ 396:USB_DEVICE/App/usbd_cdc_if.c **** 	  // 若无数据继续发送，则清除传输状态
+ 397:USB_DEVICE/App/usbd_cdc_if.c **** 	  usb_transmitting = false;
+ 433              		.loc 1 397 4 is_stmt 1 view .LVU101
+ 434              		.loc 1 397 21 is_stmt 0 view .LVU102
+ 435 0022 184B     		ldr	r3, .L39+8
+ 436 0024 1870     		strb	r0, [r3]
+ 437              	.L28:
+ 398:USB_DEVICE/App/usbd_cdc_if.c ****   }
+ 399:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 400:USB_DEVICE/App/usbd_cdc_if.c ****   // 退出临界区
+ 401:USB_DEVICE/App/usbd_cdc_if.c ****   taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
+ 438              		.loc 1 401 3 is_stmt 1 view .LVU103
+ 439              	.LVL30:
+ 440              	.LBB48:
+ 441              	.LBI48:
+ 227:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 442              		.loc 2 227 30 view .LVU104
+ 443              	.LBB49:
+ 444              		.loc 2 229 2 view .LVU105
+ 445              		.syntax unified
+ 446              	@ 229 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 447 0026 84F31188 			msr basepri, r4	
+ 448              	@ 0 "" 2
+ 449              	.LVL31:
+ 450              		.loc 2 229 2 is_stmt 0 view .LVU106
+ 451              		.thumb
+ 452              		.syntax unified
+ 453              	.LBE49:
+ 454              	.LBE48:
+ 402:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 403:USB_DEVICE/App/usbd_cdc_if.c ****   if (read_n > 0) {
+ 455              		.loc 1 403 3 is_stmt 1 view .LVU107
+ 456              		.loc 1 403 6 is_stmt 0 view .LVU108
+ 457 002a 08B9     		cbnz	r0, .L29
+ 458              	.LVL32:
+ 459              	.L32:
+ 460              	.LBB50:
+ 461              	.LBB51:
+ 462              		.loc 1 403 6 view .LVU109
+ 463 002c 0020     		movs	r0, #0
+ 464              	.LBE51:
+ 465              	.LBE50:
+ 404:USB_DEVICE/App/usbd_cdc_if.c **** 	  // 有数据要继续发送
+ 405:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 406:USB_DEVICE/App/usbd_cdc_if.c **** 	  // 开始发送下一组数据
+ 407:USB_DEVICE/App/usbd_cdc_if.c **** 	  result = CDC_Transmit_FS(UserTxBufferFS, read_n);
+ 408:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 409:USB_DEVICE/App/usbd_cdc_if.c **** 	  if (result != USBD_OK) {
+ 410:USB_DEVICE/App/usbd_cdc_if.c **** 		  // 若发生 USB 错误，则进入临界区并设置错误标志位
+ 411:USB_DEVICE/App/usbd_cdc_if.c **** 		  UBaseType_t uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
+ 412:USB_DEVICE/App/usbd_cdc_if.c **** 		  tx_errcode |= USB_ERR_USBD_ERROR;
+ 413:USB_DEVICE/App/usbd_cdc_if.c **** 		  taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
+ 414:USB_DEVICE/App/usbd_cdc_if.c **** 	  }
+ 415:USB_DEVICE/App/usbd_cdc_if.c ****   }
+ 416:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 417:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 13 */
+ 418:USB_DEVICE/App/usbd_cdc_if.c ****   return result;
+ARM GAS  /tmp/cc3zUKGa.s 			page 21
+
+
+ 466              		.loc 1 418 3 is_stmt 1 view .LVU110
+ 419:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 467              		.loc 1 419 1 is_stmt 0 view .LVU111
+ 468 002e 10BD     		pop	{r4, pc}
+ 469              	.LVL33:
+ 470              	.L29:
+ 407:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 471              		.loc 1 407 4 is_stmt 1 view .LVU112
+ 472              	.LBB56:
+ 473              	.LBI50:
+ 358:USB_DEVICE/App/usbd_cdc_if.c **** {
+ 474              		.loc 1 358 9 view .LVU113
+ 475              	.LBB54:
+ 360:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 7 */
+ 476              		.loc 1 360 3 view .LVU114
+ 362:USB_DEVICE/App/usbd_cdc_if.c ****   if (hcdc->TxState != 0){
+ 477              		.loc 1 362 3 view .LVU115
+ 362:USB_DEVICE/App/usbd_cdc_if.c ****   if (hcdc->TxState != 0){
+ 478              		.loc 1 362 27 is_stmt 0 view .LVU116
+ 479 0030 154C     		ldr	r4, .L39+12
+ 480              	.LVL34:
+ 362:USB_DEVICE/App/usbd_cdc_if.c ****   if (hcdc->TxState != 0){
+ 481              		.loc 1 362 27 view .LVU117
+ 482 0032 D4F8BC32 		ldr	r3, [r4, #700]
+ 483              	.LVL35:
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 484              		.loc 1 363 3 is_stmt 1 view .LVU118
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 485              		.loc 1 363 11 is_stmt 0 view .LVU119
+ 486 0036 D3F81432 		ldr	r3, [r3, #532]
+ 487              	.LVL36:
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 488              		.loc 1 363 6 view .LVU120
+ 489 003a 93B1     		cbz	r3, .L38
+ 490 003c 0120     		movs	r0, #1
+ 491              	.LVL37:
+ 492              	.L31:
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 493              		.loc 1 363 6 view .LVU121
+ 494              	.LBE54:
+ 495              	.LBE56:
+ 496              	.LBB57:
+ 411:USB_DEVICE/App/usbd_cdc_if.c **** 		  tx_errcode |= USB_ERR_USBD_ERROR;
+ 497              		.loc 1 411 5 is_stmt 1 view .LVU122
+ 498              	.LBB58:
+ 499              	.LBI58:
+ 207:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 500              		.loc 2 207 34 view .LVU123
+ 501              	.LBB59:
+ 209:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 502              		.loc 2 209 1 view .LVU124
+ 211:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	(
+ 503              		.loc 2 211 2 view .LVU125
+ 504              		.syntax unified
+ 505              	@ 211 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 506 003e EFF31181 			mrs r1, basepri											
+ 507 0042 4FF05003 		mov r3, #80												
+ARM GAS  /tmp/cc3zUKGa.s 			page 22
+
+
+ 508 0046 83F31188 		msr basepri, r3											
+ 509 004a BFF36F8F 		isb														
+ 510 004e BFF34F8F 		dsb														
+ 511              	
+ 512              	@ 0 "" 2
+ 513              	.LVL38:
+ 223:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+ 514              		.loc 2 223 2 view .LVU126
+ 223:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+ 515              		.loc 2 223 2 is_stmt 0 view .LVU127
+ 516              		.thumb
+ 517              		.syntax unified
+ 518              	.LBE59:
+ 519              	.LBE58:
+ 412:USB_DEVICE/App/usbd_cdc_if.c **** 		  taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
+ 520              		.loc 1 412 5 is_stmt 1 view .LVU128
+ 412:USB_DEVICE/App/usbd_cdc_if.c **** 		  taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
+ 521              		.loc 1 412 16 is_stmt 0 view .LVU129
+ 522 0052 0E4A     		ldr	r2, .L39+16
+ 523 0054 1378     		ldrb	r3, [r2]	@ zero_extendqisi2
+ 524 0056 43F00203 		orr	r3, r3, #2
+ 525 005a 1370     		strb	r3, [r2]
+ 413:USB_DEVICE/App/usbd_cdc_if.c **** 	  }
+ 526              		.loc 1 413 5 is_stmt 1 view .LVU130
+ 527              	.LVL39:
+ 528              	.LBB60:
+ 529              	.LBI60:
+ 227:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 530              		.loc 2 227 30 view .LVU131
+ 531              	.LBB61:
+ 532              		.loc 2 229 2 view .LVU132
+ 533              		.syntax unified
+ 534              	@ 229 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 535 005c 81F31188 			msr basepri, r1	
+ 536              	@ 0 "" 2
+ 537              	.LVL40:
+ 538              		.loc 2 229 2 is_stmt 0 view .LVU133
+ 539              		.thumb
+ 540              		.syntax unified
+ 541              	.LBE61:
+ 542              	.LBE60:
+ 543              	.LBE57:
+ 418:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 544              		.loc 1 418 3 is_stmt 1 view .LVU134
+ 545              		.loc 1 419 1 is_stmt 0 view .LVU135
+ 546 0060 10BD     		pop	{r4, pc}
+ 547              	.LVL41:
+ 548              	.L38:
+ 549              	.LBB62:
+ 550              	.LBB55:
+ 551              	.LBB52:
+ 552              	.LBI52:
+ 358:USB_DEVICE/App/usbd_cdc_if.c **** {
+ 553              		.loc 1 358 9 is_stmt 1 view .LVU136
+ 554              	.LBB53:
+ 366:USB_DEVICE/App/usbd_cdc_if.c ****   result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+ 555              		.loc 1 366 3 view .LVU137
+ARM GAS  /tmp/cc3zUKGa.s 			page 23
+
+
+ 556 0062 82B2     		uxth	r2, r0
+ 557 0064 0549     		ldr	r1, .L39
+ 558 0066 2046     		mov	r0, r4
+ 559              	.LVL42:
+ 366:USB_DEVICE/App/usbd_cdc_if.c ****   result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+ 560              		.loc 1 366 3 is_stmt 0 view .LVU138
+ 561 0068 FFF7FEFF 		bl	USBD_CDC_SetTxBuffer
+ 562              	.LVL43:
+ 367:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 7 */
+ 563              		.loc 1 367 3 is_stmt 1 view .LVU139
+ 367:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 7 */
+ 564              		.loc 1 367 12 is_stmt 0 view .LVU140
+ 565 006c 2046     		mov	r0, r4
+ 566 006e FFF7FEFF 		bl	USBD_CDC_TransmitPacket
+ 567              	.LVL44:
+ 369:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 568              		.loc 1 369 3 is_stmt 1 view .LVU141
+ 369:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 569              		.loc 1 369 3 is_stmt 0 view .LVU142
+ 570              	.LBE53:
+ 571              	.LBE52:
+ 572              	.LBE55:
+ 573              	.LBE62:
+ 409:USB_DEVICE/App/usbd_cdc_if.c **** 		  // 若发生 USB 错误，则进入临界区并设置错误标志位
+ 574              		.loc 1 409 4 is_stmt 1 view .LVU143
+ 409:USB_DEVICE/App/usbd_cdc_if.c **** 		  // 若发生 USB 错误，则进入临界区并设置错误标志位
+ 575              		.loc 1 409 7 is_stmt 0 view .LVU144
+ 576 0072 0028     		cmp	r0, #0
+ 577 0074 DAD0     		beq	.L32
+ 418:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 578              		.loc 1 418 10 view .LVU145
+ 579 0076 40B2     		sxtb	r0, r0
+ 418:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 580              		.loc 1 418 10 view .LVU146
+ 581 0078 E1E7     		b	.L31
+ 582              	.L40:
+ 583 007a 00BF     		.align	2
+ 584              	.L39:
+ 585 007c 00000000 		.word	.LANCHOR4
+ 586 0080 00000000 		.word	.LANCHOR7
+ 587 0084 00000000 		.word	.LANCHOR10
+ 588 0088 00000000 		.word	hUsbDeviceFS
+ 589 008c 00000000 		.word	.LANCHOR9
+ 590              		.cfi_endproc
+ 591              	.LFE250:
+ 593              		.section	.text.CDC_Transmit_FS,"ax",%progbits
+ 594              		.align	1
+ 595              		.p2align 2,,3
+ 596              		.global	CDC_Transmit_FS
+ 597              		.syntax unified
+ 598              		.thumb
+ 599              		.thumb_func
+ 601              	CDC_Transmit_FS:
+ 602              	.LVL45:
+ 603              	.LFB249:
+ 359:USB_DEVICE/App/usbd_cdc_if.c ****   uint8_t result = USBD_OK;
+ 604              		.loc 1 359 1 is_stmt 1 view -0
+ARM GAS  /tmp/cc3zUKGa.s 			page 24
+
+
+ 605              		.cfi_startproc
+ 606              		@ args = 0, pretend = 0, frame = 0
+ 607              		@ frame_needed = 0, uses_anonymous_args = 0
+ 360:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 7 */
+ 608              		.loc 1 360 3 view .LVU148
+ 362:USB_DEVICE/App/usbd_cdc_if.c ****   if (hcdc->TxState != 0){
+ 609              		.loc 1 362 3 view .LVU149
+ 359:USB_DEVICE/App/usbd_cdc_if.c ****   uint8_t result = USBD_OK;
+ 610              		.loc 1 359 1 is_stmt 0 view .LVU150
+ 611 0000 10B5     		push	{r4, lr}
+ 612              		.cfi_def_cfa_offset 8
+ 613              		.cfi_offset 4, -8
+ 614              		.cfi_offset 14, -4
+ 362:USB_DEVICE/App/usbd_cdc_if.c ****   if (hcdc->TxState != 0){
+ 615              		.loc 1 362 27 view .LVU151
+ 616 0002 094C     		ldr	r4, .L45
+ 617 0004 D4F8BC32 		ldr	r3, [r4, #700]
+ 618              	.LVL46:
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 619              		.loc 1 363 3 is_stmt 1 view .LVU152
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 620              		.loc 1 363 11 is_stmt 0 view .LVU153
+ 621 0008 D3F81432 		ldr	r3, [r3, #532]
+ 622              	.LVL47:
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 623              		.loc 1 363 6 view .LVU154
+ 624 000c 0BB1     		cbz	r3, .L44
+ 370:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 625              		.loc 1 370 1 view .LVU155
+ 626 000e 0120     		movs	r0, #1
+ 627              	.LVL48:
+ 370:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 628              		.loc 1 370 1 view .LVU156
+ 629 0010 10BD     		pop	{r4, pc}
+ 630              	.LVL49:
+ 631              	.L44:
+ 632              	.LBB65:
+ 633              	.LBI65:
+ 358:USB_DEVICE/App/usbd_cdc_if.c **** {
+ 634              		.loc 1 358 9 is_stmt 1 view .LVU157
+ 635              	.LBB66:
+ 366:USB_DEVICE/App/usbd_cdc_if.c ****   result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+ 636              		.loc 1 366 3 view .LVU158
+ 637 0012 0A46     		mov	r2, r1
+ 638 0014 0146     		mov	r1, r0
+ 639              	.LVL50:
+ 366:USB_DEVICE/App/usbd_cdc_if.c ****   result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+ 640              		.loc 1 366 3 is_stmt 0 view .LVU159
+ 641 0016 2046     		mov	r0, r4
+ 642              	.LVL51:
+ 366:USB_DEVICE/App/usbd_cdc_if.c ****   result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+ 643              		.loc 1 366 3 view .LVU160
+ 644 0018 FFF7FEFF 		bl	USBD_CDC_SetTxBuffer
+ 645              	.LVL52:
+ 367:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 7 */
+ 646              		.loc 1 367 3 is_stmt 1 view .LVU161
+ 367:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 7 */
+ARM GAS  /tmp/cc3zUKGa.s 			page 25
+
+
+ 647              		.loc 1 367 12 is_stmt 0 view .LVU162
+ 648 001c 2046     		mov	r0, r4
+ 649              	.LBE66:
+ 650              	.LBE65:
+ 370:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 651              		.loc 1 370 1 view .LVU163
+ 652 001e BDE81040 		pop	{r4, lr}
+ 653              		.cfi_restore 14
+ 654              		.cfi_restore 4
+ 655              		.cfi_def_cfa_offset 0
+ 656              	.LBB68:
+ 657              	.LBB67:
+ 367:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 7 */
+ 658              		.loc 1 367 12 view .LVU164
+ 659 0022 FFF7FEBF 		b	USBD_CDC_TransmitPacket
+ 660              	.LVL53:
+ 661              	.L46:
+ 662 0026 00BF     		.align	2
+ 663              	.L45:
+ 664 0028 00000000 		.word	hUsbDeviceFS
+ 665              	.LBE67:
+ 666              	.LBE68:
+ 667              		.cfi_endproc
+ 668              	.LFE249:
+ 670              		.section	.text.usb_transport_open,"ax",%progbits
+ 671              		.align	1
+ 672              		.p2align 2,,3
+ 673              		.global	usb_transport_open
+ 674              		.syntax unified
+ 675              		.thumb
+ 676              		.thumb_func
+ 678              	usb_transport_open:
+ 679              	.LVL54:
+ 680              	.LFB251:
+ 420:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 421:USB_DEVICE/App/usbd_cdc_if.c **** /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+ 422:USB_DEVICE/App/usbd_cdc_if.c **** bool usb_transport_open(uxrCustomTransport *transport) {
+ 681              		.loc 1 422 56 is_stmt 1 view -0
+ 682              		.cfi_startproc
+ 683              		@ args = 0, pretend = 0, frame = 0
+ 684              		@ frame_needed = 0, uses_anonymous_args = 0
+ 423:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 424:USB_DEVICE/App/usbd_cdc_if.c **** 	// 进入临界区
+ 425:USB_DEVICE/App/usbd_cdc_if.c **** 	taskENTER_CRITICAL();
+ 685              		.loc 1 425 2 view .LVU166
+ 422:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 686              		.loc 1 422 56 is_stmt 0 view .LVU167
+ 687 0000 08B5     		push	{r3, lr}
+ 688              		.cfi_def_cfa_offset 8
+ 689              		.cfi_offset 3, -8
+ 690              		.cfi_offset 14, -4
+ 691              		.loc 1 425 2 view .LVU168
+ 692 0002 FFF7FEFF 		bl	vPortEnterCritical
+ 693              	.LVL55:
+ 426:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 427:USB_DEVICE/App/usbd_cdc_if.c **** 	// 初始化环形缓冲区，清除其中数据
+ 428:USB_DEVICE/App/usbd_cdc_if.c **** 	ringbuf_init(&tx_buf, tx_buf_mem, TX_RINGBUF_SIZE);
+ARM GAS  /tmp/cc3zUKGa.s 			page 26
+
+
+ 694              		.loc 1 428 2 is_stmt 1 view .LVU169
+ 695 0006 0B49     		ldr	r1, .L49
+ 696 0008 0B48     		ldr	r0, .L49+4
+ 697 000a 4FF40062 		mov	r2, #2048
+ 698 000e FFF7FEFF 		bl	ringbuf_init
+ 699              	.LVL56:
+ 429:USB_DEVICE/App/usbd_cdc_if.c **** 	ringbuf_init(&rx_buf, rx_buf_mem, RX_RINGBUF_SIZE);
+ 700              		.loc 1 429 2 view .LVU170
+ 701 0012 0A48     		ldr	r0, .L49+8
+ 702 0014 0A49     		ldr	r1, .L49+12
+ 703 0016 4FF40062 		mov	r2, #2048
+ 704 001a FFF7FEFF 		bl	ringbuf_init
+ 705              	.LVL57:
+ 430:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 431:USB_DEVICE/App/usbd_cdc_if.c **** 	// 清除错误码
+ 432:USB_DEVICE/App/usbd_cdc_if.c **** 	tx_errcode = 0;
+ 706              		.loc 1 432 2 view .LVU171
+ 707              		.loc 1 432 13 is_stmt 0 view .LVU172
+ 708 001e 0948     		ldr	r0, .L49+16
+ 433:USB_DEVICE/App/usbd_cdc_if.c **** 	rx_errcode = 0;
+ 709              		.loc 1 433 13 view .LVU173
+ 710 0020 0949     		ldr	r1, .L49+20
+ 434:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 435:USB_DEVICE/App/usbd_cdc_if.c ****   // 清除检测上位机重启的标志位
+ 436:USB_DEVICE/App/usbd_cdc_if.c ****   host_restarted = false;
+ 711              		.loc 1 436 18 view .LVU174
+ 712 0022 0A4A     		ldr	r2, .L49+24
+ 432:USB_DEVICE/App/usbd_cdc_if.c **** 	rx_errcode = 0;
+ 713              		.loc 1 432 13 view .LVU175
+ 714 0024 0023     		movs	r3, #0
+ 715 0026 0370     		strb	r3, [r0]
+ 433:USB_DEVICE/App/usbd_cdc_if.c **** 	rx_errcode = 0;
+ 716              		.loc 1 433 2 is_stmt 1 view .LVU176
+ 433:USB_DEVICE/App/usbd_cdc_if.c **** 	rx_errcode = 0;
+ 717              		.loc 1 433 13 is_stmt 0 view .LVU177
+ 718 0028 0B70     		strb	r3, [r1]
+ 719              		.loc 1 436 3 is_stmt 1 view .LVU178
+ 720              		.loc 1 436 18 is_stmt 0 view .LVU179
+ 721 002a 1370     		strb	r3, [r2]
+ 437:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 438:USB_DEVICE/App/usbd_cdc_if.c **** 	taskEXIT_CRITICAL();
+ 722              		.loc 1 438 2 is_stmt 1 view .LVU180
+ 723 002c FFF7FEFF 		bl	vPortExitCritical
+ 724              	.LVL58:
+ 439:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 440:USB_DEVICE/App/usbd_cdc_if.c **** 	return true;
+ 725              		.loc 1 440 2 view .LVU181
+ 441:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 726              		.loc 1 441 1 is_stmt 0 view .LVU182
+ 727 0030 0120     		movs	r0, #1
+ 728 0032 08BD     		pop	{r3, pc}
+ 729              	.L50:
+ 730              		.align	2
+ 731              	.L49:
+ 732 0034 00000000 		.word	.LANCHOR6
+ 733 0038 00000000 		.word	.LANCHOR7
+ 734 003c 00000000 		.word	.LANCHOR1
+ARM GAS  /tmp/cc3zUKGa.s 			page 27
+
+
+ 735 0040 00000000 		.word	.LANCHOR8
+ 736 0044 00000000 		.word	.LANCHOR9
+ 737 0048 00000000 		.word	.LANCHOR3
+ 738 004c 00000000 		.word	.LANCHOR0
+ 739              		.cfi_endproc
+ 740              	.LFE251:
+ 742              		.section	.text.usb_transport_close,"ax",%progbits
+ 743              		.align	1
+ 744              		.p2align 2,,3
+ 745              		.global	usb_transport_close
+ 746              		.syntax unified
+ 747              		.thumb
+ 748              		.thumb_func
+ 750              	usb_transport_close:
+ 751              	.LVL59:
+ 752              	.LFB252:
+ 442:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 443:USB_DEVICE/App/usbd_cdc_if.c **** bool usb_transport_close(uxrCustomTransport *transport) {
+ 753              		.loc 1 443 57 is_stmt 1 view -0
+ 754              		.cfi_startproc
+ 755              		@ args = 0, pretend = 0, frame = 0
+ 756              		@ frame_needed = 0, uses_anonymous_args = 0
+ 757              		@ link register save eliminated.
+ 444:USB_DEVICE/App/usbd_cdc_if.c ****   return true;
+ 758              		.loc 1 444 3 view .LVU184
+ 445:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 759              		.loc 1 445 1 is_stmt 0 view .LVU185
+ 760 0000 0120     		movs	r0, #1
+ 761              	.LVL60:
+ 762              		.loc 1 445 1 view .LVU186
+ 763 0002 7047     		bx	lr
+ 764              		.cfi_endproc
+ 765              	.LFE252:
+ 767              		.section	.text.usb_transport_write,"ax",%progbits
+ 768              		.align	1
+ 769              		.p2align 2,,3
+ 770              		.global	usb_transport_write
+ 771              		.syntax unified
+ 772              		.thumb
+ 773              		.thumb_func
+ 775              	usb_transport_write:
+ 776              	.LVL61:
+ 777              	.LFB253:
+ 446:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 447:USB_DEVICE/App/usbd_cdc_if.c **** size_t usb_transport_write(uxrCustomTransport *transport, const uint8_t *buf,
+ 448:USB_DEVICE/App/usbd_cdc_if.c ****                            size_t len, uint8_t *err) {
+ 778              		.loc 1 448 54 is_stmt 1 view -0
+ 779              		.cfi_startproc
+ 780              		@ args = 0, pretend = 0, frame = 8
+ 781              		@ frame_needed = 0, uses_anonymous_args = 0
+ 449:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 450:USB_DEVICE/App/usbd_cdc_if.c **** 	// 进入临界区
+ 451:USB_DEVICE/App/usbd_cdc_if.c **** 	taskENTER_CRITICAL();
+ 782              		.loc 1 451 2 view .LVU188
+ 448:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 783              		.loc 1 448 54 is_stmt 0 view .LVU189
+ 784 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+ARM GAS  /tmp/cc3zUKGa.s 			page 28
+
+
+ 785              		.cfi_def_cfa_offset 28
+ 786              		.cfi_offset 4, -28
+ 787              		.cfi_offset 5, -24
+ 788              		.cfi_offset 6, -20
+ 789              		.cfi_offset 7, -16
+ 790              		.cfi_offset 8, -12
+ 791              		.cfi_offset 9, -8
+ 792              		.cfi_offset 14, -4
+ 793 0004 83B0     		sub	sp, sp, #12
+ 794              		.cfi_def_cfa_offset 40
+ 448:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 795              		.loc 1 448 54 view .LVU190
+ 796 0006 1446     		mov	r4, r2
+ 797 0008 0191     		str	r1, [sp, #4]
+ 798 000a 1D46     		mov	r5, r3
+ 799              		.loc 1 451 2 view .LVU191
+ 800 000c FFF7FEFF 		bl	vPortEnterCritical
+ 801              	.LVL62:
+ 452:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 453:USB_DEVICE/App/usbd_cdc_if.c **** 	// 向发送缓冲区中写入数据
+ 454:USB_DEVICE/App/usbd_cdc_if.c **** 	size_t overflow = ringbuf_write(&tx_buf, buf, len);
+ 802              		.loc 1 454 2 is_stmt 1 view .LVU192
+ 803              		.loc 1 454 20 is_stmt 0 view .LVU193
+ 804 0010 0199     		ldr	r1, [sp, #4]
+ 805 0012 1D48     		ldr	r0, .L68
+ 455:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 456:USB_DEVICE/App/usbd_cdc_if.c **** 	if (overflow > 0) {
+ 457:USB_DEVICE/App/usbd_cdc_if.c **** 		// 若缓冲区溢出，则设置错误标志位
+ 458:USB_DEVICE/App/usbd_cdc_if.c **** 		tx_errcode |= USB_ERR_RINGBUF_OVERFLOW;
+ 806              		.loc 1 458 14 view .LVU194
+ 807 0014 1D4E     		ldr	r6, .L68+4
+ 454:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 808              		.loc 1 454 20 view .LVU195
+ 809 0016 2246     		mov	r2, r4
+ 810 0018 FFF7FEFF 		bl	ringbuf_write
+ 811              	.LVL63:
+ 456:USB_DEVICE/App/usbd_cdc_if.c **** 		// 若缓冲区溢出，则设置错误标志位
+ 812              		.loc 1 456 2 is_stmt 1 view .LVU196
+ 456:USB_DEVICE/App/usbd_cdc_if.c **** 		// 若缓冲区溢出，则设置错误标志位
+ 813              		.loc 1 456 5 is_stmt 0 view .LVU197
+ 814 001c 18B1     		cbz	r0, .L53
+ 815              		.loc 1 458 3 is_stmt 1 view .LVU198
+ 816              		.loc 1 458 14 is_stmt 0 view .LVU199
+ 817 001e 3378     		ldrb	r3, [r6]	@ zero_extendqisi2
+ 818 0020 43F00103 		orr	r3, r3, #1
+ 819 0024 3370     		strb	r3, [r6]
+ 820              	.L53:
+ 459:USB_DEVICE/App/usbd_cdc_if.c **** 	}
+ 460:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 461:USB_DEVICE/App/usbd_cdc_if.c **** 	if (usb_transmitting) {
+ 821              		.loc 1 461 2 is_stmt 1 view .LVU200
+ 822              		.loc 1 461 6 is_stmt 0 view .LVU201
+ 823 0026 1A4F     		ldr	r7, .L68+8
+ 824              		.loc 1 461 5 view .LVU202
+ 825 0028 3B78     		ldrb	r3, [r7]	@ zero_extendqisi2
+ 826 002a 33B9     		cbnz	r3, .L66
+ 827              	.LBB75:
+ARM GAS  /tmp/cc3zUKGa.s 			page 29
+
+
+ 462:USB_DEVICE/App/usbd_cdc_if.c **** 		// 如果有数据正在发送，则等待之前的数据传输完成后，就会发送我们的�
+ 463:USB_DEVICE/App/usbd_cdc_if.c **** 		// 退出临界区
+ 464:USB_DEVICE/App/usbd_cdc_if.c **** 		taskEXIT_CRITICAL();
+ 465:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 466:USB_DEVICE/App/usbd_cdc_if.c **** 	} else {
+ 467:USB_DEVICE/App/usbd_cdc_if.c **** 		// 当前无数据正在发送，需要开启发送
+ 468:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 469:USB_DEVICE/App/usbd_cdc_if.c ****     // 从发送缓冲区中取最多 64 字节数据
+ 470:USB_DEVICE/App/usbd_cdc_if.c **** 		size_t read_n = ringbuf_read(&tx_buf, UserTxBufferFS, APP_TX_DATA_SIZE);
+ 828              		.loc 1 470 3 is_stmt 1 view .LVU203
+ 829              		.loc 1 470 19 is_stmt 0 view .LVU204
+ 830 002c 1949     		ldr	r1, .L68+12
+ 831 002e 1648     		ldr	r0, .L68
+ 832              	.LVL64:
+ 833              		.loc 1 470 19 view .LVU205
+ 834 0030 4022     		movs	r2, #64
+ 835 0032 FFF7FEFF 		bl	ringbuf_read
+ 836              	.LVL65:
+ 471:USB_DEVICE/App/usbd_cdc_if.c **** 		if (read_n > 0) {
+ 837              		.loc 1 471 3 is_stmt 1 view .LVU206
+ 838              		.loc 1 471 6 is_stmt 0 view .LVU207
+ 839 0036 8046     		mov	r8, r0
+ 840 0038 38B9     		cbnz	r0, .L67
+ 841              	.LVL66:
+ 842              	.L66:
+ 843              	.LBB76:
+ 472:USB_DEVICE/App/usbd_cdc_if.c ****       // 若有数据要发送，则设置传输状态
+ 473:USB_DEVICE/App/usbd_cdc_if.c **** 			usb_transmitting = true;
+ 474:USB_DEVICE/App/usbd_cdc_if.c **** 		}
+ 475:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 476:USB_DEVICE/App/usbd_cdc_if.c ****     // 退出临界区
+ 477:USB_DEVICE/App/usbd_cdc_if.c **** 		taskEXIT_CRITICAL();
+ 478:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 479:USB_DEVICE/App/usbd_cdc_if.c **** 		if (read_n > 0) {
+ 480:USB_DEVICE/App/usbd_cdc_if.c ****       // 若有数据要发送，则开始发送
+ 481:USB_DEVICE/App/usbd_cdc_if.c **** 			uint8_t result = CDC_Transmit_FS(UserTxBufferFS, read_n);
+ 482:USB_DEVICE/App/usbd_cdc_if.c **** 			if (result != USBD_OK) {
+ 483:USB_DEVICE/App/usbd_cdc_if.c ****         // 若发生 USB 错误，则进入临界区并设置错误标志位
+ 484:USB_DEVICE/App/usbd_cdc_if.c **** 				taskENTER_CRITICAL();
+ 485:USB_DEVICE/App/usbd_cdc_if.c **** 				tx_errcode |= USB_ERR_USBD_ERROR;
+ 486:USB_DEVICE/App/usbd_cdc_if.c **** 				taskEXIT_CRITICAL();
+ 844              		.loc 1 486 5 is_stmt 1 view .LVU208
+ 845 003a FFF7FEFF 		bl	vPortExitCritical
+ 846              	.LVL67:
+ 847              	.L55:
+ 848              	.LBE76:
+ 849              	.LBE75:
+ 487:USB_DEVICE/App/usbd_cdc_if.c **** 			}
+ 488:USB_DEVICE/App/usbd_cdc_if.c **** 		}
+ 489:USB_DEVICE/App/usbd_cdc_if.c **** 	}
+ 490:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 491:USB_DEVICE/App/usbd_cdc_if.c ****   // 返回发送错误码
+ 492:USB_DEVICE/App/usbd_cdc_if.c **** 	*err = tx_errcode;
+ 850              		.loc 1 492 2 view .LVU209
+ 851              		.loc 1 492 7 is_stmt 0 view .LVU210
+ 852 003e 3378     		ldrb	r3, [r6]	@ zero_extendqisi2
+ 853 0040 2B70     		strb	r3, [r5]
+ARM GAS  /tmp/cc3zUKGa.s 			page 30
+
+
+ 493:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 494:USB_DEVICE/App/usbd_cdc_if.c **** 	return len;
+ 854              		.loc 1 494 2 is_stmt 1 view .LVU211
+ 495:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 855              		.loc 1 495 1 is_stmt 0 view .LVU212
+ 856 0042 2046     		mov	r0, r4
+ 857 0044 03B0     		add	sp, sp, #12
+ 858              		.cfi_remember_state
+ 859              		.cfi_def_cfa_offset 28
+ 860              		@ sp needed
+ 861 0046 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 862              	.LVL68:
+ 863              	.L67:
+ 864              		.cfi_restore_state
+ 865              	.LBB87:
+ 473:USB_DEVICE/App/usbd_cdc_if.c **** 		}
+ 866              		.loc 1 473 4 is_stmt 1 view .LVU213
+ 867              	.LBB85:
+ 868              	.LBB77:
+ 869              	.LBB78:
+ 362:USB_DEVICE/App/usbd_cdc_if.c ****   if (hcdc->TxState != 0){
+ 870              		.loc 1 362 27 is_stmt 0 view .LVU214
+ 871 004a DFF84C90 		ldr	r9, .L68+16
+ 872              	.LBE78:
+ 873              	.LBE77:
+ 874              	.LBE85:
+ 473:USB_DEVICE/App/usbd_cdc_if.c **** 		}
+ 875              		.loc 1 473 21 view .LVU215
+ 876 004e 0123     		movs	r3, #1
+ 877 0050 3B70     		strb	r3, [r7]
+ 477:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 878              		.loc 1 477 3 is_stmt 1 view .LVU216
+ 879 0052 FFF7FEFF 		bl	vPortExitCritical
+ 880              	.LVL69:
+ 479:USB_DEVICE/App/usbd_cdc_if.c ****       // 若有数据要发送，则开始发送
+ 881              		.loc 1 479 3 view .LVU217
+ 882              	.LBB86:
+ 481:USB_DEVICE/App/usbd_cdc_if.c **** 			if (result != USBD_OK) {
+ 883              		.loc 1 481 4 view .LVU218
+ 884              	.LBB83:
+ 885              	.LBI77:
+ 358:USB_DEVICE/App/usbd_cdc_if.c **** {
+ 886              		.loc 1 358 9 view .LVU219
+ 887              	.LBB81:
+ 360:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE BEGIN 7 */
+ 888              		.loc 1 360 3 view .LVU220
+ 362:USB_DEVICE/App/usbd_cdc_if.c ****   if (hcdc->TxState != 0){
+ 889              		.loc 1 362 3 view .LVU221
+ 362:USB_DEVICE/App/usbd_cdc_if.c ****   if (hcdc->TxState != 0){
+ 890              		.loc 1 362 27 is_stmt 0 view .LVU222
+ 891 0056 D9F8BC32 		ldr	r3, [r9, #700]
+ 892              	.LVL70:
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 893              		.loc 1 363 3 is_stmt 1 view .LVU223
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 894              		.loc 1 363 11 is_stmt 0 view .LVU224
+ 895 005a D3F81432 		ldr	r3, [r3, #532]
+ARM GAS  /tmp/cc3zUKGa.s 			page 31
+
+
+ 896              	.LVL71:
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 897              		.loc 1 363 6 view .LVU225
+ 898 005e 33B1     		cbz	r3, .L57
+ 899              	.LVL72:
+ 900              	.L58:
+ 363:USB_DEVICE/App/usbd_cdc_if.c ****     return USBD_BUSY;
+ 901              		.loc 1 363 6 view .LVU226
+ 902              	.LBE81:
+ 903              	.LBE83:
+ 484:USB_DEVICE/App/usbd_cdc_if.c **** 				tx_errcode |= USB_ERR_USBD_ERROR;
+ 904              		.loc 1 484 5 is_stmt 1 view .LVU227
+ 905 0060 FFF7FEFF 		bl	vPortEnterCritical
+ 906              	.LVL73:
+ 485:USB_DEVICE/App/usbd_cdc_if.c **** 				taskEXIT_CRITICAL();
+ 907              		.loc 1 485 5 view .LVU228
+ 485:USB_DEVICE/App/usbd_cdc_if.c **** 				taskEXIT_CRITICAL();
+ 908              		.loc 1 485 16 is_stmt 0 view .LVU229
+ 909 0064 3378     		ldrb	r3, [r6]	@ zero_extendqisi2
+ 910 0066 43F00203 		orr	r3, r3, #2
+ 911 006a 3370     		strb	r3, [r6]
+ 912 006c E5E7     		b	.L66
+ 913              	.LVL74:
+ 914              	.L57:
+ 915              	.LBB84:
+ 916              	.LBB82:
+ 917              	.LBB79:
+ 918              	.LBI79:
+ 358:USB_DEVICE/App/usbd_cdc_if.c **** {
+ 919              		.loc 1 358 9 is_stmt 1 view .LVU230
+ 920              	.LBB80:
+ 366:USB_DEVICE/App/usbd_cdc_if.c ****   result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+ 921              		.loc 1 366 3 view .LVU231
+ 922 006e 0949     		ldr	r1, .L68+12
+ 923 0070 1FFA88F2 		uxth	r2, r8
+ 924 0074 4846     		mov	r0, r9
+ 925 0076 FFF7FEFF 		bl	USBD_CDC_SetTxBuffer
+ 926              	.LVL75:
+ 367:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 7 */
+ 927              		.loc 1 367 3 view .LVU232
+ 367:USB_DEVICE/App/usbd_cdc_if.c ****   /* USER CODE END 7 */
+ 928              		.loc 1 367 12 is_stmt 0 view .LVU233
+ 929 007a 4846     		mov	r0, r9
+ 930 007c FFF7FEFF 		bl	USBD_CDC_TransmitPacket
+ 931              	.LVL76:
+ 369:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 932              		.loc 1 369 3 is_stmt 1 view .LVU234
+ 369:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 933              		.loc 1 369 3 is_stmt 0 view .LVU235
+ 934              	.LBE80:
+ 935              	.LBE79:
+ 936              	.LBE82:
+ 937              	.LBE84:
+ 482:USB_DEVICE/App/usbd_cdc_if.c ****         // 若发生 USB 错误，则进入临界区并设置错误标志位
+ 938              		.loc 1 482 4 is_stmt 1 view .LVU236
+ 482:USB_DEVICE/App/usbd_cdc_if.c ****         // 若发生 USB 错误，则进入临界区并设置错误标志位
+ 939              		.loc 1 482 7 is_stmt 0 view .LVU237
+ARM GAS  /tmp/cc3zUKGa.s 			page 32
+
+
+ 940 0080 0028     		cmp	r0, #0
+ 941 0082 DCD0     		beq	.L55
+ 942 0084 ECE7     		b	.L58
+ 943              	.L69:
+ 944 0086 00BF     		.align	2
+ 945              	.L68:
+ 946 0088 00000000 		.word	.LANCHOR7
+ 947 008c 00000000 		.word	.LANCHOR9
+ 948 0090 00000000 		.word	.LANCHOR10
+ 949 0094 00000000 		.word	.LANCHOR4
+ 950 0098 00000000 		.word	hUsbDeviceFS
+ 951              	.LBE86:
+ 952              	.LBE87:
+ 953              		.cfi_endproc
+ 954              	.LFE253:
+ 956              		.section	.text.usb_transport_read,"ax",%progbits
+ 957              		.align	1
+ 958              		.p2align 2,,3
+ 959              		.global	usb_transport_read
+ 960              		.syntax unified
+ 961              		.thumb
+ 962              		.thumb_func
+ 964              	usb_transport_read:
+ 965              	.LVL77:
+ 966              	.LFB254:
+ 496:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 497:USB_DEVICE/App/usbd_cdc_if.c **** size_t usb_transport_read(uxrCustomTransport *transport, uint8_t *buf,
+ 498:USB_DEVICE/App/usbd_cdc_if.c ****                           size_t len, int timeout, uint8_t *err) {
+ 967              		.loc 1 498 66 is_stmt 1 view -0
+ 968              		.cfi_startproc
+ 969              		@ args = 4, pretend = 0, frame = 16
+ 970              		@ frame_needed = 0, uses_anonymous_args = 0
+ 499:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 500:USB_DEVICE/App/usbd_cdc_if.c ****   // 进入临界区
+ 501:USB_DEVICE/App/usbd_cdc_if.c **** 	taskENTER_CRITICAL();
+ 971              		.loc 1 501 2 view .LVU239
+ 498:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 972              		.loc 1 498 66 is_stmt 0 view .LVU240
+ 973 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+ 974              		.cfi_def_cfa_offset 28
+ 975              		.cfi_offset 4, -28
+ 976              		.cfi_offset 5, -24
+ 977              		.cfi_offset 6, -20
+ 978              		.cfi_offset 7, -16
+ 979              		.cfi_offset 8, -12
+ 980              		.cfi_offset 9, -8
+ 981              		.cfi_offset 14, -4
+ 982 0004 85B0     		sub	sp, sp, #20
+ 983              		.cfi_def_cfa_offset 48
+ 498:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 984              		.loc 1 498 66 view .LVU241
+ 985 0006 0646     		mov	r6, r0
+ 986 0008 0F46     		mov	r7, r1
+ 987 000a 9046     		mov	r8, r2
+ 988 000c 1D46     		mov	r5, r3
+ 989              		.loc 1 501 2 view .LVU242
+ 990 000e FFF7FEFF 		bl	vPortEnterCritical
+ARM GAS  /tmp/cc3zUKGa.s 			page 33
+
+
+ 991              	.LVL78:
+ 502:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 503:USB_DEVICE/App/usbd_cdc_if.c **** 	if (ringbuf_bytes_used(&rx_buf) == 0) {
+ 992              		.loc 1 503 2 is_stmt 1 view .LVU243
+ 993              		.loc 1 503 6 is_stmt 0 view .LVU244
+ 994 0012 1B48     		ldr	r0, .L74
+ 995 0014 FFF7FEFF 		bl	ringbuf_bytes_used
+ 996              	.LVL79:
+ 997              		.loc 1 503 5 view .LVU245
+ 998 0018 78B1     		cbz	r0, .L73
+ 999              	.LVL80:
+ 1000              	.L71:
+ 504:USB_DEVICE/App/usbd_cdc_if.c ****     // 接收缓冲区为空，要等待
+ 505:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 506:USB_DEVICE/App/usbd_cdc_if.c ****     // 设置等待线程为当前线程
+ 507:USB_DEVICE/App/usbd_cdc_if.c **** 		rx_waiting_task = xTaskGetCurrentTaskHandle();
+ 508:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 509:USB_DEVICE/App/usbd_cdc_if.c ****     // 退出临界区
+ 510:USB_DEVICE/App/usbd_cdc_if.c **** 		taskEXIT_CRITICAL();
+ 511:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 512:USB_DEVICE/App/usbd_cdc_if.c ****     // 等待至多 timeout 毫秒，如果有数据到达则我们会被提前唤醒
+ 513:USB_DEVICE/App/usbd_cdc_if.c ****     UXR_UNLOCK_TRANSPORT((&transport->comm));
+ 514:USB_DEVICE/App/usbd_cdc_if.c **** 		uint32_t notifiedValue;
+ 515:USB_DEVICE/App/usbd_cdc_if.c **** 		xTaskNotifyWait(0, 0, &notifiedValue, pdMS_TO_TICKS(timeout));
+ 516:USB_DEVICE/App/usbd_cdc_if.c ****     UXR_LOCK_TRANSPORT((&transport->comm));
+ 517:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 518:USB_DEVICE/App/usbd_cdc_if.c ****     // 重新进入临界区
+ 519:USB_DEVICE/App/usbd_cdc_if.c **** 		taskENTER_CRITICAL();
+ 520:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 521:USB_DEVICE/App/usbd_cdc_if.c ****     // 清除等待线程
+ 522:USB_DEVICE/App/usbd_cdc_if.c **** 		rx_waiting_task = NULL;
+ 523:USB_DEVICE/App/usbd_cdc_if.c **** 	}
+ 524:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 525:USB_DEVICE/App/usbd_cdc_if.c ****   // 从接收缓冲区中取最多 len 个字节
+ 526:USB_DEVICE/App/usbd_cdc_if.c **** 	size_t read_n = ringbuf_read(&rx_buf, buf, len);
+ 1001              		.loc 1 526 2 is_stmt 1 view .LVU246
+ 1002              		.loc 1 526 18 is_stmt 0 view .LVU247
+ 1003 001a 4246     		mov	r2, r8
+ 1004 001c 3946     		mov	r1, r7
+ 1005 001e 1848     		ldr	r0, .L74
+ 1006 0020 FFF7FEFF 		bl	ringbuf_read
+ 1007              	.LVL81:
+ 1008 0024 0190     		str	r0, [sp, #4]
+ 1009              	.LVL82:
+ 527:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 528:USB_DEVICE/App/usbd_cdc_if.c ****   // 退出临界区
+ 529:USB_DEVICE/App/usbd_cdc_if.c **** 	taskEXIT_CRITICAL();
+ 1010              		.loc 1 529 2 is_stmt 1 view .LVU248
+ 1011 0026 FFF7FEFF 		bl	vPortExitCritical
+ 1012              	.LVL83:
+ 530:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 531:USB_DEVICE/App/usbd_cdc_if.c ****   // 返回接收错误码
+ 532:USB_DEVICE/App/usbd_cdc_if.c **** 	*err = rx_errcode;
+ 1013              		.loc 1 532 2 view .LVU249
+ 1014              		.loc 1 532 7 is_stmt 0 view .LVU250
+ 1015 002a 164B     		ldr	r3, .L74+4
+ 533:USB_DEVICE/App/usbd_cdc_if.c **** 
+ARM GAS  /tmp/cc3zUKGa.s 			page 34
+
+
+ 534:USB_DEVICE/App/usbd_cdc_if.c **** 	return read_n;
+ 535:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 1016              		.loc 1 535 1 view .LVU251
+ 1017 002c 0198     		ldr	r0, [sp, #4]
+ 532:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 1018              		.loc 1 532 7 view .LVU252
+ 1019 002e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1020 0030 0C9A     		ldr	r2, [sp, #48]
+ 1021 0032 1370     		strb	r3, [r2]
+ 534:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 1022              		.loc 1 534 2 is_stmt 1 view .LVU253
+ 1023              		.loc 1 535 1 is_stmt 0 view .LVU254
+ 1024 0034 05B0     		add	sp, sp, #20
+ 1025              		.cfi_remember_state
+ 1026              		.cfi_def_cfa_offset 28
+ 1027              		@ sp needed
+ 1028 0036 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 1029              	.LVL84:
+ 1030              	.L73:
+ 1031              		.cfi_restore_state
+ 1032              	.LBB88:
+ 507:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 1033              		.loc 1 507 3 is_stmt 1 view .LVU255
+ 1034 003a 0446     		mov	r4, r0
+ 507:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 1035              		.loc 1 507 21 is_stmt 0 view .LVU256
+ 1036 003c FFF7FEFF 		bl	xTaskGetCurrentTaskHandle
+ 1037              	.LVL85:
+ 507:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 1038              		.loc 1 507 19 view .LVU257
+ 1039 0040 DFF84890 		ldr	r9, .L74+12
+ 513:USB_DEVICE/App/usbd_cdc_if.c **** 		uint32_t notifiedValue;
+ 1040              		.loc 1 513 5 view .LVU258
+ 1041 0044 06F52376 		add	r6, r6, #652
+ 1042              	.LVL86:
+ 507:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 1043              		.loc 1 507 19 view .LVU259
+ 1044 0048 C9F80000 		str	r0, [r9]
+ 510:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 1045              		.loc 1 510 3 is_stmt 1 view .LVU260
+ 1046 004c FFF7FEFF 		bl	vPortExitCritical
+ 1047              	.LVL87:
+ 513:USB_DEVICE/App/usbd_cdc_if.c **** 		uint32_t notifiedValue;
+ 1048              		.loc 1 513 5 view .LVU261
+ 1049 0050 3046     		mov	r0, r6
+ 1050 0052 FFF7FEFF 		bl	uxr_unlock
+ 1051              	.LVL88:
+ 514:USB_DEVICE/App/usbd_cdc_if.c **** 		xTaskNotifyWait(0, 0, &notifiedValue, pdMS_TO_TICKS(timeout));
+ 1052              		.loc 1 514 3 view .LVU262
+ 515:USB_DEVICE/App/usbd_cdc_if.c ****     UXR_LOCK_TRANSPORT((&transport->comm));
+ 1053              		.loc 1 515 3 view .LVU263
+ 1054 0056 0C4A     		ldr	r2, .L74+8
+ 515:USB_DEVICE/App/usbd_cdc_if.c ****     UXR_LOCK_TRANSPORT((&transport->comm));
+ 1055              		.loc 1 515 41 is_stmt 0 view .LVU264
+ 1056 0058 4FF47A73 		mov	r3, #1000
+ 1057 005c 05FB03F3 		mul	r3, r5, r3
+ 515:USB_DEVICE/App/usbd_cdc_if.c ****     UXR_LOCK_TRANSPORT((&transport->comm));
+ARM GAS  /tmp/cc3zUKGa.s 			page 35
+
+
+ 1058              		.loc 1 515 3 view .LVU265
+ 1059 0060 A2FB0323 		umull	r2, r3, r2, r3
+ 1060 0064 9B09     		lsrs	r3, r3, #6
+ 1061 0066 03AA     		add	r2, sp, #12
+ 1062 0068 2146     		mov	r1, r4
+ 1063 006a 2046     		mov	r0, r4
+ 1064 006c FFF7FEFF 		bl	xTaskNotifyWait
+ 1065              	.LVL89:
+ 516:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 1066              		.loc 1 516 5 is_stmt 1 view .LVU266
+ 1067 0070 3046     		mov	r0, r6
+ 1068 0072 FFF7FEFF 		bl	uxr_lock
+ 1069              	.LVL90:
+ 519:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 1070              		.loc 1 519 3 view .LVU267
+ 1071 0076 FFF7FEFF 		bl	vPortEnterCritical
+ 1072              	.LVL91:
+ 522:USB_DEVICE/App/usbd_cdc_if.c **** 	}
+ 1073              		.loc 1 522 3 view .LVU268
+ 522:USB_DEVICE/App/usbd_cdc_if.c **** 	}
+ 1074              		.loc 1 522 19 is_stmt 0 view .LVU269
+ 1075 007a C9F80040 		str	r4, [r9]
+ 1076 007e CCE7     		b	.L71
+ 1077              	.L75:
+ 1078              		.align	2
+ 1079              	.L74:
+ 1080 0080 00000000 		.word	.LANCHOR1
+ 1081 0084 00000000 		.word	.LANCHOR3
+ 1082 0088 D34D6210 		.word	274877907
+ 1083 008c 00000000 		.word	.LANCHOR2
+ 1084              	.LBE88:
+ 1085              		.cfi_endproc
+ 1086              	.LFE254:
+ 1088              		.section	.text.check_host_restart,"ax",%progbits
+ 1089              		.align	1
+ 1090              		.p2align 2,,3
+ 1091              		.global	check_host_restart
+ 1092              		.syntax unified
+ 1093              		.thumb
+ 1094              		.thumb_func
+ 1096              	check_host_restart:
+ 1097              	.LFB255:
+ 536:USB_DEVICE/App/usbd_cdc_if.c **** 
+ 537:USB_DEVICE/App/usbd_cdc_if.c **** bool check_host_restart(void) {
+ 1098              		.loc 1 537 31 is_stmt 1 view -0
+ 1099              		.cfi_startproc
+ 1100              		@ args = 0, pretend = 0, frame = 0
+ 1101              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1102              		@ link register save eliminated.
+ 538:USB_DEVICE/App/usbd_cdc_if.c ****   bool value = host_restarted;
+ 1103              		.loc 1 538 3 view .LVU271
+ 1104              		.loc 1 538 8 is_stmt 0 view .LVU272
+ 1105 0000 024B     		ldr	r3, .L77
+ 539:USB_DEVICE/App/usbd_cdc_if.c ****   host_restarted = false;
+ 1106              		.loc 1 539 18 view .LVU273
+ 1107 0002 0022     		movs	r2, #0
+ 538:USB_DEVICE/App/usbd_cdc_if.c ****   bool value = host_restarted;
+ARM GAS  /tmp/cc3zUKGa.s 			page 36
+
+
+ 1108              		.loc 1 538 8 view .LVU274
+ 1109 0004 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 1110              	.LVL92:
+ 1111              		.loc 1 539 3 is_stmt 1 view .LVU275
+ 1112              		.loc 1 539 18 is_stmt 0 view .LVU276
+ 1113 0006 1A70     		strb	r2, [r3]
+ 540:USB_DEVICE/App/usbd_cdc_if.c ****   return value;
+ 1114              		.loc 1 540 3 is_stmt 1 view .LVU277
+ 541:USB_DEVICE/App/usbd_cdc_if.c **** }
+ 1115              		.loc 1 541 1 is_stmt 0 view .LVU278
+ 1116 0008 7047     		bx	lr
+ 1117              	.L78:
+ 1118 000a 00BF     		.align	2
+ 1119              	.L77:
+ 1120 000c 00000000 		.word	.LANCHOR0
+ 1121              		.cfi_endproc
+ 1122              	.LFE255:
+ 1124              		.global	USBD_Interface_fops_FS
+ 1125              		.global	UserTxBufferFS
+ 1126              		.global	UserRxBufferFS
+ 1127              		.section	.bss.UserRxBufferFS,"aw",%nobits
+ 1128              		.align	2
+ 1129              		.set	.LANCHOR5,. + 0
+ 1132              	UserRxBufferFS:
+ 1133 0000 00000000 		.space	64
+ 1133      00000000 
+ 1133      00000000 
+ 1133      00000000 
+ 1133      00000000 
+ 1134              		.section	.bss.UserTxBufferFS,"aw",%nobits
+ 1135              		.align	2
+ 1136              		.set	.LANCHOR4,. + 0
+ 1139              	UserTxBufferFS:
+ 1140 0000 00000000 		.space	64
+ 1140      00000000 
+ 1140      00000000 
+ 1140      00000000 
+ 1140      00000000 
+ 1141              		.section	.bss.host_restarted,"aw",%nobits
+ 1142              		.set	.LANCHOR0,. + 0
+ 1145              	host_restarted:
+ 1146 0000 00       		.space	1
+ 1147              		.section	.bss.rx_buf,"aw",%nobits
+ 1148              		.align	2
+ 1149              		.set	.LANCHOR1,. + 0
+ 1152              	rx_buf:
+ 1153 0000 00000000 		.space	16
+ 1153      00000000 
+ 1153      00000000 
+ 1153      00000000 
+ 1154              		.section	.bss.rx_buf_mem,"aw",%nobits
+ 1155              		.align	2
+ 1156              		.set	.LANCHOR8,. + 0
+ 1159              	rx_buf_mem:
+ 1160 0000 00000000 		.space	2048
+ 1160      00000000 
+ 1160      00000000 
+ARM GAS  /tmp/cc3zUKGa.s 			page 37
+
+
+ 1160      00000000 
+ 1160      00000000 
+ 1161              		.section	.bss.rx_errcode,"aw",%nobits
+ 1162              		.set	.LANCHOR3,. + 0
+ 1165              	rx_errcode:
+ 1166 0000 00       		.space	1
+ 1167              		.section	.bss.rx_waiting_task,"aw",%nobits
+ 1168              		.align	2
+ 1169              		.set	.LANCHOR2,. + 0
+ 1172              	rx_waiting_task:
+ 1173 0000 00000000 		.space	4
+ 1174              		.section	.bss.tx_buf,"aw",%nobits
+ 1175              		.align	2
+ 1176              		.set	.LANCHOR7,. + 0
+ 1179              	tx_buf:
+ 1180 0000 00000000 		.space	16
+ 1180      00000000 
+ 1180      00000000 
+ 1180      00000000 
+ 1181              		.section	.bss.tx_buf_mem,"aw",%nobits
+ 1182              		.align	2
+ 1183              		.set	.LANCHOR6,. + 0
+ 1186              	tx_buf_mem:
+ 1187 0000 00000000 		.space	2048
+ 1187      00000000 
+ 1187      00000000 
+ 1187      00000000 
+ 1187      00000000 
+ 1188              		.section	.bss.tx_errcode,"aw",%nobits
+ 1189              		.set	.LANCHOR9,. + 0
+ 1192              	tx_errcode:
+ 1193 0000 00       		.space	1
+ 1194              		.section	.bss.usb_transmitting,"aw",%nobits
+ 1195              		.set	.LANCHOR10,. + 0
+ 1198              	usb_transmitting:
+ 1199 0000 00       		.space	1
+ 1200              		.section	.data.USBD_Interface_fops_FS,"aw"
+ 1201              		.align	2
+ 1204              	USBD_Interface_fops_FS:
+ 1205 0000 00000000 		.word	CDC_Init_FS
+ 1206 0004 00000000 		.word	CDC_DeInit_FS
+ 1207 0008 00000000 		.word	CDC_Control_FS
+ 1208 000c 00000000 		.word	CDC_Receive_FS
+ 1209 0010 00000000 		.word	CDC_TransmitCplt_FS
+ 1210              		.text
+ 1211              	.Letext0:
+ 1212              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 1213              		.file 4 "/opt/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/include/stddef.h"
+ 1214              		.file 5 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 1215              		.file 6 "Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h"
+ 1216              		.file 7 "Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h"
+ 1217              		.file 8 "micro-ros/src/install/rmw/include/rmw/rmw/time.h"
+ 1218              		.file 9 "micro-ros/src/install/rmw/include/rmw/rmw/types.h"
+ 1219              		.file 10 "micro-ros/src/install/rmw/include/rmw/rmw/qos_profiles.h"
+ 1220              		.file 11 "Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h"
+ 1221              		.file 12 "Middlewares/Third_Party/FreeRTOS/Source/include/task.h"
+ 1222              		.file 13 "Middlewares/Third_Party/FreeRTOS/Source/include/queue.h"
+ARM GAS  /tmp/cc3zUKGa.s 			page 38
+
+
+ 1223              		.file 14 "Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h"
+ 1224              		.file 15 "micro-ros/src/install/microxrcedds_client/include/uxr/client/profile/multithread/multith
+ 1225              		.file 16 "micro-ros/src/install/microxrcedds_client/include/uxr/client/core/communication/communic
+ 1226              		.file 17 "micro-ros/src/install/microxrcedds_client/include/uxr/client/profile/transport/stream_fr
+ 1227              		.file 18 "micro-ros/src/install/microxrcedds_client/include/uxr/client/profile/transport/custom/cu
+ 1228              		.file 19 "USB_DEVICE/App/ring_buffer.h"
+ 1229              		.file 20 "USB_DEVICE/App/usbd_cdc_if.h"
+ARM GAS  /tmp/cc3zUKGa.s 			page 39
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 usbd_cdc_if.c
+     /tmp/cc3zUKGa.s:20     .text.CDC_DeInit_FS:0000000000000000 $t
+     /tmp/cc3zUKGa.s:26     .text.CDC_DeInit_FS:0000000000000000 CDC_DeInit_FS
+     /tmp/cc3zUKGa.s:42     .text.CDC_Control_FS:0000000000000000 $t
+     /tmp/cc3zUKGa.s:48     .text.CDC_Control_FS:0000000000000000 CDC_Control_FS
+     /tmp/cc3zUKGa.s:77     .text.CDC_Control_FS:0000000000000010 $d
+     /tmp/cc3zUKGa.s:82     .text.CDC_Receive_FS:0000000000000000 $t
+     /tmp/cc3zUKGa.s:88     .text.CDC_Receive_FS:0000000000000000 CDC_Receive_FS
+     /tmp/cc3zUKGa.s:242    .text.CDC_Receive_FS:000000000000007c $d
+     /tmp/cc3zUKGa.s:250    .text.CDC_Init_FS:0000000000000000 $t
+     /tmp/cc3zUKGa.s:256    .text.CDC_Init_FS:0000000000000000 CDC_Init_FS
+     /tmp/cc3zUKGa.s:356    .text.CDC_Init_FS:0000000000000058 $d
+     /tmp/cc3zUKGa.s:370    .text.CDC_TransmitCplt_FS:0000000000000000 $t
+     /tmp/cc3zUKGa.s:376    .text.CDC_TransmitCplt_FS:0000000000000000 CDC_TransmitCplt_FS
+     /tmp/cc3zUKGa.s:585    .text.CDC_TransmitCplt_FS:000000000000007c $d
+     /tmp/cc3zUKGa.s:594    .text.CDC_Transmit_FS:0000000000000000 $t
+     /tmp/cc3zUKGa.s:601    .text.CDC_Transmit_FS:0000000000000000 CDC_Transmit_FS
+     /tmp/cc3zUKGa.s:664    .text.CDC_Transmit_FS:0000000000000028 $d
+     /tmp/cc3zUKGa.s:671    .text.usb_transport_open:0000000000000000 $t
+     /tmp/cc3zUKGa.s:678    .text.usb_transport_open:0000000000000000 usb_transport_open
+     /tmp/cc3zUKGa.s:732    .text.usb_transport_open:0000000000000034 $d
+     /tmp/cc3zUKGa.s:743    .text.usb_transport_close:0000000000000000 $t
+     /tmp/cc3zUKGa.s:750    .text.usb_transport_close:0000000000000000 usb_transport_close
+     /tmp/cc3zUKGa.s:768    .text.usb_transport_write:0000000000000000 $t
+     /tmp/cc3zUKGa.s:775    .text.usb_transport_write:0000000000000000 usb_transport_write
+     /tmp/cc3zUKGa.s:946    .text.usb_transport_write:0000000000000088 $d
+     /tmp/cc3zUKGa.s:957    .text.usb_transport_read:0000000000000000 $t
+     /tmp/cc3zUKGa.s:964    .text.usb_transport_read:0000000000000000 usb_transport_read
+     /tmp/cc3zUKGa.s:1080   .text.usb_transport_read:0000000000000080 $d
+     /tmp/cc3zUKGa.s:1089   .text.check_host_restart:0000000000000000 $t
+     /tmp/cc3zUKGa.s:1096   .text.check_host_restart:0000000000000000 check_host_restart
+     /tmp/cc3zUKGa.s:1120   .text.check_host_restart:000000000000000c $d
+     /tmp/cc3zUKGa.s:1204   .data.USBD_Interface_fops_FS:0000000000000000 USBD_Interface_fops_FS
+     /tmp/cc3zUKGa.s:1139   .bss.UserTxBufferFS:0000000000000000 UserTxBufferFS
+     /tmp/cc3zUKGa.s:1132   .bss.UserRxBufferFS:0000000000000000 UserRxBufferFS
+     /tmp/cc3zUKGa.s:1128   .bss.UserRxBufferFS:0000000000000000 $d
+     /tmp/cc3zUKGa.s:1135   .bss.UserTxBufferFS:0000000000000000 $d
+     /tmp/cc3zUKGa.s:1145   .bss.host_restarted:0000000000000000 host_restarted
+     /tmp/cc3zUKGa.s:1146   .bss.host_restarted:0000000000000000 $d
+     /tmp/cc3zUKGa.s:1148   .bss.rx_buf:0000000000000000 $d
+     /tmp/cc3zUKGa.s:1152   .bss.rx_buf:0000000000000000 rx_buf
+     /tmp/cc3zUKGa.s:1155   .bss.rx_buf_mem:0000000000000000 $d
+     /tmp/cc3zUKGa.s:1159   .bss.rx_buf_mem:0000000000000000 rx_buf_mem
+     /tmp/cc3zUKGa.s:1165   .bss.rx_errcode:0000000000000000 rx_errcode
+     /tmp/cc3zUKGa.s:1166   .bss.rx_errcode:0000000000000000 $d
+     /tmp/cc3zUKGa.s:1168   .bss.rx_waiting_task:0000000000000000 $d
+     /tmp/cc3zUKGa.s:1172   .bss.rx_waiting_task:0000000000000000 rx_waiting_task
+     /tmp/cc3zUKGa.s:1175   .bss.tx_buf:0000000000000000 $d
+     /tmp/cc3zUKGa.s:1179   .bss.tx_buf:0000000000000000 tx_buf
+     /tmp/cc3zUKGa.s:1182   .bss.tx_buf_mem:0000000000000000 $d
+     /tmp/cc3zUKGa.s:1186   .bss.tx_buf_mem:0000000000000000 tx_buf_mem
+     /tmp/cc3zUKGa.s:1192   .bss.tx_errcode:0000000000000000 tx_errcode
+     /tmp/cc3zUKGa.s:1193   .bss.tx_errcode:0000000000000000 $d
+     /tmp/cc3zUKGa.s:1198   .bss.usb_transmitting:0000000000000000 usb_transmitting
+     /tmp/cc3zUKGa.s:1199   .bss.usb_transmitting:0000000000000000 $d
+     /tmp/cc3zUKGa.s:1201   .data.USBD_Interface_fops_FS:0000000000000000 $d
+ARM GAS  /tmp/cc3zUKGa.s 			page 40
+
+
+
+UNDEFINED SYMBOLS
+ringbuf_write
+USBD_CDC_SetRxBuffer
+USBD_CDC_ReceivePacket
+xTaskGenericNotifyFromISR
+hUsbDeviceFS
+USBD_CDC_SetTxBuffer
+ringbuf_init
+ringbuf_read
+USBD_CDC_TransmitPacket
+vPortEnterCritical
+vPortExitCritical
+ringbuf_bytes_used
+xTaskGetCurrentTaskHandle
+uxr_unlock
+xTaskNotifyWait
+uxr_lock

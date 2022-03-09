@@ -1,0 +1,270 @@
+ARM GAS  /tmp/ccVh82XE.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_crc32.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.get_crc32_check_sum,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	get_crc32_check_sum
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	get_crc32_check_sum:
+  28              	.LVL0:
+  29              	.LFB235:
+  30              		.file 1 "bsp/boards/Src/bsp_crc32.c"
+   1:bsp/boards/Src/bsp_crc32.c **** #include "bsp_crc32.h"
+   2:bsp/boards/Src/bsp_crc32.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_crc32.c **** extern CRC_HandleTypeDef hcrc;
+   4:bsp/boards/Src/bsp_crc32.c **** 
+   5:bsp/boards/Src/bsp_crc32.c **** uint32_t get_crc32_check_sum(uint32_t *data, uint32_t len)
+   6:bsp/boards/Src/bsp_crc32.c **** {
+  31              		.loc 1 6 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+   7:bsp/boards/Src/bsp_crc32.c ****     return HAL_CRC_Calculate(&hcrc, data, len);
+  36              		.loc 1 7 5 view .LVU1
+   6:bsp/boards/Src/bsp_crc32.c ****     return HAL_CRC_Calculate(&hcrc, data, len);
+  37              		.loc 1 6 1 is_stmt 0 view .LVU2
+  38 0000 0346     		mov	r3, r0
+  39 0002 0A46     		mov	r2, r1
+  40              		.loc 1 7 12 view .LVU3
+  41 0004 0148     		ldr	r0, .L3
+  42              	.LVL1:
+  43              		.loc 1 7 12 view .LVU4
+  44 0006 1946     		mov	r1, r3
+  45              	.LVL2:
+  46              		.loc 1 7 12 view .LVU5
+  47 0008 FFF7FEBF 		b	HAL_CRC_Calculate
+  48              	.LVL3:
+  49              	.L4:
+  50              		.loc 1 7 12 view .LVU6
+ARM GAS  /tmp/ccVh82XE.s 			page 2
+
+
+  51              		.align	2
+  52              	.L3:
+  53 000c 00000000 		.word	hcrc
+  54              		.cfi_endproc
+  55              	.LFE235:
+  57              		.section	.text.verify_crc32_check_sum,"ax",%progbits
+  58              		.align	1
+  59              		.p2align 2,,3
+  60              		.global	verify_crc32_check_sum
+  61              		.syntax unified
+  62              		.thumb
+  63              		.thumb_func
+  65              	verify_crc32_check_sum:
+  66              	.LVL4:
+  67              	.LFB236:
+   8:bsp/boards/Src/bsp_crc32.c **** }
+   9:bsp/boards/Src/bsp_crc32.c **** 
+  10:bsp/boards/Src/bsp_crc32.c **** bool_t verify_crc32_check_sum(uint32_t *data, uint32_t len)
+  11:bsp/boards/Src/bsp_crc32.c **** {
+  68              		.loc 1 11 1 is_stmt 1 view -0
+  69              		.cfi_startproc
+  70              		@ args = 0, pretend = 0, frame = 0
+  71              		@ frame_needed = 0, uses_anonymous_args = 0
+  12:bsp/boards/Src/bsp_crc32.c ****     static uint32_t crc32;
+  72              		.loc 1 12 5 view .LVU8
+  13:bsp/boards/Src/bsp_crc32.c ****     crc32 = get_crc32_check_sum(data, len-1);
+  73              		.loc 1 13 5 view .LVU9
+  11:bsp/boards/Src/bsp_crc32.c ****     static uint32_t crc32;
+  74              		.loc 1 11 1 is_stmt 0 view .LVU10
+  75 0000 38B5     		push	{r3, r4, r5, lr}
+  76              		.cfi_def_cfa_offset 16
+  77              		.cfi_offset 3, -16
+  78              		.cfi_offset 4, -12
+  79              		.cfi_offset 5, -8
+  80              		.cfi_offset 14, -4
+  11:bsp/boards/Src/bsp_crc32.c ****     static uint32_t crc32;
+  81              		.loc 1 11 1 view .LVU11
+  82 0002 0546     		mov	r5, r0
+  83              	.LVL5:
+  11:bsp/boards/Src/bsp_crc32.c ****     static uint32_t crc32;
+  84              		.loc 1 11 1 view .LVU12
+  85 0004 0C46     		mov	r4, r1
+  86              	.LVL6:
+  87              	.LBB6:
+  88              	.LBI6:
+   5:bsp/boards/Src/bsp_crc32.c **** {
+  89              		.loc 1 5 10 is_stmt 1 view .LVU13
+  90              	.LBB7:
+   7:bsp/boards/Src/bsp_crc32.c **** }
+  91              		.loc 1 7 5 view .LVU14
+   7:bsp/boards/Src/bsp_crc32.c **** }
+  92              		.loc 1 7 12 is_stmt 0 view .LVU15
+  93 0006 4A1E     		subs	r2, r1, #1
+  94              	.LVL7:
+   7:bsp/boards/Src/bsp_crc32.c **** }
+  95              		.loc 1 7 12 view .LVU16
+  96 0008 0648     		ldr	r0, .L7
+ARM GAS  /tmp/ccVh82XE.s 			page 3
+
+
+  97              	.LVL8:
+   7:bsp/boards/Src/bsp_crc32.c **** }
+  98              		.loc 1 7 12 view .LVU17
+  99 000a 2946     		mov	r1, r5
+ 100              	.LVL9:
+   7:bsp/boards/Src/bsp_crc32.c **** }
+ 101              		.loc 1 7 12 view .LVU18
+ 102 000c FFF7FEFF 		bl	HAL_CRC_Calculate
+ 103              	.LVL10:
+   7:bsp/boards/Src/bsp_crc32.c **** }
+ 104              		.loc 1 7 12 view .LVU19
+ 105              	.LBE7:
+ 106              	.LBE6:
+  14:bsp/boards/Src/bsp_crc32.c ****     return (crc32 == data[len-1]);
+ 107              		.loc 1 14 5 is_stmt 1 view .LVU20
+ 108              		.loc 1 14 26 is_stmt 0 view .LVU21
+ 109 0010 04F18043 		add	r3, r4, #1073741824
+ 110 0014 013B     		subs	r3, r3, #1
+ 111              		.loc 1 14 19 view .LVU22
+ 112 0016 55F82330 		ldr	r3, [r5, r3, lsl #2]
+  15:bsp/boards/Src/bsp_crc32.c **** }
+ 113              		.loc 1 15 1 view .LVU23
+ 114 001a 181A     		subs	r0, r3, r0
+ 115 001c B0FA80F0 		clz	r0, r0
+ 116 0020 4009     		lsrs	r0, r0, #5
+ 117 0022 38BD     		pop	{r3, r4, r5, pc}
+ 118              	.LVL11:
+ 119              	.L8:
+ 120              		.loc 1 15 1 view .LVU24
+ 121              		.align	2
+ 122              	.L7:
+ 123 0024 00000000 		.word	hcrc
+ 124              		.cfi_endproc
+ 125              	.LFE236:
+ 127              		.section	.text.append_crc32_check_sum,"ax",%progbits
+ 128              		.align	1
+ 129              		.p2align 2,,3
+ 130              		.global	append_crc32_check_sum
+ 131              		.syntax unified
+ 132              		.thumb
+ 133              		.thumb_func
+ 135              	append_crc32_check_sum:
+ 136              	.LVL12:
+ 137              	.LFB237:
+  16:bsp/boards/Src/bsp_crc32.c **** void append_crc32_check_sum(uint32_t *data, uint32_t len)
+  17:bsp/boards/Src/bsp_crc32.c **** {
+ 138              		.loc 1 17 1 is_stmt 1 view -0
+ 139              		.cfi_startproc
+ 140              		@ args = 0, pretend = 0, frame = 0
+ 141              		@ frame_needed = 0, uses_anonymous_args = 0
+  18:bsp/boards/Src/bsp_crc32.c ****     uint32_t crc32;
+ 142              		.loc 1 18 5 view .LVU26
+  19:bsp/boards/Src/bsp_crc32.c ****     crc32 = get_crc32_check_sum(data, len-1);
+ 143              		.loc 1 19 5 view .LVU27
+  17:bsp/boards/Src/bsp_crc32.c ****     uint32_t crc32;
+ 144              		.loc 1 17 1 is_stmt 0 view .LVU28
+ 145 0000 38B5     		push	{r3, r4, r5, lr}
+ARM GAS  /tmp/ccVh82XE.s 			page 4
+
+
+ 146              		.cfi_def_cfa_offset 16
+ 147              		.cfi_offset 3, -16
+ 148              		.cfi_offset 4, -12
+ 149              		.cfi_offset 5, -8
+ 150              		.cfi_offset 14, -4
+  17:bsp/boards/Src/bsp_crc32.c ****     uint32_t crc32;
+ 151              		.loc 1 17 1 view .LVU29
+ 152 0002 0546     		mov	r5, r0
+ 153              	.LVL13:
+  17:bsp/boards/Src/bsp_crc32.c ****     uint32_t crc32;
+ 154              		.loc 1 17 1 view .LVU30
+ 155 0004 0C46     		mov	r4, r1
+ 156              	.LVL14:
+ 157              	.LBB8:
+ 158              	.LBI8:
+   5:bsp/boards/Src/bsp_crc32.c **** {
+ 159              		.loc 1 5 10 is_stmt 1 view .LVU31
+ 160              	.LBB9:
+   7:bsp/boards/Src/bsp_crc32.c **** }
+ 161              		.loc 1 7 5 view .LVU32
+   7:bsp/boards/Src/bsp_crc32.c **** }
+ 162              		.loc 1 7 12 is_stmt 0 view .LVU33
+ 163 0006 4A1E     		subs	r2, r1, #1
+ 164              	.LVL15:
+   7:bsp/boards/Src/bsp_crc32.c **** }
+ 165              		.loc 1 7 12 view .LVU34
+ 166 0008 0448     		ldr	r0, .L11
+ 167              	.LVL16:
+   7:bsp/boards/Src/bsp_crc32.c **** }
+ 168              		.loc 1 7 12 view .LVU35
+ 169 000a 2946     		mov	r1, r5
+ 170              	.LVL17:
+   7:bsp/boards/Src/bsp_crc32.c **** }
+ 171              		.loc 1 7 12 view .LVU36
+ 172 000c FFF7FEFF 		bl	HAL_CRC_Calculate
+ 173              	.LVL18:
+   7:bsp/boards/Src/bsp_crc32.c **** }
+ 174              		.loc 1 7 12 view .LVU37
+ 175              	.LBE9:
+ 176              	.LBE8:
+  20:bsp/boards/Src/bsp_crc32.c ****     data[len-1] = crc32;
+ 177              		.loc 1 20 5 is_stmt 1 view .LVU38
+ 178              		.loc 1 20 9 is_stmt 0 view .LVU39
+ 179 0010 04F18043 		add	r3, r4, #1073741824
+ 180 0014 013B     		subs	r3, r3, #1
+ 181              		.loc 1 20 17 view .LVU40
+ 182 0016 45F82300 		str	r0, [r5, r3, lsl #2]
+  21:bsp/boards/Src/bsp_crc32.c **** }
+ 183              		.loc 1 21 1 view .LVU41
+ 184 001a 38BD     		pop	{r3, r4, r5, pc}
+ 185              	.LVL19:
+ 186              	.L12:
+ 187              		.loc 1 21 1 view .LVU42
+ 188              		.align	2
+ 189              	.L11:
+ 190 001c 00000000 		.word	hcrc
+ 191              		.cfi_endproc
+ARM GAS  /tmp/ccVh82XE.s 			page 5
+
+
+ 192              	.LFE237:
+ 194              		.text
+ 195              	.Letext0:
+ 196              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 197              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 198              		.file 4 "application/include/struct_typedef.h"
+ 199              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 200              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 201              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_crc.h"
+ARM GAS  /tmp/ccVh82XE.s 			page 6
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_crc32.c
+     /tmp/ccVh82XE.s:20     .text.get_crc32_check_sum:0000000000000000 $t
+     /tmp/ccVh82XE.s:27     .text.get_crc32_check_sum:0000000000000000 get_crc32_check_sum
+     /tmp/ccVh82XE.s:53     .text.get_crc32_check_sum:000000000000000c $d
+     /tmp/ccVh82XE.s:58     .text.verify_crc32_check_sum:0000000000000000 $t
+     /tmp/ccVh82XE.s:65     .text.verify_crc32_check_sum:0000000000000000 verify_crc32_check_sum
+     /tmp/ccVh82XE.s:123    .text.verify_crc32_check_sum:0000000000000024 $d
+     /tmp/ccVh82XE.s:128    .text.append_crc32_check_sum:0000000000000000 $t
+     /tmp/ccVh82XE.s:135    .text.append_crc32_check_sum:0000000000000000 append_crc32_check_sum
+     /tmp/ccVh82XE.s:190    .text.append_crc32_check_sum:000000000000001c $d
+
+UNDEFINED SYMBOLS
+HAL_CRC_Calculate
+hcrc

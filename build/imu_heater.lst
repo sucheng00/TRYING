@@ -1,0 +1,131 @@
+ARM GAS  /tmp/ccrZh9iv.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"imu_heater.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.imu_heater_init,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	imu_heater_init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	imu_heater_init:
+  28              	.LFB235:
+  29              		.file 1 "bmi088/src/imu_heater.c"
+   1:bmi088/src/imu_heater.c **** #include "imu_heater.h"
+   2:bmi088/src/imu_heater.c **** #include "tim.h"
+   3:bmi088/src/imu_heater.c **** 
+   4:bmi088/src/imu_heater.c **** void imu_heater_init(void) {
+  30              		.loc 1 4 28 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+   5:bmi088/src/imu_heater.c **** 	HAL_TIM_Base_Start(&htim10);
+  34              		.loc 1 5 2 view .LVU1
+   4:bmi088/src/imu_heater.c **** 	HAL_TIM_Base_Start(&htim10);
+  35              		.loc 1 4 28 is_stmt 0 view .LVU2
+  36 0000 10B5     		push	{r4, lr}
+  37              		.cfi_def_cfa_offset 8
+  38              		.cfi_offset 4, -8
+  39              		.cfi_offset 14, -4
+  40              		.loc 1 5 2 view .LVU3
+  41 0002 054C     		ldr	r4, .L4
+  42 0004 2046     		mov	r0, r4
+  43 0006 FFF7FEFF 		bl	HAL_TIM_Base_Start
+  44              	.LVL0:
+   6:bmi088/src/imu_heater.c **** 	HAL_TIM_PWM_Start(&htim10, TIM_CHANNEL_1);
+  45              		.loc 1 6 2 is_stmt 1 view .LVU4
+  46 000a 2046     		mov	r0, r4
+  47 000c 0021     		movs	r1, #0
+   7:bmi088/src/imu_heater.c **** }
+  48              		.loc 1 7 1 is_stmt 0 view .LVU5
+  49 000e BDE81040 		pop	{r4, lr}
+  50              		.cfi_restore 14
+ARM GAS  /tmp/ccrZh9iv.s 			page 2
+
+
+  51              		.cfi_restore 4
+  52              		.cfi_def_cfa_offset 0
+   6:bmi088/src/imu_heater.c **** 	HAL_TIM_PWM_Start(&htim10, TIM_CHANNEL_1);
+  53              		.loc 1 6 2 view .LVU6
+  54 0012 FFF7FEBF 		b	HAL_TIM_PWM_Start
+  55              	.LVL1:
+  56              	.L5:
+  57 0016 00BF     		.align	2
+  58              	.L4:
+  59 0018 00000000 		.word	htim10
+  60              		.cfi_endproc
+  61              	.LFE235:
+  63              		.section	.text.imu_heater_set_pwm,"ax",%progbits
+  64              		.align	1
+  65              		.p2align 2,,3
+  66              		.global	imu_heater_set_pwm
+  67              		.syntax unified
+  68              		.thumb
+  69              		.thumb_func
+  71              	imu_heater_set_pwm:
+  72              	.LVL2:
+  73              	.LFB236:
+   8:bmi088/src/imu_heater.c **** 
+   9:bmi088/src/imu_heater.c **** void imu_heater_set_pwm(uint16_t duty) {
+  74              		.loc 1 9 40 is_stmt 1 view -0
+  75              		.cfi_startproc
+  76              		@ args = 0, pretend = 0, frame = 0
+  77              		@ frame_needed = 0, uses_anonymous_args = 0
+  78              		@ link register save eliminated.
+  10:bmi088/src/imu_heater.c **** 	__HAL_TIM_SetCompare(&htim10, TIM_CHANNEL_1, duty);
+  79              		.loc 1 10 2 view .LVU8
+  80 0000 014B     		ldr	r3, .L7
+  81 0002 1B68     		ldr	r3, [r3]
+  82 0004 5863     		str	r0, [r3, #52]
+  11:bmi088/src/imu_heater.c **** }
+  83              		.loc 1 11 1 is_stmt 0 view .LVU9
+  84 0006 7047     		bx	lr
+  85              	.L8:
+  86              		.align	2
+  87              	.L7:
+  88 0008 00000000 		.word	htim10
+  89              		.cfi_endproc
+  90              	.LFE236:
+  92              		.text
+  93              	.Letext0:
+  94              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+  95              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+  96              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+  97              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+  98              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+  99              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h"
+ 100              		.file 8 "Core/Inc/tim.h"
+ARM GAS  /tmp/ccrZh9iv.s 			page 3
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 imu_heater.c
+     /tmp/ccrZh9iv.s:20     .text.imu_heater_init:0000000000000000 $t
+     /tmp/ccrZh9iv.s:27     .text.imu_heater_init:0000000000000000 imu_heater_init
+     /tmp/ccrZh9iv.s:59     .text.imu_heater_init:0000000000000018 $d
+     /tmp/ccrZh9iv.s:64     .text.imu_heater_set_pwm:0000000000000000 $t
+     /tmp/ccrZh9iv.s:71     .text.imu_heater_set_pwm:0000000000000000 imu_heater_set_pwm
+     /tmp/ccrZh9iv.s:88     .text.imu_heater_set_pwm:0000000000000008 $d
+
+UNDEFINED SYMBOLS
+HAL_TIM_Base_Start
+HAL_TIM_PWM_Start
+htim10

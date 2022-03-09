@@ -1,0 +1,768 @@
+ARM GAS  /tmp/cciLoz0E.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"ring_buffer.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.ringbuf_init,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	ringbuf_init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	ringbuf_init:
+  28              	.LVL0:
+  29              	.LFB0:
+  30              		.file 1 "USB_DEVICE/App/ring_buffer.c"
+   1:USB_DEVICE/App/ring_buffer.c **** #include "ring_buffer.h"
+   2:USB_DEVICE/App/ring_buffer.c **** #include <string.h>
+   3:USB_DEVICE/App/ring_buffer.c **** #include <sys/param.h>
+   4:USB_DEVICE/App/ring_buffer.c **** 
+   5:USB_DEVICE/App/ring_buffer.c **** void ringbuf_init(ringbuf_t *rb, uint8_t *buf, size_t buf_size) {
+  31              		.loc 1 5 65 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+   6:USB_DEVICE/App/ring_buffer.c **** 	rb->buf = buf;
+  36              		.loc 1 6 2 view .LVU1
+   7:USB_DEVICE/App/ring_buffer.c **** 	rb->size = buf_size;
+   8:USB_DEVICE/App/ring_buffer.c **** 	rb->begin = rb->end = 0;
+  37              		.loc 1 8 22 is_stmt 0 view .LVU2
+  38 0000 0023     		movs	r3, #0
+   7:USB_DEVICE/App/ring_buffer.c **** 	rb->size = buf_size;
+  39              		.loc 1 7 11 view .LVU3
+  40 0002 C0E90012 		strd	r1, r2, [r0]
+  41              		.loc 1 8 2 is_stmt 1 view .LVU4
+  42              		.loc 1 8 12 is_stmt 0 view .LVU5
+  43 0006 C0E90233 		strd	r3, r3, [r0, #8]
+   9:USB_DEVICE/App/ring_buffer.c **** }
+  44              		.loc 1 9 1 view .LVU6
+  45 000a 7047     		bx	lr
+  46              		.cfi_endproc
+  47              	.LFE0:
+  49              		.section	.text.ringbuf_reset,"ax",%progbits
+ARM GAS  /tmp/cciLoz0E.s 			page 2
+
+
+  50              		.align	1
+  51              		.p2align 2,,3
+  52              		.global	ringbuf_reset
+  53              		.syntax unified
+  54              		.thumb
+  55              		.thumb_func
+  57              	ringbuf_reset:
+  58              	.LVL1:
+  59              	.LFB1:
+  10:USB_DEVICE/App/ring_buffer.c **** 
+  11:USB_DEVICE/App/ring_buffer.c **** void ringbuf_reset(ringbuf_t *rb) {
+  60              		.loc 1 11 35 is_stmt 1 view -0
+  61              		.cfi_startproc
+  62              		@ args = 0, pretend = 0, frame = 0
+  63              		@ frame_needed = 0, uses_anonymous_args = 0
+  64              		@ link register save eliminated.
+  12:USB_DEVICE/App/ring_buffer.c **** 	rb->begin = rb->end = 0;
+  65              		.loc 1 12 2 view .LVU8
+  66              		.loc 1 12 22 is_stmt 0 view .LVU9
+  67 0000 0023     		movs	r3, #0
+  68              		.loc 1 12 12 view .LVU10
+  69 0002 C0E90233 		strd	r3, r3, [r0, #8]
+  13:USB_DEVICE/App/ring_buffer.c **** }
+  70              		.loc 1 13 1 view .LVU11
+  71 0006 7047     		bx	lr
+  72              		.cfi_endproc
+  73              	.LFE1:
+  75              		.section	.text.ringbuf_bytes_used,"ax",%progbits
+  76              		.align	1
+  77              		.p2align 2,,3
+  78              		.global	ringbuf_bytes_used
+  79              		.syntax unified
+  80              		.thumb
+  81              		.thumb_func
+  83              	ringbuf_bytes_used:
+  84              	.LVL2:
+  85              	.LFB2:
+  14:USB_DEVICE/App/ring_buffer.c **** 
+  15:USB_DEVICE/App/ring_buffer.c **** size_t ringbuf_bytes_used(const ringbuf_t *rb) {
+  86              		.loc 1 15 48 is_stmt 1 view -0
+  87              		.cfi_startproc
+  88              		@ args = 0, pretend = 0, frame = 0
+  89              		@ frame_needed = 0, uses_anonymous_args = 0
+  90              		@ link register save eliminated.
+  16:USB_DEVICE/App/ring_buffer.c **** 	if (rb->begin <= rb->end) {
+  91              		.loc 1 16 2 view .LVU13
+  92              		.loc 1 16 21 is_stmt 0 view .LVU14
+  93 0000 D0E90232 		ldrd	r3, r2, [r0, #8]
+  94              		.loc 1 16 5 view .LVU15
+  95 0004 9342     		cmp	r3, r2
+  17:USB_DEVICE/App/ring_buffer.c **** 		return rb->end - rb->begin;
+  96              		.loc 1 17 3 is_stmt 1 view .LVU16
+  97              		.loc 1 17 18 is_stmt 0 view .LVU17
+  98 0006 91BF     		iteee	ls
+  99 0008 D01A     		subls	r0, r2, r3
+ 100              	.LVL3:
+  18:USB_DEVICE/App/ring_buffer.c **** 	} else {
+ARM GAS  /tmp/cciLoz0E.s 			page 3
+
+
+  19:USB_DEVICE/App/ring_buffer.c **** 		return rb->size - rb->begin + rb->end;
+ 101              		.loc 1 19 3 is_stmt 1 view .LVU18
+ 102              		.loc 1 19 31 is_stmt 0 view .LVU19
+ 103 000a 4068     		ldrhi	r0, [r0, #4]
+ 104 000c 8018     		addhi	r0, r0, r2
+ 105 000e C01A     		subhi	r0, r0, r3
+  20:USB_DEVICE/App/ring_buffer.c **** 	}
+  21:USB_DEVICE/App/ring_buffer.c **** }
+ 106              		.loc 1 21 1 view .LVU20
+ 107 0010 7047     		bx	lr
+ 108              		.cfi_endproc
+ 109              	.LFE2:
+ 111 0012 00BF     		.section	.text.ringbuf_bytes_free,"ax",%progbits
+ 112              		.align	1
+ 113              		.p2align 2,,3
+ 114              		.global	ringbuf_bytes_free
+ 115              		.syntax unified
+ 116              		.thumb
+ 117              		.thumb_func
+ 119              	ringbuf_bytes_free:
+ 120              	.LVL4:
+ 121              	.LFB3:
+  22:USB_DEVICE/App/ring_buffer.c **** 
+  23:USB_DEVICE/App/ring_buffer.c **** size_t ringbuf_bytes_free(const ringbuf_t *rb) {
+ 122              		.loc 1 23 48 is_stmt 1 view -0
+ 123              		.cfi_startproc
+ 124              		@ args = 0, pretend = 0, frame = 0
+ 125              		@ frame_needed = 0, uses_anonymous_args = 0
+ 126              		@ link register save eliminated.
+  24:USB_DEVICE/App/ring_buffer.c **** 	if (rb->begin <= rb->end) {
+ 127              		.loc 1 24 2 view .LVU22
+ 128              		.loc 1 24 21 is_stmt 0 view .LVU23
+ 129 0000 D0E90232 		ldrd	r3, r2, [r0, #8]
+ 130              		.loc 1 24 5 view .LVU24
+ 131 0004 9342     		cmp	r3, r2
+  25:USB_DEVICE/App/ring_buffer.c **** 		return rb->size - rb->end + rb->begin - 1;
+ 132              		.loc 1 25 3 is_stmt 1 view .LVU25
+ 133              		.loc 1 25 41 is_stmt 0 view .LVU26
+ 134 0006 9CBF     		itt	ls
+ 135 0008 4068     		ldrls	r0, [r0, #4]
+ 136              	.LVL5:
+ 137              		.loc 1 25 41 view .LVU27
+ 138 000a 1B18     		addls	r3, r3, r0
+  26:USB_DEVICE/App/ring_buffer.c **** 	} else {
+  27:USB_DEVICE/App/ring_buffer.c **** 		return rb->begin - rb->end - 1;
+ 139              		.loc 1 27 3 is_stmt 1 view .LVU28
+ 140              		.loc 1 27 30 is_stmt 0 view .LVU29
+ 141 000c 013B     		subs	r3, r3, #1
+ 142 000e 981A     		subs	r0, r3, r2
+  28:USB_DEVICE/App/ring_buffer.c **** 	}
+  29:USB_DEVICE/App/ring_buffer.c **** }
+ 143              		.loc 1 29 1 view .LVU30
+ 144 0010 7047     		bx	lr
+ 145              		.cfi_endproc
+ 146              	.LFE3:
+ 148 0012 00BF     		.section	.text.ringbuf_capacity,"ax",%progbits
+ 149              		.align	1
+ARM GAS  /tmp/cciLoz0E.s 			page 4
+
+
+ 150              		.p2align 2,,3
+ 151              		.global	ringbuf_capacity
+ 152              		.syntax unified
+ 153              		.thumb
+ 154              		.thumb_func
+ 156              	ringbuf_capacity:
+ 157              	.LVL6:
+ 158              	.LFB4:
+  30:USB_DEVICE/App/ring_buffer.c **** 
+  31:USB_DEVICE/App/ring_buffer.c **** size_t ringbuf_capacity(const ringbuf_t *rb) {
+ 159              		.loc 1 31 46 is_stmt 1 view -0
+ 160              		.cfi_startproc
+ 161              		@ args = 0, pretend = 0, frame = 0
+ 162              		@ frame_needed = 0, uses_anonymous_args = 0
+ 163              		@ link register save eliminated.
+  32:USB_DEVICE/App/ring_buffer.c **** 	return rb->size - 1;
+ 164              		.loc 1 32 2 view .LVU32
+ 165              		.loc 1 32 18 is_stmt 0 view .LVU33
+ 166 0000 4068     		ldr	r0, [r0, #4]
+ 167              	.LVL7:
+  33:USB_DEVICE/App/ring_buffer.c **** }
+ 168              		.loc 1 33 1 view .LVU34
+ 169 0002 0138     		subs	r0, r0, #1
+ 170 0004 7047     		bx	lr
+ 171              		.cfi_endproc
+ 172              	.LFE4:
+ 174 0006 00BF     		.section	.text.ringbuf_write,"ax",%progbits
+ 175              		.align	1
+ 176              		.p2align 2,,3
+ 177              		.global	ringbuf_write
+ 178              		.syntax unified
+ 179              		.thumb
+ 180              		.thumb_func
+ 182              	ringbuf_write:
+ 183              	.LVL8:
+ 184              	.LFB5:
+  34:USB_DEVICE/App/ring_buffer.c **** 
+  35:USB_DEVICE/App/ring_buffer.c **** size_t ringbuf_write(ringbuf_t *rb, const uint8_t *from, size_t n) {
+ 185              		.loc 1 35 68 is_stmt 1 view -0
+ 186              		.cfi_startproc
+ 187              		@ args = 0, pretend = 0, frame = 0
+ 188              		@ frame_needed = 0, uses_anonymous_args = 0
+  36:USB_DEVICE/App/ring_buffer.c **** 	size_t free_size = ringbuf_bytes_free(rb);
+ 189              		.loc 1 36 2 view .LVU36
+  35:USB_DEVICE/App/ring_buffer.c **** 	size_t free_size = ringbuf_bytes_free(rb);
+ 190              		.loc 1 35 68 is_stmt 0 view .LVU37
+ 191 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 192              		.cfi_def_cfa_offset 32
+ 193              		.cfi_offset 4, -32
+ 194              		.cfi_offset 5, -28
+ 195              		.cfi_offset 6, -24
+ 196              		.cfi_offset 7, -20
+ 197              		.cfi_offset 8, -16
+ 198              		.cfi_offset 9, -12
+ 199              		.cfi_offset 10, -8
+ 200              		.cfi_offset 14, -4
+  35:USB_DEVICE/App/ring_buffer.c **** 	size_t free_size = ringbuf_bytes_free(rb);
+ARM GAS  /tmp/cciLoz0E.s 			page 5
+
+
+ 201              		.loc 1 35 68 view .LVU38
+ 202 0004 0446     		mov	r4, r0
+ 203              	.LVL9:
+ 204              	.LBB6:
+ 205              	.LBI6:
+  23:USB_DEVICE/App/ring_buffer.c **** 	if (rb->begin <= rb->end) {
+ 206              		.loc 1 23 8 is_stmt 1 view .LVU39
+ 207              	.LBB7:
+  24:USB_DEVICE/App/ring_buffer.c **** 		return rb->size - rb->end + rb->begin - 1;
+ 208              		.loc 1 24 2 view .LVU40
+  24:USB_DEVICE/App/ring_buffer.c **** 		return rb->size - rb->end + rb->begin - 1;
+ 209              		.loc 1 24 21 is_stmt 0 view .LVU41
+ 210 0006 D0E90270 		ldrd	r7, r0, [r0, #8]
+ 211              	.LVL10:
+  24:USB_DEVICE/App/ring_buffer.c **** 		return rb->size - rb->end + rb->begin - 1;
+ 212              		.loc 1 24 5 view .LVU42
+ 213 000a 8742     		cmp	r7, r0
+  25:USB_DEVICE/App/ring_buffer.c **** 	} else {
+ 214              		.loc 1 25 3 is_stmt 1 view .LVU43
+  25:USB_DEVICE/App/ring_buffer.c **** 	} else {
+ 215              		.loc 1 25 41 is_stmt 0 view .LVU44
+ 216 000c 9CBF     		itt	ls
+ 217 000e 6368     		ldrls	r3, [r4, #4]
+ 218 0010 FF18     		addls	r7, r7, r3
+  27:USB_DEVICE/App/ring_buffer.c **** 	}
+ 219              		.loc 1 27 3 is_stmt 1 view .LVU45
+  27:USB_DEVICE/App/ring_buffer.c **** 	}
+ 220              		.loc 1 27 30 is_stmt 0 view .LVU46
+ 221 0012 013F     		subs	r7, r7, #1
+ 222 0014 3F1A     		subs	r7, r7, r0
+ 223              	.LVL11:
+  27:USB_DEVICE/App/ring_buffer.c **** 	}
+ 224              		.loc 1 27 30 view .LVU47
+ 225              	.LBE7:
+ 226              	.LBE6:
+  37:USB_DEVICE/App/ring_buffer.c **** 	size_t overwritten = free_size >= n ? 0 : n - free_size;
+ 227              		.loc 1 37 2 is_stmt 1 view .LVU48
+ 228              		.loc 1 37 42 is_stmt 0 view .LVU49
+ 229 0016 BA42     		cmp	r2, r7
+  35:USB_DEVICE/App/ring_buffer.c **** 	size_t free_size = ringbuf_bytes_free(rb);
+ 230              		.loc 1 35 68 view .LVU50
+ 231 0018 8946     		mov	r9, r1
+ 232 001a 1646     		mov	r6, r2
+ 233              		.loc 1 37 42 view .LVU51
+ 234 001c 2BD8     		bhi	.L14
+ 235              	.LVL12:
+  38:USB_DEVICE/App/ring_buffer.c **** 
+  39:USB_DEVICE/App/ring_buffer.c **** 	size_t written;
+ 236              		.loc 1 39 2 is_stmt 1 view .LVU52
+  40:USB_DEVICE/App/ring_buffer.c **** 	while (n > 0) {
+ 237              		.loc 1 40 2 view .LVU53
+ 238              		.loc 1 40 8 view .LVU54
+  37:USB_DEVICE/App/ring_buffer.c **** 
+ 239              		.loc 1 37 42 is_stmt 0 view .LVU55
+ 240 001e 0027     		movs	r7, #0
+ 241              	.LVL13:
+ 242              		.loc 1 40 8 view .LVU56
+ARM GAS  /tmp/cciLoz0E.s 			page 6
+
+
+ 243 0020 002A     		cmp	r2, #0
+ 244 0022 2DD0     		beq	.L21
+ 245              	.LVL14:
+ 246              	.L15:
+  41:USB_DEVICE/App/ring_buffer.c **** 		written = MIN(n, rb->size - rb->end);
+ 247              		.loc 1 41 13 view .LVU57
+ 248 0024 6568     		ldr	r5, [r4, #4]
+  42:USB_DEVICE/App/ring_buffer.c **** 		memcpy(rb->buf + rb->end, from, written);
+  43:USB_DEVICE/App/ring_buffer.c **** 		from += written;
+  44:USB_DEVICE/App/ring_buffer.c **** 		n -= written;
+  45:USB_DEVICE/App/ring_buffer.c **** 		rb->end += written;
+  46:USB_DEVICE/App/ring_buffer.c **** 		if (rb->end == rb->size)
+  47:USB_DEVICE/App/ring_buffer.c **** 			rb->end = 0;
+ 249              		.loc 1 47 12 view .LVU58
+ 250 0026 4FF00008 		mov	r8, #0
+ 251 002a 00E0     		b	.L20
+ 252              	.LVL15:
+ 253              	.L28:
+  41:USB_DEVICE/App/ring_buffer.c **** 		written = MIN(n, rb->size - rb->end);
+ 254              		.loc 1 41 13 view .LVU59
+ 255 002c 1046     		mov	r0, r2
+ 256              	.LVL16:
+ 257              	.L20:
+  41:USB_DEVICE/App/ring_buffer.c **** 		written = MIN(n, rb->size - rb->end);
+ 258              		.loc 1 41 3 is_stmt 1 view .LVU60
+  41:USB_DEVICE/App/ring_buffer.c **** 		written = MIN(n, rb->size - rb->end);
+ 259              		.loc 1 41 13 is_stmt 0 view .LVU61
+ 260 002e 2D1A     		subs	r5, r5, r0
+  41:USB_DEVICE/App/ring_buffer.c **** 		written = MIN(n, rb->size - rb->end);
+ 261              		.loc 1 41 11 view .LVU62
+ 262 0030 B542     		cmp	r5, r6
+  42:USB_DEVICE/App/ring_buffer.c **** 		memcpy(rb->buf + rb->end, from, written);
+ 263              		.loc 1 42 18 view .LVU63
+ 264 0032 2368     		ldr	r3, [r4]
+  41:USB_DEVICE/App/ring_buffer.c **** 		written = MIN(n, rb->size - rb->end);
+ 265              		.loc 1 41 11 view .LVU64
+ 266 0034 28BF     		it	cs
+ 267 0036 3546     		movcs	r5, r6
+  42:USB_DEVICE/App/ring_buffer.c **** 		memcpy(rb->buf + rb->end, from, written);
+ 268              		.loc 1 42 3 view .LVU65
+ 269 0038 2A46     		mov	r2, r5
+ 270 003a 4946     		mov	r1, r9
+ 271 003c 1844     		add	r0, r0, r3
+ 272 003e FFF7FEFF 		bl	memcpy
+ 273              	.LVL17:
+  45:USB_DEVICE/App/ring_buffer.c **** 		if (rb->end == rb->size)
+ 274              		.loc 1 45 11 view .LVU66
+ 275 0042 E368     		ldr	r3, [r4, #12]
+  41:USB_DEVICE/App/ring_buffer.c **** 		written = MIN(n, rb->size - rb->end);
+ 276              		.loc 1 41 11 view .LVU67
+ 277 0044 AA46     		mov	r10, r5
+ 278              	.LVL18:
+  42:USB_DEVICE/App/ring_buffer.c **** 		memcpy(rb->buf + rb->end, from, written);
+ 279              		.loc 1 42 3 is_stmt 1 view .LVU68
+  43:USB_DEVICE/App/ring_buffer.c **** 		n -= written;
+ 280              		.loc 1 43 3 view .LVU69
+  46:USB_DEVICE/App/ring_buffer.c **** 			rb->end = 0;
+ARM GAS  /tmp/cciLoz0E.s 			page 7
+
+
+ 281              		.loc 1 46 20 is_stmt 0 view .LVU70
+ 282 0046 6568     		ldr	r5, [r4, #4]
+ 283              	.LVL19:
+  45:USB_DEVICE/App/ring_buffer.c **** 		if (rb->end == rb->size)
+ 284              		.loc 1 45 11 view .LVU71
+ 285 0048 5344     		add	r3, r3, r10
+ 286              		.loc 1 47 12 view .LVU72
+ 287 004a AB42     		cmp	r3, r5
+ 288 004c 14BF     		ite	ne
+ 289 004e 1A46     		movne	r2, r3
+ 290 0050 4246     		moveq	r2, r8
+  44:USB_DEVICE/App/ring_buffer.c **** 		rb->end += written;
+ 291              		.loc 1 44 5 view .LVU73
+ 292 0052 A6EB0A06 		sub	r6, r6, r10
+ 293              	.LVL20:
+  43:USB_DEVICE/App/ring_buffer.c **** 		n -= written;
+ 294              		.loc 1 43 8 view .LVU74
+ 295 0056 D144     		add	r9, r9, r10
+ 296              	.LVL21:
+  44:USB_DEVICE/App/ring_buffer.c **** 		rb->end += written;
+ 297              		.loc 1 44 3 is_stmt 1 view .LVU75
+  45:USB_DEVICE/App/ring_buffer.c **** 		if (rb->end == rb->size)
+ 298              		.loc 1 45 3 view .LVU76
+  46:USB_DEVICE/App/ring_buffer.c **** 			rb->end = 0;
+ 299              		.loc 1 46 3 view .LVU77
+ 300              		.loc 1 47 12 is_stmt 0 view .LVU78
+ 301 0058 E260     		str	r2, [r4, #12]
+  40:USB_DEVICE/App/ring_buffer.c **** 		written = MIN(n, rb->size - rb->end);
+ 302              		.loc 1 40 8 is_stmt 1 view .LVU79
+ 303 005a 002E     		cmp	r6, #0
+ 304 005c E6D1     		bne	.L28
+  48:USB_DEVICE/App/ring_buffer.c **** 	}
+  49:USB_DEVICE/App/ring_buffer.c **** 
+  50:USB_DEVICE/App/ring_buffer.c **** 	if (overwritten > 0) {
+ 305              		.loc 1 50 2 view .LVU80
+ 306              		.loc 1 50 5 is_stmt 0 view .LVU81
+ 307 005e 7FB1     		cbz	r7, .L21
+  51:USB_DEVICE/App/ring_buffer.c **** 		if (rb->end == rb->size - 1)
+ 308              		.loc 1 51 9 view .LVU82
+ 309 0060 E068     		ldr	r0, [r4, #12]
+ 310              	.LVL22:
+ 311              	.L17:
+ 312              		.loc 1 51 3 is_stmt 1 view .LVU83
+ 313              		.loc 1 51 27 is_stmt 0 view .LVU84
+ 314 0062 013D     		subs	r5, r5, #1
+ 315              		.loc 1 51 6 view .LVU85
+ 316 0064 8542     		cmp	r5, r0
+  52:USB_DEVICE/App/ring_buffer.c **** 			rb->begin = 0;
+ 317              		.loc 1 52 4 is_stmt 1 view .LVU86
+  53:USB_DEVICE/App/ring_buffer.c **** 		else
+  54:USB_DEVICE/App/ring_buffer.c **** 			rb->begin = rb->end + 1;
+ 318              		.loc 1 54 24 is_stmt 0 view .LVU87
+ 319 0066 15BF     		itete	ne
+ 320 0068 0130     		addne	r0, r0, #1
+  52:USB_DEVICE/App/ring_buffer.c **** 			rb->begin = 0;
+ 321              		.loc 1 52 14 view .LVU88
+ 322 006a 0023     		moveq	r3, #0
+ARM GAS  /tmp/cciLoz0E.s 			page 8
+
+
+ 323              		.loc 1 54 14 view .LVU89
+ 324 006c A060     		strne	r0, [r4, #8]
+  52:USB_DEVICE/App/ring_buffer.c **** 			rb->begin = 0;
+ 325              		.loc 1 52 14 view .LVU90
+ 326 006e A360     		streq	r3, [r4, #8]
+ 327              		.loc 1 54 4 is_stmt 1 view .LVU91
+  55:USB_DEVICE/App/ring_buffer.c **** 	}
+  56:USB_DEVICE/App/ring_buffer.c **** 	return overwritten;
+ 328              		.loc 1 56 2 view .LVU92
+  57:USB_DEVICE/App/ring_buffer.c **** }
+ 329              		.loc 1 57 1 is_stmt 0 view .LVU93
+ 330 0070 3846     		mov	r0, r7
+ 331 0072 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 332              	.LVL23:
+ 333              	.L14:
+  37:USB_DEVICE/App/ring_buffer.c **** 
+ 334              		.loc 1 37 42 discriminator 1 view .LVU94
+ 335 0076 D71B     		subs	r7, r2, r7
+ 336              	.LVL24:
+  39:USB_DEVICE/App/ring_buffer.c **** 	while (n > 0) {
+ 337              		.loc 1 39 2 is_stmt 1 discriminator 1 view .LVU95
+  40:USB_DEVICE/App/ring_buffer.c **** 		written = MIN(n, rb->size - rb->end);
+ 338              		.loc 1 40 2 discriminator 1 view .LVU96
+  40:USB_DEVICE/App/ring_buffer.c **** 		written = MIN(n, rb->size - rb->end);
+ 339              		.loc 1 40 8 discriminator 1 view .LVU97
+ 340 0078 002A     		cmp	r2, #0
+ 341 007a D3D1     		bne	.L15
+  51:USB_DEVICE/App/ring_buffer.c **** 			rb->begin = 0;
+ 342              		.loc 1 51 20 is_stmt 0 view .LVU98
+ 343 007c 6568     		ldr	r5, [r4, #4]
+ 344 007e F0E7     		b	.L17
+ 345              	.LVL25:
+ 346              	.L21:
+  37:USB_DEVICE/App/ring_buffer.c **** 
+ 347              		.loc 1 37 42 view .LVU99
+ 348 0080 0027     		movs	r7, #0
+ 349              		.loc 1 57 1 view .LVU100
+ 350 0082 3846     		mov	r0, r7
+ 351 0084 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 352              		.loc 1 57 1 view .LVU101
+ 353              		.cfi_endproc
+ 354              	.LFE5:
+ 356              		.section	.text.ringbuf_read,"ax",%progbits
+ 357              		.align	1
+ 358              		.p2align 2,,3
+ 359              		.global	ringbuf_read
+ 360              		.syntax unified
+ 361              		.thumb
+ 362              		.thumb_func
+ 364              	ringbuf_read:
+ 365              	.LVL26:
+ 366              	.LFB6:
+  58:USB_DEVICE/App/ring_buffer.c **** 
+  59:USB_DEVICE/App/ring_buffer.c **** size_t ringbuf_read(ringbuf_t *rb, uint8_t *to, size_t n) {
+ 367              		.loc 1 59 59 is_stmt 1 view -0
+ 368              		.cfi_startproc
+ 369              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  /tmp/cciLoz0E.s 			page 9
+
+
+ 370              		@ frame_needed = 0, uses_anonymous_args = 0
+  60:USB_DEVICE/App/ring_buffer.c **** 	size_t available = ringbuf_bytes_used(rb);
+ 371              		.loc 1 60 2 view .LVU103
+  59:USB_DEVICE/App/ring_buffer.c **** 	size_t available = ringbuf_bytes_used(rb);
+ 372              		.loc 1 59 59 is_stmt 0 view .LVU104
+ 373 0000 2DE9F843 		push	{r3, r4, r5, r6, r7, r8, r9, lr}
+ 374              		.cfi_def_cfa_offset 32
+ 375              		.cfi_offset 3, -32
+ 376              		.cfi_offset 4, -28
+ 377              		.cfi_offset 5, -24
+ 378              		.cfi_offset 6, -20
+ 379              		.cfi_offset 7, -16
+ 380              		.cfi_offset 8, -12
+ 381              		.cfi_offset 9, -8
+ 382              		.cfi_offset 14, -4
+ 383              	.LBB8:
+ 384              	.LBB9:
+  16:USB_DEVICE/App/ring_buffer.c **** 		return rb->end - rb->begin;
+ 385              		.loc 1 16 21 view .LVU105
+ 386 0004 D0E90237 		ldrd	r3, r7, [r0, #8]
+  16:USB_DEVICE/App/ring_buffer.c **** 		return rb->end - rb->begin;
+ 387              		.loc 1 16 5 view .LVU106
+ 388 0008 BB42     		cmp	r3, r7
+ 389              	.LBE9:
+ 390              	.LBE8:
+  59:USB_DEVICE/App/ring_buffer.c **** 	size_t available = ringbuf_bytes_used(rb);
+ 391              		.loc 1 59 59 view .LVU107
+ 392 000a 0446     		mov	r4, r0
+ 393              	.LVL27:
+ 394              	.LBB16:
+ 395              	.LBI8:
+  15:USB_DEVICE/App/ring_buffer.c **** 	if (rb->begin <= rb->end) {
+ 396              		.loc 1 15 8 is_stmt 1 view .LVU108
+ 397              	.LBB10:
+  16:USB_DEVICE/App/ring_buffer.c **** 		return rb->end - rb->begin;
+ 398              		.loc 1 16 2 view .LVU109
+ 399              	.LBE10:
+ 400              	.LBE16:
+  59:USB_DEVICE/App/ring_buffer.c **** 	size_t available = ringbuf_bytes_used(rb);
+ 401              		.loc 1 59 59 is_stmt 0 view .LVU110
+ 402 000c 0E46     		mov	r6, r1
+ 403 000e 1546     		mov	r5, r2
+ 404              	.LBB17:
+ 405              	.LBB11:
+  16:USB_DEVICE/App/ring_buffer.c **** 		return rb->end - rb->begin;
+ 406              		.loc 1 16 5 view .LVU111
+ 407 0010 14D8     		bhi	.L30
+  17:USB_DEVICE/App/ring_buffer.c **** 	} else {
+ 408              		.loc 1 17 3 is_stmt 1 view .LVU112
+  17:USB_DEVICE/App/ring_buffer.c **** 	} else {
+ 409              		.loc 1 17 18 is_stmt 0 view .LVU113
+ 410 0012 FF1A     		subs	r7, r7, r3
+ 411              	.LVL28:
+  17:USB_DEVICE/App/ring_buffer.c **** 	} else {
+ 412              		.loc 1 17 18 view .LVU114
+ 413              	.LBE11:
+ 414              	.LBE17:
+ARM GAS  /tmp/cciLoz0E.s 			page 10
+
+
+  61:USB_DEVICE/App/ring_buffer.c **** 	size_t read;
+ 415              		.loc 1 61 2 is_stmt 1 view .LVU115
+  62:USB_DEVICE/App/ring_buffer.c **** 	if (rb->begin > rb->end) {
+ 416              		.loc 1 62 2 view .LVU116
+ 417              	.LBB18:
+ 418              	.LBB12:
+  17:USB_DEVICE/App/ring_buffer.c **** 	} else {
+ 419              		.loc 1 17 18 is_stmt 0 view .LVU117
+ 420 0014 B846     		mov	r8, r7
+ 421              	.LVL29:
+ 422              	.L31:
+  17:USB_DEVICE/App/ring_buffer.c **** 	} else {
+ 423              		.loc 1 17 18 view .LVU118
+ 424              	.LBE12:
+ 425              	.LBE18:
+  63:USB_DEVICE/App/ring_buffer.c **** 		read = MIN(rb->size - rb->begin, n);
+  64:USB_DEVICE/App/ring_buffer.c **** 		memcpy(to, rb->buf + rb->begin, read);
+  65:USB_DEVICE/App/ring_buffer.c **** 		rb->begin += read;
+  66:USB_DEVICE/App/ring_buffer.c **** 		if (rb->begin == rb->size)
+  67:USB_DEVICE/App/ring_buffer.c **** 			rb->begin = 0;
+  68:USB_DEVICE/App/ring_buffer.c **** 		if (read == n)
+  69:USB_DEVICE/App/ring_buffer.c **** 			return read;
+  70:USB_DEVICE/App/ring_buffer.c **** 		to += read;
+  71:USB_DEVICE/App/ring_buffer.c **** 		n -= read;
+  72:USB_DEVICE/App/ring_buffer.c **** 	}
+  73:USB_DEVICE/App/ring_buffer.c **** 	read = MIN(rb->end - rb->begin, n);
+ 426              		.loc 1 73 2 is_stmt 1 view .LVU119
+ 427              		.loc 1 73 7 is_stmt 0 view .LVU120
+ 428 0016 A845     		cmp	r8, r5
+  74:USB_DEVICE/App/ring_buffer.c **** 	memcpy(to, rb->buf + rb->begin, read);
+ 429              		.loc 1 74 21 view .LVU121
+ 430 0018 2168     		ldr	r1, [r4]
+  73:USB_DEVICE/App/ring_buffer.c **** 	memcpy(to, rb->buf + rb->begin, read);
+ 431              		.loc 1 73 7 view .LVU122
+ 432 001a 28BF     		it	cs
+ 433 001c A846     		movcs	r8, r5
+ 434              	.LVL30:
+ 435              		.loc 1 74 2 is_stmt 1 view .LVU123
+ 436 001e 1944     		add	r1, r1, r3
+  75:USB_DEVICE/App/ring_buffer.c **** 	rb->begin += read;
+  76:USB_DEVICE/App/ring_buffer.c **** 	return MIN(available, n);
+ 437              		.loc 1 76 9 is_stmt 0 view .LVU124
+ 438 0020 BD42     		cmp	r5, r7
+  74:USB_DEVICE/App/ring_buffer.c **** 	rb->begin += read;
+ 439              		.loc 1 74 2 view .LVU125
+ 440 0022 3046     		mov	r0, r6
+ 441 0024 4246     		mov	r2, r8
+ 442              		.loc 1 76 9 view .LVU126
+ 443 0026 28BF     		it	cs
+ 444 0028 3D46     		movcs	r5, r7
+ 445              	.LVL31:
+  74:USB_DEVICE/App/ring_buffer.c **** 	rb->begin += read;
+ 446              		.loc 1 74 2 view .LVU127
+ 447 002a FFF7FEFF 		bl	memcpy
+ 448              	.LVL32:
+  75:USB_DEVICE/App/ring_buffer.c **** 	rb->begin += read;
+ 449              		.loc 1 75 2 is_stmt 1 view .LVU128
+ARM GAS  /tmp/cciLoz0E.s 			page 11
+
+
+  75:USB_DEVICE/App/ring_buffer.c **** 	rb->begin += read;
+ 450              		.loc 1 75 12 is_stmt 0 view .LVU129
+ 451 002e A368     		ldr	r3, [r4, #8]
+ 452 0030 4344     		add	r3, r3, r8
+ 453              		.loc 1 76 9 view .LVU130
+ 454 0032 A946     		mov	r9, r5
+  75:USB_DEVICE/App/ring_buffer.c **** 	rb->begin += read;
+ 455              		.loc 1 75 12 view .LVU131
+ 456 0034 A360     		str	r3, [r4, #8]
+ 457              		.loc 1 76 2 is_stmt 1 view .LVU132
+ 458              	.LVL33:
+ 459              	.L29:
+  77:USB_DEVICE/App/ring_buffer.c **** }
+ 460              		.loc 1 77 1 is_stmt 0 view .LVU133
+ 461 0036 4846     		mov	r0, r9
+ 462 0038 BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 463              	.LVL34:
+ 464              	.L30:
+ 465              	.LBB19:
+ 466              	.LBB13:
+  19:USB_DEVICE/App/ring_buffer.c **** 	}
+ 467              		.loc 1 19 3 is_stmt 1 view .LVU134
+  19:USB_DEVICE/App/ring_buffer.c **** 	}
+ 468              		.loc 1 19 19 is_stmt 0 view .LVU135
+ 469 003c 4268     		ldr	r2, [r0, #4]
+ 470              	.LVL35:
+  19:USB_DEVICE/App/ring_buffer.c **** 	}
+ 471              		.loc 1 19 19 view .LVU136
+ 472              	.LBE13:
+ 473              	.LBE19:
+  64:USB_DEVICE/App/ring_buffer.c **** 		rb->begin += read;
+ 474              		.loc 1 64 22 view .LVU137
+ 475 003e 0168     		ldr	r1, [r0]
+ 476              	.LVL36:
+ 477              	.LBB20:
+ 478              	.LBB14:
+  19:USB_DEVICE/App/ring_buffer.c **** 	}
+ 479              		.loc 1 19 19 view .LVU138
+ 480 0040 A2EB0308 		sub	r8, r2, r3
+ 481              	.LVL37:
+  19:USB_DEVICE/App/ring_buffer.c **** 	}
+ 482              		.loc 1 19 19 view .LVU139
+ 483              	.LBE14:
+ 484              	.LBE20:
+  61:USB_DEVICE/App/ring_buffer.c **** 	if (rb->begin > rb->end) {
+ 485              		.loc 1 61 2 is_stmt 1 view .LVU140
+  62:USB_DEVICE/App/ring_buffer.c **** 		read = MIN(rb->size - rb->begin, n);
+ 486              		.loc 1 62 2 view .LVU141
+  63:USB_DEVICE/App/ring_buffer.c **** 		memcpy(to, rb->buf + rb->begin, read);
+ 487              		.loc 1 63 3 view .LVU142
+  63:USB_DEVICE/App/ring_buffer.c **** 		memcpy(to, rb->buf + rb->begin, read);
+ 488              		.loc 1 63 8 is_stmt 0 view .LVU143
+ 489 0044 4545     		cmp	r5, r8
+ 490 0046 A946     		mov	r9, r5
+ 491 0048 28BF     		it	cs
+ 492 004a C146     		movcs	r9, r8
+ 493              	.LVL38:
+ARM GAS  /tmp/cciLoz0E.s 			page 12
+
+
+  64:USB_DEVICE/App/ring_buffer.c **** 		rb->begin += read;
+ 494              		.loc 1 64 3 is_stmt 1 view .LVU144
+ 495 004c 1944     		add	r1, r1, r3
+ 496 004e 4A46     		mov	r2, r9
+ 497 0050 3046     		mov	r0, r6
+ 498              	.LVL39:
+  64:USB_DEVICE/App/ring_buffer.c **** 		rb->begin += read;
+ 499              		.loc 1 64 3 is_stmt 0 view .LVU145
+ 500 0052 FFF7FEFF 		bl	memcpy
+ 501              	.LVL40:
+  65:USB_DEVICE/App/ring_buffer.c **** 		if (rb->begin == rb->size)
+ 502              		.loc 1 65 3 is_stmt 1 view .LVU146
+  65:USB_DEVICE/App/ring_buffer.c **** 		if (rb->begin == rb->size)
+ 503              		.loc 1 65 13 is_stmt 0 view .LVU147
+ 504 0056 A368     		ldr	r3, [r4, #8]
+  66:USB_DEVICE/App/ring_buffer.c **** 			rb->begin = 0;
+ 505              		.loc 1 66 6 view .LVU148
+ 506 0058 6268     		ldr	r2, [r4, #4]
+  65:USB_DEVICE/App/ring_buffer.c **** 		if (rb->begin == rb->size)
+ 507              		.loc 1 65 13 view .LVU149
+ 508 005a 4B44     		add	r3, r3, r9
+  66:USB_DEVICE/App/ring_buffer.c **** 			rb->begin = 0;
+ 509              		.loc 1 66 6 view .LVU150
+ 510 005c 9342     		cmp	r3, r2
+  65:USB_DEVICE/App/ring_buffer.c **** 		if (rb->begin == rb->size)
+ 511              		.loc 1 65 13 view .LVU151
+ 512 005e A360     		str	r3, [r4, #8]
+  66:USB_DEVICE/App/ring_buffer.c **** 			rb->begin = 0;
+ 513              		.loc 1 66 3 is_stmt 1 view .LVU152
+  67:USB_DEVICE/App/ring_buffer.c **** 		if (read == n)
+ 514              		.loc 1 67 4 view .LVU153
+  67:USB_DEVICE/App/ring_buffer.c **** 		if (read == n)
+ 515              		.loc 1 67 14 is_stmt 0 view .LVU154
+ 516 0060 04BF     		itt	eq
+ 517 0062 0023     		moveq	r3, #0
+ 518 0064 A360     		streq	r3, [r4, #8]
+  68:USB_DEVICE/App/ring_buffer.c **** 			return read;
+ 519              		.loc 1 68 3 is_stmt 1 view .LVU155
+  68:USB_DEVICE/App/ring_buffer.c **** 			return read;
+ 520              		.loc 1 68 6 is_stmt 0 view .LVU156
+ 521 0066 4545     		cmp	r5, r8
+ 522 0068 E5D9     		bls	.L29
+  73:USB_DEVICE/App/ring_buffer.c **** 	memcpy(to, rb->buf + rb->begin, read);
+ 523              		.loc 1 73 9 view .LVU157
+ 524 006a D4E90232 		ldrd	r3, r2, [r4, #8]
+ 525              	.LBB21:
+ 526              	.LBB15:
+  19:USB_DEVICE/App/ring_buffer.c **** 	}
+ 527              		.loc 1 19 31 view .LVU158
+ 528 006e 4744     		add	r7, r7, r8
+ 529              	.LVL41:
+  19:USB_DEVICE/App/ring_buffer.c **** 	}
+ 530              		.loc 1 19 31 view .LVU159
+ 531              	.LBE15:
+ 532              	.LBE21:
+  70:USB_DEVICE/App/ring_buffer.c **** 		n -= read;
+ 533              		.loc 1 70 3 is_stmt 1 view .LVU160
+ARM GAS  /tmp/cciLoz0E.s 			page 13
+
+
+  70:USB_DEVICE/App/ring_buffer.c **** 		n -= read;
+ 534              		.loc 1 70 6 is_stmt 0 view .LVU161
+ 535 0070 4E44     		add	r6, r6, r9
+ 536              	.LVL42:
+  71:USB_DEVICE/App/ring_buffer.c **** 	}
+ 537              		.loc 1 71 3 is_stmt 1 view .LVU162
+  71:USB_DEVICE/App/ring_buffer.c **** 	}
+ 538              		.loc 1 71 5 is_stmt 0 view .LVU163
+ 539 0072 A5EB0905 		sub	r5, r5, r9
+ 540              	.LVL43:
+  73:USB_DEVICE/App/ring_buffer.c **** 	memcpy(to, rb->buf + rb->begin, read);
+ 541              		.loc 1 73 9 view .LVU164
+ 542 0076 A2EB0308 		sub	r8, r2, r3
+ 543 007a CCE7     		b	.L31
+ 544              		.cfi_endproc
+ 545              	.LFE6:
+ 547              		.text
+ 548              	.Letext0:
+ 549              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/include/stddef.h"
+ 550              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 551              		.file 4 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 552              		.file 5 "USB_DEVICE/App/ring_buffer.h"
+ 553              		.file 6 "<built-in>"
+ARM GAS  /tmp/cciLoz0E.s 			page 14
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ring_buffer.c
+     /tmp/cciLoz0E.s:20     .text.ringbuf_init:0000000000000000 $t
+     /tmp/cciLoz0E.s:27     .text.ringbuf_init:0000000000000000 ringbuf_init
+     /tmp/cciLoz0E.s:50     .text.ringbuf_reset:0000000000000000 $t
+     /tmp/cciLoz0E.s:57     .text.ringbuf_reset:0000000000000000 ringbuf_reset
+     /tmp/cciLoz0E.s:76     .text.ringbuf_bytes_used:0000000000000000 $t
+     /tmp/cciLoz0E.s:83     .text.ringbuf_bytes_used:0000000000000000 ringbuf_bytes_used
+     /tmp/cciLoz0E.s:112    .text.ringbuf_bytes_free:0000000000000000 $t
+     /tmp/cciLoz0E.s:119    .text.ringbuf_bytes_free:0000000000000000 ringbuf_bytes_free
+     /tmp/cciLoz0E.s:149    .text.ringbuf_capacity:0000000000000000 $t
+     /tmp/cciLoz0E.s:156    .text.ringbuf_capacity:0000000000000000 ringbuf_capacity
+     /tmp/cciLoz0E.s:175    .text.ringbuf_write:0000000000000000 $t
+     /tmp/cciLoz0E.s:182    .text.ringbuf_write:0000000000000000 ringbuf_write
+     /tmp/cciLoz0E.s:357    .text.ringbuf_read:0000000000000000 $t
+     /tmp/cciLoz0E.s:364    .text.ringbuf_read:0000000000000000 ringbuf_read
+
+UNDEFINED SYMBOLS
+memcpy

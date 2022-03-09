@@ -1,0 +1,1505 @@
+ARM GAS  /tmp/ccAnurxf.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"microros.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.on_topic_in,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	on_topic_in:
+  27              	.LVL0:
+  28              	.LFB245:
+  29              		.file 1 "application/src/micro-ros/microros.c"
+   1:application/src/micro-ros/microros.c **** #include "microros.h"
+   2:application/src/micro-ros/microros.c **** #include "logging.h"
+   3:application/src/micro-ros/microros.c **** #include "usbd_cdc_if.h"
+   4:application/src/micro-ros/microros.c **** #include <rcl/rcl.h>
+   5:application/src/micro-ros/microros.c **** #include <rclc/executor.h>
+   6:application/src/micro-ros/microros.c **** #include <rclc/rclc.h>
+   7:application/src/micro-ros/microros.c **** #include <rm_robot_msgs/msg/imu.h>
+   8:application/src/micro-ros/microros.c **** #include <rmw_microros/time_sync.h>
+   9:application/src/micro-ros/microros.c **** #include <std_msgs/msg/int32.h>
+  10:application/src/micro-ros/microros.c **** 
+  11:application/src/micro-ros/microros.c **** // 简化 ROSIDL_GET_MSG_TYPE_SUPPORT 为 IDL
+  12:application/src/micro-ros/microros.c **** #define IDL(PkgName, MsgSubfolder, MsgName)                                    \
+  13:application/src/micro-ros/microros.c **** 	ROSIDL_GET_MSG_TYPE_SUPPORT(PkgName, MsgSubfolder, MsgName)
+  14:application/src/micro-ros/microros.c **** 
+  15:application/src/micro-ros/microros.c **** // 简化判断函数返回值是否为 RCL_RET_OK
+  16:application/src/micro-ros/microros.c **** #define FAIL(x) ((x) != RCL_RET_OK)
+  17:application/src/micro-ros/microros.c **** 
+  18:application/src/micro-ros/microros.c **** // 表示语句不可能失败（一定返回 RCL_RET_OK），若失败则进入死循环
+  19:application/src/micro-ros/microros.c **** #define CANNOT_FAIL(x)                                                         \
+  20:application/src/micro-ros/microros.c **** 	{                                                                          \
+  21:application/src/micro-ros/microros.c **** 		if FAIL (x) {                                                          \
+  22:application/src/micro-ros/microros.c **** 			for (;;)                                                           \
+  23:application/src/micro-ros/microros.c **** 				;                                                              \
+  24:application/src/micro-ros/microros.c **** 		}                                                                      \
+  25:application/src/micro-ros/microros.c **** 	}
+  26:application/src/micro-ros/microros.c **** 
+  27:application/src/micro-ros/microros.c **** // micro-ROS 的自定义内存分配器
+  28:application/src/micro-ros/microros.c **** void *microros_allocate(size_t size, void *state);
+  29:application/src/micro-ros/microros.c **** void microros_deallocate(void *pointer, void *state);
+ARM GAS  /tmp/ccAnurxf.s 			page 2
+
+
+  30:application/src/micro-ros/microros.c **** void *microros_reallocate(void *pointer, size_t size, void *state);
+  31:application/src/micro-ros/microros.c **** void *microros_zero_allocate(size_t number_of_elements, size_t size_of_element,
+  32:application/src/micro-ros/microros.c ****                              void *state);
+  33:application/src/micro-ros/microros.c **** 
+  34:application/src/micro-ros/microros.c **** // micro-ROS 命令行参数
+  35:application/src/micro-ros/microros.c **** static const char *args[] = {"--ros-args", "--disable-stdout-logs",
+  36:application/src/micro-ros/microros.c ****                              "--disable-external-lib-logs"};
+  37:application/src/micro-ros/microros.c **** 
+  38:application/src/micro-ros/microros.c **** // micro-ROS 相关变量
+  39:application/src/micro-ros/microros.c **** static rcl_allocator_t allocator;
+  40:application/src/micro-ros/microros.c **** static rclc_support_t support;
+  41:application/src/micro-ros/microros.c **** static rcl_node_t node;
+  42:application/src/micro-ros/microros.c **** static rclc_executor_t executor;
+  43:application/src/micro-ros/microros.c **** 
+  44:application/src/micro-ros/microros.c **** // micro-ROS 是否已经初始化且在运行
+  45:application/src/micro-ros/microros.c **** static volatile bool microros_running = false;
+  46:application/src/micro-ros/microros.c **** 
+  47:application/src/micro-ros/microros.c **** // 发布者 imu_raw
+  48:application/src/micro-ros/microros.c **** static rcl_publisher_t imu_pub;
+  49:application/src/micro-ros/microros.c **** 
+  50:application/src/micro-ros/microros.c **** // 发布者 out
+  51:application/src/micro-ros/microros.c **** static rcl_publisher_t out_pub;
+  52:application/src/micro-ros/microros.c **** 
+  53:application/src/micro-ros/microros.c **** // 订阅者 in
+  54:application/src/micro-ros/microros.c **** static rcl_subscription_t in_sub;
+  55:application/src/micro-ros/microros.c **** static std_msgs__msg__Int32 in_msg;
+  56:application/src/micro-ros/microros.c **** static void on_topic_in(const std_msgs__msg__Int32 *msg) {
+  30              		.loc 1 56 58 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+  57:application/src/micro-ros/microros.c **** 	rcl_publish(&out_pub, msg, NULL);
+  35              		.loc 1 57 2 view .LVU1
+  56:application/src/micro-ros/microros.c **** 	rcl_publish(&out_pub, msg, NULL);
+  36              		.loc 1 56 58 is_stmt 0 view .LVU2
+  37 0000 0146     		mov	r1, r0
+  38              		.loc 1 57 2 view .LVU3
+  39 0002 0022     		movs	r2, #0
+  40 0004 0148     		ldr	r0, .L3
+  41              	.LVL1:
+  42              		.loc 1 57 2 view .LVU4
+  43 0006 FFF7FEBF 		b	rcl_publish
+  44              	.LVL2:
+  45              	.L4:
+  46              		.loc 1 57 2 view .LVU5
+  47 000a 00BF     		.align	2
+  48              	.L3:
+  49 000c 00000000 		.word	.LANCHOR0
+  50              		.cfi_endproc
+  51              	.LFE245:
+  53              		.section	.rodata.microros_task.str1.4,"aMS",%progbits,1
+  54              		.align	2
+  55              	.LC0:
+  56 0000 00       		.ascii	"\000"
+  57 0001 000000   		.align	2
+  58              	.LC1:
+ARM GAS  /tmp/ccAnurxf.s 			page 3
+
+
+  59 0004 6D63755F 		.ascii	"mcu_node\000"
+  59      6E6F6465 
+  59      00
+  60 000d 000000   		.align	2
+  61              	.LC2:
+  62 0010 696D752F 		.ascii	"imu/raw\000"
+  62      72617700 
+  63              		.align	2
+  64              	.LC3:
+  65 0018 6F757400 		.ascii	"out\000"
+  66              		.align	2
+  67              	.LC4:
+  68 001c 696E00   		.ascii	"in\000"
+  69 001f 00       		.align	2
+  70              	.LC5:
+  71 0020 6D696372 		.ascii	"micro-ROS initialized\000"
+  71      6F2D524F 
+  71      5320696E 
+  71      69746961 
+  71      6C697A65 
+  72              		.section	.text.microros_task,"ax",%progbits
+  73              		.align	1
+  74              		.p2align 2,,3
+  75              		.global	microros_task
+  76              		.syntax unified
+  77              		.thumb
+  78              		.thumb_func
+  80              	microros_task:
+  81              	.LVL3:
+  82              	.LFB247:
+  58:application/src/micro-ros/microros.c **** }
+  59:application/src/micro-ros/microros.c **** 
+  60:application/src/micro-ros/microros.c **** /**
+  61:application/src/micro-ros/microros.c ****  * 初始化并运行 micro-ROS 会话，直到出现错误（如 RCL 错误、Agent 重启等）�
+  62:application/src/micro-ros/microros.c ****  */
+  63:application/src/micro-ros/microros.c **** static void run_microros_session(void) {
+  64:application/src/micro-ros/microros.c **** 
+  65:application/src/micro-ros/microros.c **** 	// 初始化 rclc support，此过程将与 Agent 握手
+  66:application/src/micro-ros/microros.c **** 	if FAIL (rclc_support_init(&support, sizeof(args) / sizeof(char *), args,
+  67:application/src/micro-ros/microros.c **** 	                           &allocator))
+  68:application/src/micro-ros/microros.c **** 		goto exit;
+  69:application/src/micro-ros/microros.c **** 	check_host_restart(); // 清除 host_restarted 标志
+  70:application/src/micro-ros/microros.c **** 
+  71:application/src/micro-ros/microros.c **** 	// 初始化日志系统
+  72:application/src/micro-ros/microros.c **** 	if FAIL (rcl_logging_configure(&support.context.global_arguments,
+  73:application/src/micro-ros/microros.c **** 	                               &allocator))
+  74:application/src/micro-ros/microros.c **** 		goto cleanup_support;
+  75:application/src/micro-ros/microros.c **** 
+  76:application/src/micro-ros/microros.c **** 	// NTP 时钟同步
+  77:application/src/micro-ros/microros.c **** 	if FAIL (rmw_uros_sync_session(200))
+  78:application/src/micro-ros/microros.c **** 		goto cleanup_logging;
+  79:application/src/micro-ros/microros.c **** 
+  80:application/src/micro-ros/microros.c **** 	// 初始化 rclc executor，此处句柄数为下方所有需要句柄数之和
+  81:application/src/micro-ros/microros.c **** 	if FAIL (rclc_executor_init(&executor, &support.context, 1, &allocator))
+  82:application/src/micro-ros/microros.c **** 		goto cleanup_logging;
+  83:application/src/micro-ros/microros.c **** 
+  84:application/src/micro-ros/microros.c **** 	// 初始化 mcu_node 节点
+ARM GAS  /tmp/ccAnurxf.s 			page 4
+
+
+  85:application/src/micro-ros/microros.c **** 	rcl_node_options_t node_options = rcl_node_get_default_options();
+  86:application/src/micro-ros/microros.c **** 	node_options.rosout_qos = rmw_qos_profile_sensor_data;
+  87:application/src/micro-ros/microros.c **** 	if FAIL (rclc_node_init_with_options(&node, "mcu_node", "", &support,
+  88:application/src/micro-ros/microros.c **** 	                                     &node_options))
+  89:application/src/micro-ros/microros.c **** 		goto cleanup_executor;
+  90:application/src/micro-ros/microros.c **** 
+  91:application/src/micro-ros/microros.c **** 	if FAIL (rclc_publisher_init_best_effort(
+  92:application/src/micro-ros/microros.c **** 	             &imu_pub, &node, IDL(rm_robot_msgs, msg, Imu), "imu/raw"))
+  93:application/src/micro-ros/microros.c **** 		goto cleanup_node;
+  94:application/src/micro-ros/microros.c **** 
+  95:application/src/micro-ros/microros.c **** 	// 初始化发布者 out
+  96:application/src/micro-ros/microros.c **** 	if FAIL (rclc_publisher_init_best_effort(&out_pub, &node,
+  97:application/src/micro-ros/microros.c **** 	                                         IDL(std_msgs, msg, Int32), "out"))
+  98:application/src/micro-ros/microros.c **** 		goto cleanup_imu_pub;
+  99:application/src/micro-ros/microros.c **** 
+ 100:application/src/micro-ros/microros.c **** 	// 初始化订阅者 in
+ 101:application/src/micro-ros/microros.c **** 	if FAIL (rclc_subscription_init_best_effort(
+ 102:application/src/micro-ros/microros.c **** 	             &in_sub, &node, IDL(std_msgs, msg, Int32), "in"))
+ 103:application/src/micro-ros/microros.c **** 		goto cleanup_out_pub;
+ 104:application/src/micro-ros/microros.c **** 
+ 105:application/src/micro-ros/microros.c **** 	// 设置 in 的回调函数为 on_topic_in
+ 106:application/src/micro-ros/microros.c **** 	// 需要 1 个句柄
+ 107:application/src/micro-ros/microros.c **** 	if FAIL (rclc_executor_add_subscription(
+ 108:application/src/micro-ros/microros.c **** 	             &executor, &in_sub, &in_msg,
+ 109:application/src/micro-ros/microros.c **** 	             (rclc_subscription_callback_t)&on_topic_in, ON_NEW_DATA))
+ 110:application/src/micro-ros/microros.c **** 		goto cleanup_in_sub;
+ 111:application/src/micro-ros/microros.c **** 
+ 112:application/src/micro-ros/microros.c **** 	// 运行 micro-ROS 会话
+ 113:application/src/micro-ros/microros.c **** 	microros_running = true;
+ 114:application/src/micro-ros/microros.c **** 	LOG_INFO("micro-ROS initialized");
+ 115:application/src/micro-ros/microros.c **** 	for (;;) {
+ 116:application/src/micro-ros/microros.c **** 
+ 117:application/src/micro-ros/microros.c **** 		// 进行一次 spin（等待数据到达或定时器触发）
+ 118:application/src/micro-ros/microros.c **** 		rcl_ret_t ret = rclc_executor_spin_some(&executor, executor.timeout_ns);
+ 119:application/src/micro-ros/microros.c **** 
+ 120:application/src/micro-ros/microros.c **** 		if (ret != RCL_RET_OK && ret != RCL_RET_TIMEOUT) {
+ 121:application/src/micro-ros/microros.c **** 			// spin 失败，且不是超时造成
+ 122:application/src/micro-ros/microros.c **** 			break; // 会话结束
+ 123:application/src/micro-ros/microros.c **** 		}
+ 124:application/src/micro-ros/microros.c **** 
+ 125:application/src/micro-ros/microros.c **** 		if (check_host_restart()) {
+ 126:application/src/micro-ros/microros.c **** 			// Agent 发生重启，或 USB 断线重连
+ 127:application/src/micro-ros/microros.c **** 
+ 128:application/src/micro-ros/microros.c **** 			// Agent 重启时需要重新初始化
+ 129:application/src/micro-ros/microros.c **** 			// micro-ROS，否则将无法与上位机重新建立会话
+ 130:application/src/micro-ros/microros.c **** 			break;
+ 131:application/src/micro-ros/microros.c **** 		}
+ 132:application/src/micro-ros/microros.c **** 	}
+ 133:application/src/micro-ros/microros.c **** 	microros_running = false;
+ 134:application/src/micro-ros/microros.c **** 
+ 135:application/src/micro-ros/microros.c **** 	uxTaskGetStackHighWaterMark(NULL);
+ 136:application/src/micro-ros/microros.c **** 
+ 137:application/src/micro-ros/microros.c **** 	// 资源释放
+ 138:application/src/micro-ros/microros.c **** cleanup_in_sub:
+ 139:application/src/micro-ros/microros.c **** 	CANNOT_FAIL(rcl_subscription_fini(&in_sub, &node));
+ 140:application/src/micro-ros/microros.c **** 
+ 141:application/src/micro-ros/microros.c **** cleanup_out_pub:
+ARM GAS  /tmp/ccAnurxf.s 			page 5
+
+
+ 142:application/src/micro-ros/microros.c **** 	CANNOT_FAIL(rcl_publisher_fini(&out_pub, &node));
+ 143:application/src/micro-ros/microros.c **** 
+ 144:application/src/micro-ros/microros.c **** cleanup_imu_pub:
+ 145:application/src/micro-ros/microros.c **** 	CANNOT_FAIL(rcl_publisher_fini(&imu_pub, &node));
+ 146:application/src/micro-ros/microros.c **** 
+ 147:application/src/micro-ros/microros.c **** cleanup_node:
+ 148:application/src/micro-ros/microros.c **** 	CANNOT_FAIL(rcl_node_fini(&node));
+ 149:application/src/micro-ros/microros.c **** 
+ 150:application/src/micro-ros/microros.c **** cleanup_executor:
+ 151:application/src/micro-ros/microros.c **** 	CANNOT_FAIL(rclc_executor_fini(&executor));
+ 152:application/src/micro-ros/microros.c **** 
+ 153:application/src/micro-ros/microros.c **** cleanup_logging:
+ 154:application/src/micro-ros/microros.c **** 	CANNOT_FAIL(rcl_logging_fini());
+ 155:application/src/micro-ros/microros.c **** 
+ 156:application/src/micro-ros/microros.c **** cleanup_support:
+ 157:application/src/micro-ros/microros.c **** 	CANNOT_FAIL(rclc_support_fini(&support));
+ 158:application/src/micro-ros/microros.c **** 
+ 159:application/src/micro-ros/microros.c **** exit:
+ 160:application/src/micro-ros/microros.c **** 	return;
+ 161:application/src/micro-ros/microros.c **** }
+ 162:application/src/micro-ros/microros.c **** 
+ 163:application/src/micro-ros/microros.c **** void microros_task(const void *arg) {
+  83              		.loc 1 163 37 is_stmt 1 view -0
+  84              		.cfi_startproc
+  85              		@ Volatile: function does not return.
+  86              		@ args = 0, pretend = 0, frame = 136
+  87              		@ frame_needed = 0, uses_anonymous_args = 0
+ 164:application/src/micro-ros/microros.c **** 
+ 165:application/src/micro-ros/microros.c **** 	// 初始化 USB
+ 166:application/src/micro-ros/microros.c **** 	MX_USB_DEVICE_Init();
+  88              		.loc 1 166 2 view .LVU7
+ 163:application/src/micro-ros/microros.c **** 
+  89              		.loc 1 163 37 is_stmt 0 view .LVU8
+  90 0000 80B5     		push	{r7, lr}
+  91              		.cfi_def_cfa_offset 8
+  92              		.cfi_offset 7, -8
+  93              		.cfi_offset 14, -4
+  94 0002 A4B0     		sub	sp, sp, #144
+  95              		.cfi_def_cfa_offset 152
+  96              		.loc 1 166 2 view .LVU9
+  97 0004 FFF7FEFF 		bl	MX_USB_DEVICE_Init
+  98              	.LVL4:
+ 167:application/src/micro-ros/microros.c **** 
+ 168:application/src/micro-ros/microros.c **** 	// 初始化 XRCE-DDS 信道
+ 169:application/src/micro-ros/microros.c **** 	CANNOT_FAIL(rmw_uros_set_custom_transport(
+  99              		.loc 1 169 2 is_stmt 1 view .LVU10
+ 100 0008 6E48     		ldr	r0, .L72
+ 101 000a 6F49     		ldr	r1, .L72+4
+ 102 000c 6F4B     		ldr	r3, .L72+8
+ 103 000e 704A     		ldr	r2, .L72+12
+ 104 0010 CDE90010 		strd	r1, r0, [sp]
+ 105 0014 0021     		movs	r1, #0
+ 106 0016 0120     		movs	r0, #1
+ 107 0018 FFF7FEFF 		bl	rmw_uros_set_custom_transport
+ 108              	.LVL5:
+ 109 001c 00B1     		cbz	r0, .L6
+ 110              	.L7:
+ARM GAS  /tmp/ccAnurxf.s 			page 6
+
+
+ 111              		.loc 1 169 2 discriminator 1 view .LVU11
+ 112              		.loc 1 169 2 discriminator 1 view .LVU12
+ 113              		.loc 1 169 2 discriminator 1 view .LVU13
+ 114              		.loc 1 169 2 discriminator 1 view .LVU14
+ 115              		.loc 1 169 2 discriminator 1 view .LVU15
+ 116              		.loc 1 169 2 discriminator 1 view .LVU16
+ 117 001e FEE7     		b	.L7
+ 118              	.L6:
+ 170:application/src/micro-ros/microros.c **** 	    true, NULL, usb_transport_open, usb_transport_close,
+ 171:application/src/micro-ros/microros.c **** 	    usb_transport_write, usb_transport_read));
+ 119              		.loc 1 171 47 view .LVU17
+ 172:application/src/micro-ros/microros.c **** 
+ 173:application/src/micro-ros/microros.c **** 	// 初始化 micro-ROS 内存分配器
+ 174:application/src/micro-ros/microros.c **** 	allocator = rcutils_get_zero_initialized_allocator();
+ 120              		.loc 1 174 2 view .LVU18
+ 121              		.loc 1 174 14 is_stmt 0 view .LVU19
+ 122 0020 02A8     		add	r0, sp, #8
+ 123 0022 FFF7FEFF 		bl	rcutils_get_zero_initialized_allocator
+ 124              	.LVL6:
+ 125 0026 0DF1080C 		add	ip, sp, #8
+ 126 002a BCE80F00 		ldmia	ip!, {r0, r1, r2, r3}
+ 127 002e 694C     		ldr	r4, .L72+16
+ 175:application/src/micro-ros/microros.c **** 	allocator.allocate = &microros_allocate;
+ 128              		.loc 1 175 21 view .LVU20
+ 129 0030 DFF8F481 		ldr	r8, .L72+100
+ 176:application/src/micro-ros/microros.c **** 	allocator.deallocate = &microros_deallocate;
+ 130              		.loc 1 176 23 view .LVU21
+ 131 0034 684F     		ldr	r7, .L72+20
+ 177:application/src/micro-ros/microros.c **** 	allocator.reallocate = &microros_reallocate;
+ 132              		.loc 1 177 23 view .LVU22
+ 133 0036 694E     		ldr	r6, .L72+24
+ 178:application/src/micro-ros/microros.c **** 	allocator.zero_allocate = &microros_zero_allocate;
+ 134              		.loc 1 178 26 view .LVU23
+ 135 0038 694D     		ldr	r5, .L72+28
+ 174:application/src/micro-ros/microros.c **** 	allocator.allocate = &microros_allocate;
+ 136              		.loc 1 174 14 view .LVU24
+ 137 003a A646     		mov	lr, r4
+ 138 003c AEE80F00 		stmia	lr!, {r0, r1, r2, r3}
+ 176:application/src/micro-ros/microros.c **** 	allocator.reallocate = &microros_reallocate;
+ 139              		.loc 1 176 23 view .LVU25
+ 140 0040 C4E90087 		strd	r8, r7, [r4]
+ 179:application/src/micro-ros/microros.c **** 	if (!rcutils_set_default_allocator(&allocator)) {
+ 141              		.loc 1 179 7 view .LVU26
+ 142 0044 2046     		mov	r0, r4
+ 174:application/src/micro-ros/microros.c **** 	allocator.allocate = &microros_allocate;
+ 143              		.loc 1 174 14 view .LVU27
+ 144 0046 DCF80030 		ldr	r3, [ip]
+ 145 004a CEF80030 		str	r3, [lr]
+ 175:application/src/micro-ros/microros.c **** 	allocator.deallocate = &microros_deallocate;
+ 146              		.loc 1 175 2 is_stmt 1 view .LVU28
+ 176:application/src/micro-ros/microros.c **** 	allocator.reallocate = &microros_reallocate;
+ 147              		.loc 1 176 2 view .LVU29
+ 177:application/src/micro-ros/microros.c **** 	allocator.zero_allocate = &microros_zero_allocate;
+ 148              		.loc 1 177 2 view .LVU30
+ 178:application/src/micro-ros/microros.c **** 	if (!rcutils_set_default_allocator(&allocator)) {
+ 149              		.loc 1 178 26 is_stmt 0 view .LVU31
+ 150 004e C4E90265 		strd	r6, r5, [r4, #8]
+ARM GAS  /tmp/ccAnurxf.s 			page 7
+
+
+ 151              		.loc 1 179 2 is_stmt 1 view .LVU32
+ 152              		.loc 1 179 7 is_stmt 0 view .LVU33
+ 153 0052 FFF7FEFF 		bl	rcutils_set_default_allocator
+ 154              	.LVL7:
+ 155              		.loc 1 179 5 view .LVU34
+ 156 0056 50B3     		cbz	r0, .L66
+ 157 0058 DFF890A1 		ldr	r10, .L72+40
+ 158 005c DFF8CC81 		ldr	r8, .L72+104
+ 159 0060 DFF8CC91 		ldr	r9, .L72+108
+ 160              	.LBB13:
+ 161              	.LBB14:
+  66:application/src/micro-ros/microros.c **** 	                           &allocator))
+ 162              		.loc 1 66 5 view .LVU35
+ 163 0064 5F4E     		ldr	r6, .L72+32
+ 164 0066 604D     		ldr	r5, .L72+36
+ 165              	.L8:
+ 166              	.LBE14:
+ 167              	.LBE13:
+ 180:application/src/micro-ros/microros.c **** 		// 不可能失败
+ 181:application/src/micro-ros/microros.c **** 		for (;;)
+ 182:application/src/micro-ros/microros.c **** 			;
+ 183:application/src/micro-ros/microros.c **** 	}
+ 184:application/src/micro-ros/microros.c **** 
+ 185:application/src/micro-ros/microros.c **** 	// 运行 micro-ROS 会话，若失败则重试
+ 186:application/src/micro-ros/microros.c **** 	for (;;)
+ 168              		.loc 1 186 2 is_stmt 1 discriminator 1 view .LVU36
+ 187:application/src/micro-ros/microros.c **** 		run_microros_session();
+ 169              		.loc 1 187 3 discriminator 1 view .LVU37
+ 170              	.LBB30:
+ 171              	.LBI13:
+  63:application/src/micro-ros/microros.c **** 
+ 172              		.loc 1 63 13 discriminator 1 view .LVU38
+ 173              	.LBB28:
+  66:application/src/micro-ros/microros.c **** 	                           &allocator))
+ 174              		.loc 1 66 2 discriminator 1 view .LVU39
+  66:application/src/micro-ros/microros.c **** 	                           &allocator))
+ 175              		.loc 1 66 5 is_stmt 0 discriminator 1 view .LVU40
+ 176 0068 2346     		mov	r3, r4
+ 177 006a 3246     		mov	r2, r6
+ 178 006c 0321     		movs	r1, #3
+ 179 006e 2846     		mov	r0, r5
+ 180 0070 FFF7FEFF 		bl	rclc_support_init
+ 181              	.LVL8:
+ 182 0074 0028     		cmp	r0, #0
+ 183 0076 F7D1     		bne	.L8
+  69:application/src/micro-ros/microros.c **** 
+ 184              		.loc 1 69 2 is_stmt 1 view .LVU41
+ 185 0078 FFF7FEFF 		bl	check_host_restart
+ 186              	.LVL9:
+  72:application/src/micro-ros/microros.c **** 	                               &allocator))
+ 187              		.loc 1 72 2 view .LVU42
+ 188              	.LBB15:
+  72:application/src/micro-ros/microros.c **** 	                               &allocator))
+ 189              		.loc 1 72 5 is_stmt 0 view .LVU43
+ 190 007c 2146     		mov	r1, r4
+ 191 007e 2846     		mov	r0, r5
+ 192 0080 FFF7FEFF 		bl	rcl_logging_configure
+ARM GAS  /tmp/ccAnurxf.s 			page 8
+
+
+ 193              	.LVL10:
+ 194 0084 68B9     		cbnz	r0, .L11
+ 195              	.LBE15:
+  77:application/src/micro-ros/microros.c **** 		goto cleanup_logging;
+ 196              		.loc 1 77 2 is_stmt 1 view .LVU44
+  77:application/src/micro-ros/microros.c **** 		goto cleanup_logging;
+ 197              		.loc 1 77 5 is_stmt 0 view .LVU45
+ 198 0086 C820     		movs	r0, #200
+ 199 0088 FFF7FEFF 		bl	rmw_uros_sync_session
+ 200              	.LVL11:
+ 201 008c 30B9     		cbnz	r0, .L12
+  81:application/src/micro-ros/microros.c **** 		goto cleanup_logging;
+ 202              		.loc 1 81 2 is_stmt 1 view .LVU46
+  81:application/src/micro-ros/microros.c **** 		goto cleanup_logging;
+ 203              		.loc 1 81 5 is_stmt 0 view .LVU47
+ 204 008e 5748     		ldr	r0, .L72+40
+ 205 0090 2346     		mov	r3, r4
+ 206 0092 0122     		movs	r2, #1
+ 207 0094 2946     		mov	r1, r5
+ 208 0096 FFF7FEFF 		bl	rclc_executor_init
+ 209              	.LVL12:
+ 210 009a 50B1     		cbz	r0, .L68
+ 211              	.L12:
+ 212              	.LDL1:
+ 151:application/src/micro-ros/microros.c **** 
+ 213              		.loc 1 151 44 is_stmt 1 view .LVU48
+ 154:application/src/micro-ros/microros.c **** 
+ 214              		.loc 1 154 2 view .LVU49
+ 215              	.LBB16:
+ 216 009c FFF7FEFF 		bl	rcl_logging_fini
+ 217              	.LVL13:
+ 218 00a0 30B9     		cbnz	r0, .L31
+ 219              	.L11:
+ 220              	.LDL2:
+ 221              	.LBE16:
+ 154:application/src/micro-ros/microros.c **** 
+ 222              		.loc 1 154 33 view .LVU50
+ 157:application/src/micro-ros/microros.c **** 
+ 223              		.loc 1 157 2 view .LVU51
+ 224 00a2 2846     		mov	r0, r5
+ 225 00a4 FFF7FEFF 		bl	rclc_support_fini
+ 226              	.LVL14:
+ 227 00a8 0028     		cmp	r0, #0
+ 228 00aa DDD0     		beq	.L8
+ 229              	.L32:
+ 157:application/src/micro-ros/microros.c **** 
+ 230              		.loc 1 157 2 view .LVU52
+ 157:application/src/micro-ros/microros.c **** 
+ 231              		.loc 1 157 2 view .LVU53
+ 157:application/src/micro-ros/microros.c **** 
+ 232              		.loc 1 157 2 view .LVU54
+ 157:application/src/micro-ros/microros.c **** 
+ 233              		.loc 1 157 2 view .LVU55
+ 157:application/src/micro-ros/microros.c **** 
+ 234              		.loc 1 157 2 view .LVU56
+ 157:application/src/micro-ros/microros.c **** 
+ 235              		.loc 1 157 2 view .LVU57
+ARM GAS  /tmp/ccAnurxf.s 			page 9
+
+
+ 236 00ac FEE7     		b	.L32
+ 237              	.L66:
+ 238              	.L9:
+ 239              	.LBE28:
+ 240              	.LBE30:
+ 181:application/src/micro-ros/microros.c **** 			;
+ 241              		.loc 1 181 3 discriminator 2 view .LVU58
+ 182:application/src/micro-ros/microros.c **** 	}
+ 242              		.loc 1 182 4 discriminator 2 view .LVU59
+ 181:application/src/micro-ros/microros.c **** 			;
+ 243              		.loc 1 181 9 discriminator 2 view .LVU60
+ 181:application/src/micro-ros/microros.c **** 			;
+ 244              		.loc 1 181 3 discriminator 2 view .LVU61
+ 182:application/src/micro-ros/microros.c **** 	}
+ 245              		.loc 1 182 4 discriminator 2 view .LVU62
+ 181:application/src/micro-ros/microros.c **** 			;
+ 246              		.loc 1 181 9 discriminator 2 view .LVU63
+ 247 00ae FEE7     		b	.L9
+ 248              	.L31:
+ 249              	.LBB31:
+ 250              	.LBB29:
+ 251              	.LBB17:
+ 154:application/src/micro-ros/microros.c **** 
+ 252              		.loc 1 154 2 view .LVU64
+ 154:application/src/micro-ros/microros.c **** 
+ 253              		.loc 1 154 2 view .LVU65
+ 154:application/src/micro-ros/microros.c **** 
+ 254              		.loc 1 154 2 view .LVU66
+ 154:application/src/micro-ros/microros.c **** 
+ 255              		.loc 1 154 2 view .LVU67
+ 154:application/src/micro-ros/microros.c **** 
+ 256              		.loc 1 154 2 view .LVU68
+ 154:application/src/micro-ros/microros.c **** 
+ 257              		.loc 1 154 2 view .LVU69
+ 258 00b0 FEE7     		b	.L31
+ 259              	.L68:
+ 260              	.LBE17:
+  85:application/src/micro-ros/microros.c **** 	node_options.rosout_qos = rmw_qos_profile_sensor_data;
+ 261              		.loc 1 85 2 view .LVU70
+  85:application/src/micro-ros/microros.c **** 	node_options.rosout_qos = rmw_qos_profile_sensor_data;
+ 262              		.loc 1 85 36 is_stmt 0 view .LVU71
+ 263 00b2 08A8     		add	r0, sp, #32
+ 264 00b4 FFF7FEFF 		bl	rcl_node_get_default_options
+ 265              	.LVL15:
+  86:application/src/micro-ros/microros.c **** 	if FAIL (rclc_node_init_with_options(&node, "mcu_node", "", &support,
+ 266              		.loc 1 86 2 is_stmt 1 view .LVU72
+  86:application/src/micro-ros/microros.c **** 	if FAIL (rclc_node_init_with_options(&node, "mcu_node", "", &support,
+ 267              		.loc 1 86 26 is_stmt 0 view .LVU73
+ 268 00b8 4D49     		ldr	r1, .L72+44
+ 269 00ba 5022     		movs	r2, #80
+ 270 00bc 10A8     		add	r0, sp, #64
+ 271 00be FFF7FEFF 		bl	memcpy
+ 272              	.LVL16:
+  87:application/src/micro-ros/microros.c **** 	                                     &node_options))
+ 273              		.loc 1 87 2 is_stmt 1 view .LVU74
+  87:application/src/micro-ros/microros.c **** 	                                     &node_options))
+ 274              		.loc 1 87 5 is_stmt 0 view .LVU75
+ARM GAS  /tmp/ccAnurxf.s 			page 10
+
+
+ 275 00c2 08AB     		add	r3, sp, #32
+ 276 00c4 0093     		str	r3, [sp]
+ 277 00c6 4B4A     		ldr	r2, .L72+48
+ 278 00c8 4B49     		ldr	r1, .L72+52
+ 279 00ca 4C48     		ldr	r0, .L72+56
+ 280 00cc 2B46     		mov	r3, r5
+ 281 00ce FFF7FEFF 		bl	rclc_node_init_with_options
+ 282              	.LVL17:
+ 283 00d2 0028     		cmp	r0, #0
+ 284 00d4 59D1     		bne	.L13
+  91:application/src/micro-ros/microros.c **** 	             &imu_pub, &node, IDL(rm_robot_msgs, msg, Imu), "imu/raw"))
+ 285              		.loc 1 91 2 is_stmt 1 view .LVU76
+  91:application/src/micro-ros/microros.c **** 	             &imu_pub, &node, IDL(rm_robot_msgs, msg, Imu), "imu/raw"))
+ 286              		.loc 1 91 5 is_stmt 0 view .LVU77
+ 287 00d6 FFF7FEFF 		bl	rosidl_typesupport_c__get_message_type_support_handle__rm_robot_msgs__msg__Imu
+ 288              	.LVL18:
+ 289 00da 494B     		ldr	r3, .L72+60
+ 290 00dc 4749     		ldr	r1, .L72+56
+ 291 00de 0246     		mov	r2, r0
+ 292 00e0 4848     		ldr	r0, .L72+64
+ 293 00e2 FFF7FEFF 		bl	rclc_publisher_init_best_effort
+ 294              	.LVL19:
+ 295 00e6 0028     		cmp	r0, #0
+ 296 00e8 4BD1     		bne	.L14
+  96:application/src/micro-ros/microros.c **** 	                                         IDL(std_msgs, msg, Int32), "out"))
+ 297              		.loc 1 96 2 is_stmt 1 view .LVU78
+  96:application/src/micro-ros/microros.c **** 	                                         IDL(std_msgs, msg, Int32), "out"))
+ 298              		.loc 1 96 5 is_stmt 0 view .LVU79
+ 299 00ea FFF7FEFF 		bl	rosidl_typesupport_c__get_message_type_support_handle__std_msgs__msg__Int32
+ 300              	.LVL20:
+ 301 00ee 464B     		ldr	r3, .L72+68
+ 302 00f0 4249     		ldr	r1, .L72+56
+ 303 00f2 0246     		mov	r2, r0
+ 304 00f4 4548     		ldr	r0, .L72+72
+ 305 00f6 FFF7FEFF 		bl	rclc_publisher_init_best_effort
+ 306              	.LVL21:
+ 307 00fa 0028     		cmp	r0, #0
+ 308 00fc 3CD1     		bne	.L15
+ 101:application/src/micro-ros/microros.c **** 	             &in_sub, &node, IDL(std_msgs, msg, Int32), "in"))
+ 309              		.loc 1 101 2 is_stmt 1 view .LVU80
+ 101:application/src/micro-ros/microros.c **** 	             &in_sub, &node, IDL(std_msgs, msg, Int32), "in"))
+ 310              		.loc 1 101 5 is_stmt 0 view .LVU81
+ 311 00fe FFF7FEFF 		bl	rosidl_typesupport_c__get_message_type_support_handle__std_msgs__msg__Int32
+ 312              	.LVL22:
+ 313 0102 434B     		ldr	r3, .L72+76
+ 314 0104 3D49     		ldr	r1, .L72+56
+ 315 0106 0246     		mov	r2, r0
+ 316 0108 4248     		ldr	r0, .L72+80
+ 317 010a FFF7FEFF 		bl	rclc_subscription_init_best_effort
+ 318              	.LVL23:
+ 319 010e 70BB     		cbnz	r0, .L16
+ 107:application/src/micro-ros/microros.c **** 	             &executor, &in_sub, &in_msg,
+ 320              		.loc 1 107 2 is_stmt 1 view .LVU82
+ 107:application/src/micro-ros/microros.c **** 	             &executor, &in_sub, &in_msg,
+ 321              		.loc 1 107 5 is_stmt 0 view .LVU83
+ 322 0110 0090     		str	r0, [sp]
+ 323 0112 414B     		ldr	r3, .L72+84
+ARM GAS  /tmp/ccAnurxf.s 			page 11
+
+
+ 324 0114 414A     		ldr	r2, .L72+88
+ 325 0116 3F49     		ldr	r1, .L72+80
+ 326 0118 3448     		ldr	r0, .L72+40
+ 327 011a FFF7FEFF 		bl	rclc_executor_add_subscription
+ 328              	.LVL24:
+ 329 011e 08BB     		cbnz	r0, .L17
+ 113:application/src/micro-ros/microros.c **** 	LOG_INFO("micro-ROS initialized");
+ 330              		.loc 1 113 2 is_stmt 1 view .LVU84
+ 113:application/src/micro-ros/microros.c **** 	LOG_INFO("micro-ROS initialized");
+ 331              		.loc 1 113 19 is_stmt 0 view .LVU85
+ 332 0120 0123     		movs	r3, #1
+ 333 0122 88F80030 		strb	r3, [r8]
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 334              		.loc 1 114 2 is_stmt 1 view .LVU86
+ 335              	.LBB18:
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 336              		.loc 1 114 2 view .LVU87
+ 337              	.LBB19:
+ 338              	.LBI19:
+ 188:application/src/micro-ros/microros.c **** }
+ 189:application/src/micro-ros/microros.c **** 
+ 190:application/src/micro-ros/microros.c **** const char *logging_get_logger_name(void) {
+ 339              		.loc 1 190 13 view .LVU88
+ 340              	.LBB20:
+ 191:application/src/micro-ros/microros.c **** 	if (!microros_running)
+ 341              		.loc 1 191 2 view .LVU89
+ 342              		.loc 1 191 6 is_stmt 0 view .LVU90
+ 343 0126 98F80030 		ldrb	r3, [r8]	@ zero_extendqisi2
+ 344              		.loc 1 191 5 view .LVU91
+ 345 012a 6BB1     		cbz	r3, .L19
+ 192:application/src/micro-ros/microros.c **** 		return NULL;
+ 193:application/src/micro-ros/microros.c **** 	return rcl_node_get_logger_name(&node);
+ 346              		.loc 1 193 2 is_stmt 1 view .LVU92
+ 347              		.loc 1 193 9 is_stmt 0 view .LVU93
+ 348 012c 3348     		ldr	r0, .L72+56
+ 349 012e FFF7FEFF 		bl	rcl_node_get_logger_name
+ 350              	.LVL25:
+ 351              		.loc 1 193 9 view .LVU94
+ 352              	.LBE20:
+ 353              	.LBE19:
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 354              		.loc 1 114 2 is_stmt 1 view .LVU95
+ 355 0132 0746     		mov	r7, r0
+ 356 0134 40B1     		cbz	r0, .L19
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 357              		.loc 1 114 2 view .LVU96
+ 358              	.LBB21:
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 359              		.loc 1 114 2 view .LVU97
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 360              		.loc 1 114 2 view .LVU98
+ 361 0136 99F80030 		ldrb	r3, [r9]	@ zero_extendqisi2
+ 362 013a 002B     		cmp	r3, #0
+ 363 013c 3BD0     		beq	.L69
+ 364              	.LVL26:
+ 365              	.L22:
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ARM GAS  /tmp/ccAnurxf.s 			page 12
+
+
+ 366              		.loc 1 114 2 view .LVU99
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 367              		.loc 1 114 2 view .LVU100
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 368              		.loc 1 114 2 view .LVU101
+ 369 013e 1421     		movs	r1, #20
+ 370 0140 3846     		mov	r0, r7
+ 371 0142 FFF7FEFF 		bl	rcutils_logging_logger_is_enabled_for
+ 372              	.LVL27:
+ 373 0146 78BB     		cbnz	r0, .L70
+ 374              	.LVL28:
+ 375              	.L19:
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 376              		.loc 1 114 2 is_stmt 0 view .LVU102
+ 377              	.LBE21:
+ 378              	.LBE18:
+ 379              	.LBB23:
+ 118:application/src/micro-ros/microros.c **** 
+ 380              		.loc 1 118 19 view .LVU103
+ 381 0148 284F     		ldr	r7, .L72+40
+ 382              	.L25:
+ 383              	.LBE23:
+ 384              	.LBB24:
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 385              		.loc 1 114 2 is_stmt 1 view .LVU104
+ 386              	.LBE24:
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 387              		.loc 1 114 2 view .LVU105
+ 115:application/src/micro-ros/microros.c **** 
+ 388              		.loc 1 115 2 view .LVU106
+ 389              	.LBB25:
+ 118:application/src/micro-ros/microros.c **** 
+ 390              		.loc 1 118 3 view .LVU107
+ 118:application/src/micro-ros/microros.c **** 
+ 391              		.loc 1 118 19 is_stmt 0 view .LVU108
+ 392 014a DAE91A23 		ldrd	r2, [r10, #104]
+ 393 014e 3846     		mov	r0, r7
+ 394 0150 FFF7FEFF 		bl	rclc_executor_spin_some
+ 395              	.LVL29:
+ 120:application/src/micro-ros/microros.c **** 			// spin 失败，且不是超时造成
+ 396              		.loc 1 120 3 is_stmt 1 view .LVU109
+ 120:application/src/micro-ros/microros.c **** 			// spin 失败，且不是超时造成
+ 397              		.loc 1 120 6 is_stmt 0 view .LVU110
+ 398 0154 30F00203 		bics	r3, r0, #2
+ 399 0158 21D0     		beq	.L71
+ 400              	.LVL30:
+ 401              	.L24:
+ 120:application/src/micro-ros/microros.c **** 			// spin 失败，且不是超时造成
+ 402              		.loc 1 120 6 view .LVU111
+ 403              	.LBE25:
+ 133:application/src/micro-ros/microros.c **** 
+ 404              		.loc 1 133 2 is_stmt 1 view .LVU112
+ 133:application/src/micro-ros/microros.c **** 
+ 405              		.loc 1 133 19 is_stmt 0 view .LVU113
+ 406 015a 0020     		movs	r0, #0
+ 407 015c 88F80000 		strb	r0, [r8]
+ 135:application/src/micro-ros/microros.c **** 
+ARM GAS  /tmp/ccAnurxf.s 			page 13
+
+
+ 408              		.loc 1 135 2 is_stmt 1 view .LVU114
+ 409 0160 FFF7FEFF 		bl	uxTaskGetStackHighWaterMark
+ 410              	.LVL31:
+ 411              	.L17:
+ 139:application/src/micro-ros/microros.c **** 
+ 412              		.loc 1 139 2 view .LVU115
+ 413 0164 2549     		ldr	r1, .L72+56
+ 414 0166 2B48     		ldr	r0, .L72+80
+ 415 0168 FFF7FEFF 		bl	rcl_subscription_fini
+ 416              	.LVL32:
+ 417 016c B0B9     		cbnz	r0, .L26
+ 418              	.L16:
+ 419              	.LDL3:
+ 139:application/src/micro-ros/microros.c **** 
+ 420              		.loc 1 139 52 view .LVU116
+ 142:application/src/micro-ros/microros.c **** 
+ 421              		.loc 1 142 2 view .LVU117
+ 422 016e 2349     		ldr	r1, .L72+56
+ 423 0170 2648     		ldr	r0, .L72+72
+ 424 0172 FFF7FEFF 		bl	rcl_publisher_fini
+ 425              	.LVL33:
+ 426 0176 80B9     		cbnz	r0, .L27
+ 427              	.L15:
+ 428              	.LDL4:
+ 142:application/src/micro-ros/microros.c **** 
+ 429              		.loc 1 142 50 view .LVU118
+ 145:application/src/micro-ros/microros.c **** 
+ 430              		.loc 1 145 2 view .LVU119
+ 431 0178 2049     		ldr	r1, .L72+56
+ 432 017a 2248     		ldr	r0, .L72+64
+ 433 017c FFF7FEFF 		bl	rcl_publisher_fini
+ 434              	.LVL34:
+ 435 0180 50B9     		cbnz	r0, .L28
+ 436              	.L14:
+ 437              	.LDL5:
+ 145:application/src/micro-ros/microros.c **** 
+ 438              		.loc 1 145 50 view .LVU120
+ 148:application/src/micro-ros/microros.c **** 
+ 439              		.loc 1 148 2 view .LVU121
+ 440 0182 1E48     		ldr	r0, .L72+56
+ 441 0184 FFF7FEFF 		bl	rcl_node_fini
+ 442              	.LVL35:
+ 443 0188 28B9     		cbnz	r0, .L29
+ 444              	.L13:
+ 445              	.LDL6:
+ 148:application/src/micro-ros/microros.c **** 
+ 446              		.loc 1 148 35 view .LVU122
+ 151:application/src/micro-ros/microros.c **** 
+ 447              		.loc 1 151 2 view .LVU123
+ 448 018a 1848     		ldr	r0, .L72+40
+ 449 018c FFF7FEFF 		bl	rclc_executor_fini
+ 450              	.LVL36:
+ 451 0190 0028     		cmp	r0, #0
+ 452 0192 83D0     		beq	.L12
+ 453              	.L30:
+ 151:application/src/micro-ros/microros.c **** 
+ 454              		.loc 1 151 2 view .LVU124
+ARM GAS  /tmp/ccAnurxf.s 			page 14
+
+
+ 151:application/src/micro-ros/microros.c **** 
+ 455              		.loc 1 151 2 view .LVU125
+ 151:application/src/micro-ros/microros.c **** 
+ 456              		.loc 1 151 2 view .LVU126
+ 151:application/src/micro-ros/microros.c **** 
+ 457              		.loc 1 151 2 view .LVU127
+ 151:application/src/micro-ros/microros.c **** 
+ 458              		.loc 1 151 2 view .LVU128
+ 151:application/src/micro-ros/microros.c **** 
+ 459              		.loc 1 151 2 view .LVU129
+ 460 0194 FEE7     		b	.L30
+ 461              	.L29:
+ 148:application/src/micro-ros/microros.c **** 
+ 462              		.loc 1 148 2 view .LVU130
+ 148:application/src/micro-ros/microros.c **** 
+ 463              		.loc 1 148 2 view .LVU131
+ 148:application/src/micro-ros/microros.c **** 
+ 464              		.loc 1 148 2 view .LVU132
+ 148:application/src/micro-ros/microros.c **** 
+ 465              		.loc 1 148 2 view .LVU133
+ 148:application/src/micro-ros/microros.c **** 
+ 466              		.loc 1 148 2 view .LVU134
+ 148:application/src/micro-ros/microros.c **** 
+ 467              		.loc 1 148 2 view .LVU135
+ 468 0196 FEE7     		b	.L29
+ 469              	.L28:
+ 145:application/src/micro-ros/microros.c **** 
+ 470              		.loc 1 145 2 view .LVU136
+ 145:application/src/micro-ros/microros.c **** 
+ 471              		.loc 1 145 2 view .LVU137
+ 145:application/src/micro-ros/microros.c **** 
+ 472              		.loc 1 145 2 view .LVU138
+ 145:application/src/micro-ros/microros.c **** 
+ 473              		.loc 1 145 2 view .LVU139
+ 145:application/src/micro-ros/microros.c **** 
+ 474              		.loc 1 145 2 view .LVU140
+ 145:application/src/micro-ros/microros.c **** 
+ 475              		.loc 1 145 2 view .LVU141
+ 476 0198 FEE7     		b	.L28
+ 477              	.L27:
+ 142:application/src/micro-ros/microros.c **** 
+ 478              		.loc 1 142 2 view .LVU142
+ 142:application/src/micro-ros/microros.c **** 
+ 479              		.loc 1 142 2 view .LVU143
+ 142:application/src/micro-ros/microros.c **** 
+ 480              		.loc 1 142 2 view .LVU144
+ 142:application/src/micro-ros/microros.c **** 
+ 481              		.loc 1 142 2 view .LVU145
+ 142:application/src/micro-ros/microros.c **** 
+ 482              		.loc 1 142 2 view .LVU146
+ 142:application/src/micro-ros/microros.c **** 
+ 483              		.loc 1 142 2 view .LVU147
+ 484 019a FEE7     		b	.L27
+ 485              	.L26:
+ 139:application/src/micro-ros/microros.c **** 
+ 486              		.loc 1 139 2 view .LVU148
+ 139:application/src/micro-ros/microros.c **** 
+ARM GAS  /tmp/ccAnurxf.s 			page 15
+
+
+ 487              		.loc 1 139 2 view .LVU149
+ 139:application/src/micro-ros/microros.c **** 
+ 488              		.loc 1 139 2 view .LVU150
+ 139:application/src/micro-ros/microros.c **** 
+ 489              		.loc 1 139 2 view .LVU151
+ 139:application/src/micro-ros/microros.c **** 
+ 490              		.loc 1 139 2 view .LVU152
+ 139:application/src/micro-ros/microros.c **** 
+ 491              		.loc 1 139 2 view .LVU153
+ 492 019c FEE7     		b	.L26
+ 493              	.LVL37:
+ 494              	.L71:
+ 495              	.LBB26:
+ 125:application/src/micro-ros/microros.c **** 			// Agent 发生重启，或 USB 断线重连
+ 496              		.loc 1 125 3 view .LVU154
+ 125:application/src/micro-ros/microros.c **** 			// Agent 发生重启，或 USB 断线重连
+ 497              		.loc 1 125 7 is_stmt 0 view .LVU155
+ 498 019e FFF7FEFF 		bl	check_host_restart
+ 499              	.LVL38:
+ 125:application/src/micro-ros/microros.c **** 			// Agent 发生重启，或 USB 断线重连
+ 500              		.loc 1 125 6 view .LVU156
+ 501 01a2 0028     		cmp	r0, #0
+ 502 01a4 D1D0     		beq	.L25
+ 503              	.LBE26:
+ 504 01a6 D8E7     		b	.L24
+ 505              	.LVL39:
+ 506              	.L70:
+ 507              	.LBB27:
+ 508              	.LBB22:
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 509              		.loc 1 114 2 is_stmt 1 view .LVU157
+ 510 01a8 1D4B     		ldr	r3, .L72+92
+ 511 01aa 1E48     		ldr	r0, .L72+96
+ 512 01ac 3A46     		mov	r2, r7
+ 513 01ae 1421     		movs	r1, #20
+ 514 01b0 FFF7FEFF 		bl	rcutils_log
+ 515              	.LVL40:
+ 516 01b4 C8E7     		b	.L19
+ 517              	.LVL41:
+ 518              	.L69:
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 519              		.loc 1 114 2 view .LVU158
+ 520 01b6 FFF7FEFF 		bl	rcutils_logging_initialize
+ 521              	.LVL42:
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 522              		.loc 1 114 2 is_stmt 0 view .LVU159
+ 523 01ba 0028     		cmp	r0, #0
+ 524 01bc BFD0     		beq	.L22
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 525              		.loc 1 114 2 is_stmt 1 view .LVU160
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 526              		.loc 1 114 2 view .LVU161
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 527              		.loc 1 114 2 view .LVU162
+ 114:application/src/micro-ros/microros.c **** 	for (;;) {
+ 528              		.loc 1 114 2 view .LVU163
+ 529 01be FFF7FEFF 		bl	rcutils_reset_error
+ARM GAS  /tmp/ccAnurxf.s 			page 16
+
+
+ 530              	.LVL43:
+ 531 01c2 BCE7     		b	.L22
+ 532              	.L73:
+ 533              		.align	2
+ 534              	.L72:
+ 535 01c4 00000000 		.word	usb_transport_read
+ 536 01c8 00000000 		.word	usb_transport_write
+ 537 01cc 00000000 		.word	usb_transport_close
+ 538 01d0 00000000 		.word	usb_transport_open
+ 539 01d4 00000000 		.word	.LANCHOR1
+ 540 01d8 00000000 		.word	microros_deallocate
+ 541 01dc 00000000 		.word	microros_reallocate
+ 542 01e0 00000000 		.word	microros_zero_allocate
+ 543 01e4 00000000 		.word	.LANCHOR2
+ 544 01e8 00000000 		.word	.LANCHOR3
+ 545 01ec 00000000 		.word	.LANCHOR4
+ 546 01f0 00000000 		.word	.LANCHOR5
+ 547 01f4 00000000 		.word	.LC0
+ 548 01f8 04000000 		.word	.LC1
+ 549 01fc 00000000 		.word	.LANCHOR6
+ 550 0200 10000000 		.word	.LC2
+ 551 0204 00000000 		.word	.LANCHOR7
+ 552 0208 18000000 		.word	.LC3
+ 553 020c 00000000 		.word	.LANCHOR0
+ 554 0210 1C000000 		.word	.LC4
+ 555 0214 00000000 		.word	.LANCHOR8
+ 556 0218 00000000 		.word	on_topic_in
+ 557 021c 00000000 		.word	.LANCHOR9
+ 558 0220 20000000 		.word	.LC5
+ 559 0224 00000000 		.word	.LANCHOR11
+ 560 0228 00000000 		.word	microros_allocate
+ 561 022c 00000000 		.word	.LANCHOR10
+ 562 0230 00000000 		.word	g_rcutils_logging_initialized
+ 563              	.LBE22:
+ 564              	.LBE27:
+ 565              	.LBE29:
+ 566              	.LBE31:
+ 567              		.cfi_endproc
+ 568              	.LFE247:
+ 570              		.section	.text.logging_get_logger_name,"ax",%progbits
+ 571              		.align	1
+ 572              		.p2align 2,,3
+ 573              		.global	logging_get_logger_name
+ 574              		.syntax unified
+ 575              		.thumb
+ 576              		.thumb_func
+ 578              	logging_get_logger_name:
+ 579              	.LFB248:
+ 190:application/src/micro-ros/microros.c **** 	if (!microros_running)
+ 580              		.loc 1 190 43 view -0
+ 581              		.cfi_startproc
+ 582              		@ args = 0, pretend = 0, frame = 0
+ 583              		@ frame_needed = 0, uses_anonymous_args = 0
+ 584              		@ link register save eliminated.
+ 191:application/src/micro-ros/microros.c **** 		return NULL;
+ 585              		.loc 1 191 2 view .LVU165
+ 191:application/src/micro-ros/microros.c **** 		return NULL;
+ARM GAS  /tmp/ccAnurxf.s 			page 17
+
+
+ 586              		.loc 1 191 6 is_stmt 0 view .LVU166
+ 587 0000 044B     		ldr	r3, .L76
+ 588 0002 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 191:application/src/micro-ros/microros.c **** 		return NULL;
+ 589              		.loc 1 191 5 view .LVU167
+ 590 0004 03F0FF00 		and	r0, r3, #255
+ 591 0008 13B1     		cbz	r3, .L75
+ 592              		.loc 1 193 2 is_stmt 1 view .LVU168
+ 593              		.loc 1 193 9 is_stmt 0 view .LVU169
+ 594 000a 0348     		ldr	r0, .L76+4
+ 595 000c FFF7FEBF 		b	rcl_node_get_logger_name
+ 596              	.LVL44:
+ 597              	.L75:
+ 194:application/src/micro-ros/microros.c **** }
+ 598              		.loc 1 194 1 view .LVU170
+ 599 0010 7047     		bx	lr
+ 600              	.L77:
+ 601 0012 00BF     		.align	2
+ 602              	.L76:
+ 603 0014 00000000 		.word	.LANCHOR10
+ 604 0018 00000000 		.word	.LANCHOR6
+ 605              		.cfi_endproc
+ 606              	.LFE248:
+ 608              		.global	__aeabi_ldivmod
+ 609              		.section	.text.microros_publish_imu_data,"ax",%progbits
+ 610              		.align	1
+ 611              		.p2align 2,,3
+ 612              		.global	microros_publish_imu_data
+ 613              		.syntax unified
+ 614              		.thumb
+ 615              		.thumb_func
+ 617              	microros_publish_imu_data:
+ 618              	.LVL45:
+ 619              	.LFB250:
+ 195:application/src/micro-ros/microros.c **** 
+ 196:application/src/micro-ros/microros.c **** static ns_to_time_msg(int64_t ns, builtin_interfaces__msg__Time *msg) {
+ 197:application/src/micro-ros/microros.c **** 	msg->sec = (int32_t)(ns / 1000000000LL);
+ 198:application/src/micro-ros/microros.c **** 	msg->nanosec = (uint32_t)(ns % 1000000000LL);
+ 199:application/src/micro-ros/microros.c **** }
+ 200:application/src/micro-ros/microros.c **** 
+ 201:application/src/micro-ros/microros.c **** bool microros_publish_imu_data(const imu_data_t *imu) {
+ 620              		.loc 1 201 55 is_stmt 1 view -0
+ 621              		.cfi_startproc
+ 622              		@ args = 0, pretend = 0, frame = 56
+ 623              		@ frame_needed = 0, uses_anonymous_args = 0
+ 202:application/src/micro-ros/microros.c **** 	if (!microros_running)
+ 624              		.loc 1 202 2 view .LVU172
+ 625              		.loc 1 202 6 is_stmt 0 view .LVU173
+ 626 0000 1D4B     		ldr	r3, .L86+8
+ 627 0002 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 628              		.loc 1 202 5 view .LVU174
+ 629 0004 03B9     		cbnz	r3, .L85
+ 630              	.LVL46:
+ 203:application/src/micro-ros/microros.c **** 		return;
+ 204:application/src/micro-ros/microros.c **** 
+ 205:application/src/micro-ros/microros.c **** 	rm_robot_msgs__msg__Imu msg;
+ 206:application/src/micro-ros/microros.c **** 	ns_to_time_msg(imu->epoch_ns, &msg.stamp);
+ARM GAS  /tmp/ccAnurxf.s 			page 18
+
+
+ 207:application/src/micro-ros/microros.c **** 	msg.ax = imu->ax;
+ 208:application/src/micro-ros/microros.c **** 	msg.ay = imu->ay;
+ 209:application/src/micro-ros/microros.c **** 	msg.az = imu->az;
+ 210:application/src/micro-ros/microros.c **** 	msg.gx = imu->gx;
+ 211:application/src/micro-ros/microros.c **** 	msg.gy = imu->gy;
+ 212:application/src/micro-ros/microros.c **** 	msg.gz = imu->gz;
+ 213:application/src/micro-ros/microros.c **** 	msg.temperature = imu->temperature;
+ 214:application/src/micro-ros/microros.c **** 	msg.orientation.w = imu->orientation.w;
+ 215:application/src/micro-ros/microros.c **** 	msg.orientation.x = imu->orientation.x;
+ 216:application/src/micro-ros/microros.c **** 	msg.orientation.y = imu->orientation.y;
+ 217:application/src/micro-ros/microros.c **** 	msg.orientation.z = imu->orientation.z;
+ 218:application/src/micro-ros/microros.c **** 	rcl_publish(&imu_pub, &msg, NULL);
+ 219:application/src/micro-ros/microros.c **** }
+ 631              		.loc 1 219 1 view .LVU175
+ 632 0006 7047     		bx	lr
+ 633              	.LVL47:
+ 634              	.L85:
+ 205:application/src/micro-ros/microros.c **** 	ns_to_time_msg(imu->epoch_ns, &msg.stamp);
+ 635              		.loc 1 205 2 is_stmt 1 view .LVU176
+ 206:application/src/micro-ros/microros.c **** 	msg.ax = imu->ax;
+ 636              		.loc 1 206 2 view .LVU177
+ 201:application/src/micro-ros/microros.c **** 	if (!microros_running)
+ 637              		.loc 1 201 55 is_stmt 0 view .LVU178
+ 638 0008 D0B5     		push	{r4, r6, r7, lr}
+ 639              		.cfi_def_cfa_offset 16
+ 640              		.cfi_offset 4, -16
+ 641              		.cfi_offset 6, -12
+ 642              		.cfi_offset 7, -8
+ 643              		.cfi_offset 14, -4
+ 206:application/src/micro-ros/microros.c **** 	msg.ax = imu->ax;
+ 644              		.loc 1 206 2 view .LVU179
+ 645 000a D0E90067 		ldrd	r6, [r0]
+ 646              	.LVL48:
+ 201:application/src/micro-ros/microros.c **** 	if (!microros_running)
+ 647              		.loc 1 201 55 view .LVU180
+ 648 000e 8EB0     		sub	sp, sp, #56
+ 649              		.cfi_def_cfa_offset 72
+ 650              	.LVL49:
+ 651              	.LBB32:
+ 652              	.LBI32:
+ 196:application/src/micro-ros/microros.c **** 	msg->sec = (int32_t)(ns / 1000000000LL);
+ 653              		.loc 1 196 8 is_stmt 1 view .LVU181
+ 654              	.LBB33:
+ 197:application/src/micro-ros/microros.c **** 	msg->nanosec = (uint32_t)(ns % 1000000000LL);
+ 655              		.loc 1 197 2 view .LVU182
+ 656 0010 0446     		mov	r4, r0
+ 197:application/src/micro-ros/microros.c **** 	msg->nanosec = (uint32_t)(ns % 1000000000LL);
+ 657              		.loc 1 197 26 is_stmt 0 view .LVU183
+ 658 0012 17A3     		adr	r3, .L86
+ 659 0014 D3E90023 		ldrd	r2, [r3]
+ 660 0018 3046     		mov	r0, r6
+ 661              	.LVL50:
+ 197:application/src/micro-ros/microros.c **** 	msg->nanosec = (uint32_t)(ns % 1000000000LL);
+ 662              		.loc 1 197 26 view .LVU184
+ 663 001a 3946     		mov	r1, r7
+ 664 001c FFF7FEFF 		bl	__aeabi_ldivmod
+ 665              	.LVL51:
+ARM GAS  /tmp/ccAnurxf.s 			page 19
+
+
+ 666 0020 0346     		mov	r3, r0
+ 197:application/src/micro-ros/microros.c **** 	msg->nanosec = (uint32_t)(ns % 1000000000LL);
+ 667              		.loc 1 197 13 view .LVU185
+ 668 0022 0193     		str	r3, [sp, #4]
+ 198:application/src/micro-ros/microros.c **** }
+ 669              		.loc 1 198 2 is_stmt 1 view .LVU186
+ 198:application/src/micro-ros/microros.c **** }
+ 670              		.loc 1 198 31 is_stmt 0 view .LVU187
+ 671 0024 3046     		mov	r0, r6
+ 672 0026 3946     		mov	r1, r7
+ 673 0028 11A3     		adr	r3, .L86
+ 674 002a D3E90023 		ldrd	r2, [r3]
+ 675 002e FFF7FEFF 		bl	__aeabi_ldivmod
+ 676              	.LVL52:
+ 677              	.LBE33:
+ 678              	.LBE32:
+ 207:application/src/micro-ros/microros.c **** 	msg.ay = imu->ay;
+ 679              		.loc 1 207 9 view .LVU188
+ 680 0032 A368     		ldr	r3, [r4, #8]	@ float
+ 681 0034 0393     		str	r3, [sp, #12]	@ float
+ 208:application/src/micro-ros/microros.c **** 	msg.az = imu->az;
+ 682              		.loc 1 208 9 view .LVU189
+ 683 0036 E368     		ldr	r3, [r4, #12]	@ float
+ 684 0038 0493     		str	r3, [sp, #16]	@ float
+ 209:application/src/micro-ros/microros.c **** 	msg.gx = imu->gx;
+ 685              		.loc 1 209 9 view .LVU190
+ 686 003a 2369     		ldr	r3, [r4, #16]	@ float
+ 687 003c 0593     		str	r3, [sp, #20]	@ float
+ 210:application/src/micro-ros/microros.c **** 	msg.gy = imu->gy;
+ 688              		.loc 1 210 9 view .LVU191
+ 689 003e 6369     		ldr	r3, [r4, #20]	@ float
+ 690 0040 0693     		str	r3, [sp, #24]	@ float
+ 211:application/src/micro-ros/microros.c **** 	msg.gz = imu->gz;
+ 691              		.loc 1 211 9 view .LVU192
+ 692 0042 A369     		ldr	r3, [r4, #24]	@ float
+ 693 0044 0793     		str	r3, [sp, #28]	@ float
+ 212:application/src/micro-ros/microros.c **** 	msg.temperature = imu->temperature;
+ 694              		.loc 1 212 9 view .LVU193
+ 695 0046 E369     		ldr	r3, [r4, #28]	@ float
+ 696 0048 0893     		str	r3, [sp, #32]	@ float
+ 213:application/src/micro-ros/microros.c **** 	msg.orientation.w = imu->orientation.w;
+ 697              		.loc 1 213 18 view .LVU194
+ 698 004a 236B     		ldr	r3, [r4, #48]	@ float
+ 699 004c 0D93     		str	r3, [sp, #52]	@ float
+ 214:application/src/micro-ros/microros.c **** 	msg.orientation.x = imu->orientation.x;
+ 700              		.loc 1 214 20 view .LVU195
+ 701 004e 236A     		ldr	r3, [r4, #32]	@ float
+ 702              	.LBB35:
+ 703              	.LBB34:
+ 198:application/src/micro-ros/microros.c **** }
+ 704              		.loc 1 198 17 view .LVU196
+ 705 0050 0292     		str	r2, [sp, #8]
+ 706              	.LVL53:
+ 198:application/src/micro-ros/microros.c **** }
+ 707              		.loc 1 198 17 view .LVU197
+ 708              	.LBE34:
+ 709              	.LBE35:
+ARM GAS  /tmp/ccAnurxf.s 			page 20
+
+
+ 207:application/src/micro-ros/microros.c **** 	msg.ay = imu->ay;
+ 710              		.loc 1 207 2 is_stmt 1 view .LVU198
+ 208:application/src/micro-ros/microros.c **** 	msg.az = imu->az;
+ 711              		.loc 1 208 2 view .LVU199
+ 209:application/src/micro-ros/microros.c **** 	msg.gx = imu->gx;
+ 712              		.loc 1 209 2 view .LVU200
+ 210:application/src/micro-ros/microros.c **** 	msg.gy = imu->gy;
+ 713              		.loc 1 210 2 view .LVU201
+ 211:application/src/micro-ros/microros.c **** 	msg.gz = imu->gz;
+ 714              		.loc 1 211 2 view .LVU202
+ 212:application/src/micro-ros/microros.c **** 	msg.temperature = imu->temperature;
+ 715              		.loc 1 212 2 view .LVU203
+ 213:application/src/micro-ros/microros.c **** 	msg.orientation.w = imu->orientation.w;
+ 716              		.loc 1 213 2 view .LVU204
+ 214:application/src/micro-ros/microros.c **** 	msg.orientation.x = imu->orientation.x;
+ 717              		.loc 1 214 2 view .LVU205
+ 214:application/src/micro-ros/microros.c **** 	msg.orientation.x = imu->orientation.x;
+ 718              		.loc 1 214 20 is_stmt 0 view .LVU206
+ 719 0052 0993     		str	r3, [sp, #36]	@ float
+ 215:application/src/micro-ros/microros.c **** 	msg.orientation.y = imu->orientation.y;
+ 720              		.loc 1 215 2 is_stmt 1 view .LVU207
+ 216:application/src/micro-ros/microros.c **** 	msg.orientation.z = imu->orientation.z;
+ 721              		.loc 1 216 20 is_stmt 0 view .LVU208
+ 722 0054 A26A     		ldr	r2, [r4, #40]	@ float
+ 215:application/src/micro-ros/microros.c **** 	msg.orientation.y = imu->orientation.y;
+ 723              		.loc 1 215 20 view .LVU209
+ 724 0056 636A     		ldr	r3, [r4, #36]	@ float
+ 725 0058 0A93     		str	r3, [sp, #40]	@ float
+ 216:application/src/micro-ros/microros.c **** 	msg.orientation.z = imu->orientation.z;
+ 726              		.loc 1 216 2 is_stmt 1 view .LVU210
+ 216:application/src/micro-ros/microros.c **** 	msg.orientation.z = imu->orientation.z;
+ 727              		.loc 1 216 20 is_stmt 0 view .LVU211
+ 728 005a 0B92     		str	r2, [sp, #44]	@ float
+ 217:application/src/micro-ros/microros.c **** 	rcl_publish(&imu_pub, &msg, NULL);
+ 729              		.loc 1 217 2 is_stmt 1 view .LVU212
+ 217:application/src/micro-ros/microros.c **** 	rcl_publish(&imu_pub, &msg, NULL);
+ 730              		.loc 1 217 20 is_stmt 0 view .LVU213
+ 731 005c E36A     		ldr	r3, [r4, #44]	@ float
+ 218:application/src/micro-ros/microros.c **** }
+ 732              		.loc 1 218 2 view .LVU214
+ 733 005e 0748     		ldr	r0, .L86+12
+ 217:application/src/micro-ros/microros.c **** 	rcl_publish(&imu_pub, &msg, NULL);
+ 734              		.loc 1 217 20 view .LVU215
+ 735 0060 0C93     		str	r3, [sp, #48]	@ float
+ 218:application/src/micro-ros/microros.c **** }
+ 736              		.loc 1 218 2 is_stmt 1 view .LVU216
+ 737 0062 0022     		movs	r2, #0
+ 738 0064 01A9     		add	r1, sp, #4
+ 739 0066 FFF7FEFF 		bl	rcl_publish
+ 740              	.LVL54:
+ 741              		.loc 1 219 1 is_stmt 0 view .LVU217
+ 742 006a 0EB0     		add	sp, sp, #56
+ 743              		.cfi_def_cfa_offset 16
+ 744              		@ sp needed
+ 745 006c D0BD     		pop	{r4, r6, r7, pc}
+ 746              	.LVL55:
+ 747              	.L87:
+ARM GAS  /tmp/ccAnurxf.s 			page 21
+
+
+ 748              		.loc 1 219 1 view .LVU218
+ 749 006e 00BF     		.align	3
+ 750              	.L86:
+ 751 0070 00CA9A3B 		.word	1000000000
+ 752 0074 00000000 		.word	0
+ 753 0078 00000000 		.word	.LANCHOR10
+ 754 007c 00000000 		.word	.LANCHOR7
+ 755              		.cfi_endproc
+ 756              	.LFE250:
+ 758              		.section	.rodata.str1.4,"aMS",%progbits,1
+ 759              		.align	2
+ 760              	.LC6:
+ 761 0000 6170706C 		.ascii	"application/src/micro-ros/microros.c\000"
+ 761      69636174 
+ 761      696F6E2F 
+ 761      7372632F 
+ 761      6D696372 
+ 762 0025 000000   		.align	2
+ 763              	.LC7:
+ 764 0028 2D2D726F 		.ascii	"--ros-args\000"
+ 764      732D6172 
+ 764      677300
+ 765 0033 00       		.align	2
+ 766              	.LC8:
+ 767 0034 2D2D6469 		.ascii	"--disable-stdout-logs\000"
+ 767      7361626C 
+ 767      652D7374 
+ 767      646F7574 
+ 767      2D6C6F67 
+ 768 004a 0000     		.align	2
+ 769              	.LC9:
+ 770 004c 2D2D6469 		.ascii	"--disable-external-lib-logs\000"
+ 770      7361626C 
+ 770      652D6578 
+ 770      7465726E 
+ 770      616C2D6C 
+ 771              		.section	.bss.allocator,"aw",%nobits
+ 772              		.align	2
+ 773              		.set	.LANCHOR1,. + 0
+ 776              	allocator:
+ 777 0000 00000000 		.space	20
+ 777      00000000 
+ 777      00000000 
+ 777      00000000 
+ 777      00000000 
+ 778              		.section	.bss.executor,"aw",%nobits
+ 779              		.align	3
+ 780              		.set	.LANCHOR4,. + 0
+ 783              	executor:
+ 784 0000 00000000 		.space	136
+ 784      00000000 
+ 784      00000000 
+ 784      00000000 
+ 784      00000000 
+ 785              		.section	.bss.imu_pub,"aw",%nobits
+ 786              		.align	2
+ 787              		.set	.LANCHOR7,. + 0
+ARM GAS  /tmp/ccAnurxf.s 			page 22
+
+
+ 790              	imu_pub:
+ 791 0000 00000000 		.space	4
+ 792              		.section	.bss.in_msg,"aw",%nobits
+ 793              		.align	2
+ 794              		.set	.LANCHOR9,. + 0
+ 797              	in_msg:
+ 798 0000 00000000 		.space	4
+ 799              		.section	.bss.in_sub,"aw",%nobits
+ 800              		.align	2
+ 801              		.set	.LANCHOR8,. + 0
+ 804              	in_sub:
+ 805 0000 00000000 		.space	4
+ 806              		.section	.bss.microros_running,"aw",%nobits
+ 807              		.set	.LANCHOR10,. + 0
+ 810              	microros_running:
+ 811 0000 00       		.space	1
+ 812              		.section	.bss.node,"aw",%nobits
+ 813              		.align	2
+ 814              		.set	.LANCHOR6,. + 0
+ 817              	node:
+ 818 0000 00000000 		.space	8
+ 818      00000000 
+ 819              		.section	.bss.out_pub,"aw",%nobits
+ 820              		.align	2
+ 821              		.set	.LANCHOR0,. + 0
+ 824              	out_pub:
+ 825 0000 00000000 		.space	4
+ 826              		.section	.bss.support,"aw",%nobits
+ 827              		.align	3
+ 828              		.set	.LANCHOR3,. + 0
+ 831              	support:
+ 832 0000 00000000 		.space	64
+ 832      00000000 
+ 832      00000000 
+ 832      00000000 
+ 832      00000000 
+ 833              		.section	.data.__rcutils_logging_location.1,"aw"
+ 834              		.align	2
+ 835              		.set	.LANCHOR11,. + 0
+ 838              	__rcutils_logging_location.1:
+ 839 0000 00000000 		.word	__func__.0
+ 840 0004 00000000 		.word	.LC6
+ 841 0008 72000000 		.word	114
+ 842              		.section	.data.args,"aw"
+ 843              		.align	2
+ 844              		.set	.LANCHOR2,. + 0
+ 847              	args:
+ 848 0000 28000000 		.word	.LC7
+ 849 0004 34000000 		.word	.LC8
+ 850 0008 4C000000 		.word	.LC9
+ 851              		.section	.rodata.__func__.0,"a"
+ 852              		.align	2
+ 855              	__func__.0:
+ 856 0000 72756E5F 		.ascii	"run_microros_session\000"
+ 856      6D696372 
+ 856      6F726F73 
+ 856      5F736573 
+ARM GAS  /tmp/ccAnurxf.s 			page 23
+
+
+ 856      73696F6E 
+ 857              		.section	.rodata.rmw_qos_profile_sensor_data,"a"
+ 858              		.align	3
+ 859              		.set	.LANCHOR5,. + 0
+ 862              	rmw_qos_profile_sensor_data:
+ 863 0000 01       		.byte	1
+ 864 0001 000000   		.space	3
+ 865 0004 05000000 		.word	5
+ 866 0008 02       		.byte	2
+ 867 0009 02       		.byte	2
+ 868 000a 00000000 		.space	6
+ 868      0000
+ 869 0010 00000000 		.word	0
+ 870 0014 00000000 		.word	0
+ 871 0018 00000000 		.word	0
+ 872 001c 00000000 		.word	0
+ 873 0020 00000000 		.word	0
+ 874 0024 00000000 		.word	0
+ 875 0028 00000000 		.word	0
+ 876 002c 00000000 		.word	0
+ 877 0030 00       		.byte	0
+ 878 0031 00000000 		.space	7
+ 878      000000
+ 879 0038 00000000 		.word	0
+ 880 003c 00000000 		.word	0
+ 881 0040 00000000 		.word	0
+ 882 0044 00000000 		.word	0
+ 883 0048 00       		.byte	0
+ 884 0049 00000000 		.space	7
+ 884      000000
+ 885              		.text
+ 886              	.Letext0:
+ 887              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 888              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 889              		.file 4 "application/include/quaternion.h"
+ 890              		.file 5 "application/include/imu.h"
+ 891              		.file 6 "/opt/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/include/stddef.h"
+ 892              		.file 7 "micro-ros/src/install/rcutils/include/rcutils/allocator.h"
+ 893              		.file 8 "micro-ros/src/install/rcutils/include/rcutils/time.h"
+ 894              		.file 9 "micro-ros/src/install/rcutils/include/rcutils/logging.h"
+ 895              		.file 10 "micro-ros/src/install/rmw/include/rmw/rmw/ret_types.h"
+ 896              		.file 11 "micro-ros/src/install/rmw/include/rmw/rmw/time.h"
+ 897              		.file 12 "micro-ros/src/install/rmw/include/rmw/rmw/types.h"
+ 898              		.file 13 "micro-ros/src/install/rmw/include/rmw/rmw/qos_profiles.h"
+ 899              		.file 14 "micro-ros/src/install/rcl/include/rcl/rcl/allocator.h"
+ 900              		.file 15 "micro-ros/src/install/rcl/include/rcl/rcl/types.h"
+ 901              		.file 16 "micro-ros/src/install/rcl/include/rcl/rcl/arguments.h"
+ 902              		.file 17 "micro-ros/src/install/rcl/include/rcl/rcl/context.h"
+ 903              		.file 18 "micro-ros/src/install/rcl/include/rcl/rcl/guard_condition.h"
+ 904              		.file 19 "micro-ros/src/install/rcl/include/rcl/rcl/node_options.h"
+ 905              		.file 20 "micro-ros/src/install/rcl/include/rcl/rcl/node.h"
+ 906              		.file 21 "micro-ros/src/install/rcl/include/rcl/rcl/time.h"
+ 907              		.file 22 "micro-ros/src/install/rcl/include/rcl/rcl/publisher.h"
+ 908              		.file 23 "micro-ros/src/install/rcl/include/rcl/rcl/subscription.h"
+ 909              		.file 24 "micro-ros/src/install/rcl/include/rcl/rcl/client.h"
+ 910              		.file 25 "micro-ros/src/install/rcl/include/rcl/rcl/service.h"
+ 911              		.file 26 "micro-ros/src/install/rcl/include/rcl/rcl/timer.h"
+ARM GAS  /tmp/ccAnurxf.s 			page 24
+
+
+ 912              		.file 27 "micro-ros/src/install/rcl/include/rcl/rcl/event.h"
+ 913              		.file 28 "micro-ros/src/install/rcl/include/rcl/rcl/wait.h"
+ 914              		.file 29 "micro-ros/src/install/unique_identifier_msgs/include/unique_identifier_msgs/msg/detail/u
+ 915              		.file 30 "micro-ros/src/install/builtin_interfaces/include/builtin_interfaces/msg/detail/time__str
+ 916              		.file 31 "micro-ros/src/install/action_msgs/include/action_msgs/msg/detail/goal_info__struct.h"
+ 917              		.file 32 "micro-ros/src/install/action_msgs/include/action_msgs/srv/detail/cancel_goal__struct.h"
+ 918              		.file 33 "micro-ros/src/install/rcl_action/include/rcl_action/rcl_action/types.h"
+ 919              		.file 34 "micro-ros/src/install/rcl_action/include/rcl_action/rcl_action/action_client.h"
+ 920              		.file 35 "micro-ros/src/install/rcl_action/include/rcl_action/rcl_action/action_server.h"
+ 921              		.file 36 "micro-ros/src/install/rcl_action/include/rcl_action/rcl_action/default_qos.h"
+ 922              		.file 37 "micro-ros/src/install/rclc/include/rclc/types.h"
+ 923              		.file 38 "micro-ros/src/install/rclc/include/rclc/action_goal_handle.h"
+ 924              		.file 39 "micro-ros/src/install/rclc/include/rclc/action_server.h"
+ 925              		.file 40 "micro-ros/src/install/rclc/include/rclc/action_client.h"
+ 926              		.file 41 "micro-ros/src/install/rclc/include/rclc/executor_handle.h"
+ 927              		.file 42 "micro-ros/src/install/rclc/include/rclc/executor.h"
+ 928              		.file 43 "micro-ros/src/install/rm_robot_msgs/include/rm_robot_msgs/msg/detail/quaternion__struct.
+ 929              		.file 44 "micro-ros/src/install/rm_robot_msgs/include/rm_robot_msgs/msg/detail/imu__struct.h"
+ 930              		.file 45 "micro-ros/src/install/std_msgs/include/std_msgs/msg/detail/int32__struct.h"
+ 931              		.file 46 "micro-ros/src/install/rcutils/include/rcutils/error_handling.h"
+ 932              		.file 47 "USB_DEVICE/App/usbd_cdc_if.h"
+ 933              		.file 48 "micro-ros/src/install/rclc/include/rclc/init.h"
+ 934              		.file 49 "micro-ros/src/install/rmw_microxrcedds/include/rmw_microros/time_sync.h"
+ 935              		.file 50 "micro-ros/src/install/rclc/include/rclc/node.h"
+ 936              		.file 51 "micro-ros/src/install/rm_robot_msgs/include/rm_robot_msgs/msg/detail/imu__type_support.h
+ 937              		.file 52 "micro-ros/src/install/rclc/include/rclc/publisher.h"
+ 938              		.file 53 "micro-ros/src/install/std_msgs/include/std_msgs/msg/detail/int32__type_support.h"
+ 939              		.file 54 "micro-ros/src/install/rclc/include/rclc/subscription.h"
+ 940              		.file 55 "Middlewares/Third_Party/FreeRTOS/Source/include/task.h"
+ 941              		.file 56 "micro-ros/src/install/rmw_microxrcedds/include/rmw_microros/custom_transport.h"
+ 942              		.file 57 "<built-in>"
+ARM GAS  /tmp/ccAnurxf.s 			page 25
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 microros.c
+     /tmp/ccAnurxf.s:20     .text.on_topic_in:0000000000000000 $t
+     /tmp/ccAnurxf.s:26     .text.on_topic_in:0000000000000000 on_topic_in
+     /tmp/ccAnurxf.s:49     .text.on_topic_in:000000000000000c $d
+     /tmp/ccAnurxf.s:54     .rodata.microros_task.str1.4:0000000000000000 $d
+     /tmp/ccAnurxf.s:73     .text.microros_task:0000000000000000 $t
+     /tmp/ccAnurxf.s:80     .text.microros_task:0000000000000000 microros_task
+     /tmp/ccAnurxf.s:535    .text.microros_task:00000000000001c4 $d
+     /tmp/ccAnurxf.s:571    .text.logging_get_logger_name:0000000000000000 $t
+     /tmp/ccAnurxf.s:578    .text.logging_get_logger_name:0000000000000000 logging_get_logger_name
+     /tmp/ccAnurxf.s:603    .text.logging_get_logger_name:0000000000000014 $d
+     /tmp/ccAnurxf.s:610    .text.microros_publish_imu_data:0000000000000000 $t
+     /tmp/ccAnurxf.s:617    .text.microros_publish_imu_data:0000000000000000 microros_publish_imu_data
+     /tmp/ccAnurxf.s:751    .text.microros_publish_imu_data:0000000000000070 $d
+     /tmp/ccAnurxf.s:759    .rodata.str1.4:0000000000000000 $d
+     /tmp/ccAnurxf.s:772    .bss.allocator:0000000000000000 $d
+     /tmp/ccAnurxf.s:776    .bss.allocator:0000000000000000 allocator
+     /tmp/ccAnurxf.s:779    .bss.executor:0000000000000000 $d
+     /tmp/ccAnurxf.s:783    .bss.executor:0000000000000000 executor
+     /tmp/ccAnurxf.s:786    .bss.imu_pub:0000000000000000 $d
+     /tmp/ccAnurxf.s:790    .bss.imu_pub:0000000000000000 imu_pub
+     /tmp/ccAnurxf.s:793    .bss.in_msg:0000000000000000 $d
+     /tmp/ccAnurxf.s:797    .bss.in_msg:0000000000000000 in_msg
+     /tmp/ccAnurxf.s:800    .bss.in_sub:0000000000000000 $d
+     /tmp/ccAnurxf.s:804    .bss.in_sub:0000000000000000 in_sub
+     /tmp/ccAnurxf.s:810    .bss.microros_running:0000000000000000 microros_running
+     /tmp/ccAnurxf.s:811    .bss.microros_running:0000000000000000 $d
+     /tmp/ccAnurxf.s:813    .bss.node:0000000000000000 $d
+     /tmp/ccAnurxf.s:817    .bss.node:0000000000000000 node
+     /tmp/ccAnurxf.s:820    .bss.out_pub:0000000000000000 $d
+     /tmp/ccAnurxf.s:824    .bss.out_pub:0000000000000000 out_pub
+     /tmp/ccAnurxf.s:827    .bss.support:0000000000000000 $d
+     /tmp/ccAnurxf.s:831    .bss.support:0000000000000000 support
+     /tmp/ccAnurxf.s:834    .data.__rcutils_logging_location.1:0000000000000000 $d
+     /tmp/ccAnurxf.s:838    .data.__rcutils_logging_location.1:0000000000000000 __rcutils_logging_location.1
+     /tmp/ccAnurxf.s:855    .rodata.__func__.0:0000000000000000 __func__.0
+     /tmp/ccAnurxf.s:843    .data.args:0000000000000000 $d
+     /tmp/ccAnurxf.s:847    .data.args:0000000000000000 args
+     /tmp/ccAnurxf.s:852    .rodata.__func__.0:0000000000000000 $d
+     /tmp/ccAnurxf.s:858    .rodata.rmw_qos_profile_sensor_data:0000000000000000 $d
+     /tmp/ccAnurxf.s:862    .rodata.rmw_qos_profile_sensor_data:0000000000000000 rmw_qos_profile_sensor_data
+
+UNDEFINED SYMBOLS
+rcl_publish
+MX_USB_DEVICE_Init
+rmw_uros_set_custom_transport
+rcutils_get_zero_initialized_allocator
+rcutils_set_default_allocator
+rclc_support_init
+check_host_restart
+rcl_logging_configure
+rmw_uros_sync_session
+rclc_executor_init
+rcl_logging_fini
+rclc_support_fini
+rcl_node_get_default_options
+ARM GAS  /tmp/ccAnurxf.s 			page 26
+
+
+memcpy
+rclc_node_init_with_options
+rosidl_typesupport_c__get_message_type_support_handle__rm_robot_msgs__msg__Imu
+rclc_publisher_init_best_effort
+rosidl_typesupport_c__get_message_type_support_handle__std_msgs__msg__Int32
+rclc_subscription_init_best_effort
+rclc_executor_add_subscription
+rcl_node_get_logger_name
+rcutils_logging_logger_is_enabled_for
+rclc_executor_spin_some
+uxTaskGetStackHighWaterMark
+rcl_subscription_fini
+rcl_publisher_fini
+rcl_node_fini
+rclc_executor_fini
+rcutils_log
+rcutils_logging_initialize
+rcutils_reset_error
+usb_transport_read
+usb_transport_write
+usb_transport_close
+usb_transport_open
+microros_deallocate
+microros_reallocate
+microros_zero_allocate
+microros_allocate
+g_rcutils_logging_initialized
+__aeabi_ldivmod

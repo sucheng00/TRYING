@@ -1,0 +1,1756 @@
+ARM GAS  /tmp/cceTCweU.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_spi.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.SPI1_DMA_init,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	SPI1_DMA_init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	SPI1_DMA_init:
+  28              	.LVL0:
+  29              	.LFB235:
+  30              		.file 1 "bsp/boards/Src/bsp_spi.c"
+   1:bsp/boards/Src/bsp_spi.c **** #include "bsp_spi.h"
+   2:bsp/boards/Src/bsp_spi.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_spi.c **** 
+   4:bsp/boards/Src/bsp_spi.c **** extern SPI_HandleTypeDef hspi1;
+   5:bsp/boards/Src/bsp_spi.c **** extern DMA_HandleTypeDef hdma_spi1_rx;
+   6:bsp/boards/Src/bsp_spi.c **** extern DMA_HandleTypeDef hdma_spi1_tx;
+   7:bsp/boards/Src/bsp_spi.c **** 
+   8:bsp/boards/Src/bsp_spi.c **** void SPI1_DMA_init(uint32_t tx_buf, uint32_t rx_buf, uint16_t num)
+   9:bsp/boards/Src/bsp_spi.c **** {
+  31              		.loc 1 9 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+  10:bsp/boards/Src/bsp_spi.c ****     SET_BIT(hspi1.Instance->CR2, SPI_CR2_TXDMAEN);
+  36              		.loc 1 10 5 view .LVU1
+  37 0000 2E4B     		ldr	r3, .L28
+  38 0002 1B68     		ldr	r3, [r3]
+   9:bsp/boards/Src/bsp_spi.c ****     SET_BIT(hspi1.Instance->CR2, SPI_CR2_TXDMAEN);
+  39              		.loc 1 9 1 is_stmt 0 view .LVU2
+  40 0004 30B4     		push	{r4, r5}
+  41              		.cfi_def_cfa_offset 8
+  42              		.cfi_offset 4, -8
+  43              		.cfi_offset 5, -4
+  44              		.loc 1 10 5 view .LVU3
+  45 0006 5C68     		ldr	r4, [r3, #4]
+  46 0008 44F00204 		orr	r4, r4, #2
+  47 000c 5C60     		str	r4, [r3, #4]
+ARM GAS  /tmp/cceTCweU.s 			page 2
+
+
+  11:bsp/boards/Src/bsp_spi.c ****     SET_BIT(hspi1.Instance->CR2, SPI_CR2_RXDMAEN);
+  48              		.loc 1 11 5 is_stmt 1 view .LVU4
+  49 000e 5C68     		ldr	r4, [r3, #4]
+  50 0010 44F00104 		orr	r4, r4, #1
+  51 0014 5C60     		str	r4, [r3, #4]
+  12:bsp/boards/Src/bsp_spi.c **** 
+  13:bsp/boards/Src/bsp_spi.c ****     __HAL_SPI_ENABLE(&hspi1);
+  52              		.loc 1 13 5 view .LVU5
+  53 0016 1C68     		ldr	r4, [r3]
+  54 0018 44F04004 		orr	r4, r4, #64
+  55 001c 1C60     		str	r4, [r3]
+  14:bsp/boards/Src/bsp_spi.c **** 
+  15:bsp/boards/Src/bsp_spi.c **** 
+  16:bsp/boards/Src/bsp_spi.c ****     //disable DMA
+  17:bsp/boards/Src/bsp_spi.c ****     //失效DMA
+  18:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_DISABLE(&hdma_spi1_rx);
+  56              		.loc 1 18 5 view .LVU6
+  57 001e 284B     		ldr	r3, .L28+4
+  58 0020 1B68     		ldr	r3, [r3]
+  59              	.L23:
+  60 0022 1C68     		ldr	r4, [r3]
+  61 0024 24F00104 		bic	r4, r4, #1
+  62 0028 1C60     		str	r4, [r3]
+  19:bsp/boards/Src/bsp_spi.c ****     
+  20:bsp/boards/Src/bsp_spi.c ****     while(hdma_spi1_rx.Instance->CR & DMA_SxCR_EN)
+  63              		.loc 1 20 5 view .LVU7
+  64              		.loc 1 20 10 view .LVU8
+  65              		.loc 1 20 32 is_stmt 0 view .LVU9
+  66 002a 1C68     		ldr	r4, [r3]
+  67              		.loc 1 20 10 view .LVU10
+  68 002c E407     		lsls	r4, r4, #31
+  69 002e F8D4     		bmi	.L23
+  21:bsp/boards/Src/bsp_spi.c ****     {
+  22:bsp/boards/Src/bsp_spi.c ****         __HAL_DMA_DISABLE(&hdma_spi1_rx);
+  23:bsp/boards/Src/bsp_spi.c ****     }
+  24:bsp/boards/Src/bsp_spi.c **** 
+  25:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG(&hdma_spi1_rx, DMA_LISR_TCIF2);
+  70              		.loc 1 25 5 is_stmt 1 view .LVU11
+  71 0030 244C     		ldr	r4, .L28+8
+  72 0032 A342     		cmp	r3, r4
+  73 0034 0AD8     		bhi	.L24
+  74              		.loc 1 25 5 is_stmt 0 discriminator 2 view .LVU12
+  75 0036 244C     		ldr	r4, .L28+12
+  76 0038 A342     		cmp	r3, r4
+  77 003a 04D9     		bls	.L6
+  78              		.loc 1 25 5 discriminator 3 view .LVU13
+  79 003c 4FF40015 		mov	r5, #2097152
+  80 0040 C4F85053 		str	r5, [r4, #848]
+  81 0044 06E0     		b	.L5
+  82              	.L6:
+  83              		.loc 1 25 5 discriminator 4 view .LVU14
+  84 0046 214C     		ldr	r4, .L28+16
+  85 0048 A342     		cmp	r3, r4
+  86 004a 2CD9     		bls	.L7
+  87              	.L24:
+  88              		.loc 1 25 5 discriminator 6 view .LVU15
+  89 004c 4FF40015 		mov	r5, #2097152
+ARM GAS  /tmp/cceTCweU.s 			page 3
+
+
+  90 0050 44F84C5C 		str	r5, [r4, #-76]
+  91              	.L5:
+  26:bsp/boards/Src/bsp_spi.c **** 
+  27:bsp/boards/Src/bsp_spi.c ****     hdma_spi1_rx.Instance->PAR = (uint32_t) & (SPI1->DR);
+  92              		.loc 1 27 5 is_stmt 1 view .LVU16
+  93              		.loc 1 27 32 is_stmt 0 view .LVU17
+  94 0054 1E4C     		ldr	r4, .L28+20
+  95 0056 9C60     		str	r4, [r3, #8]
+  28:bsp/boards/Src/bsp_spi.c ****     //memory buffer 1
+  29:bsp/boards/Src/bsp_spi.c ****     //内存缓冲区1
+  30:bsp/boards/Src/bsp_spi.c ****     hdma_spi1_rx.Instance->M0AR = (uint32_t)(rx_buf);
+  96              		.loc 1 30 5 is_stmt 1 view .LVU18
+  97              		.loc 1 30 33 is_stmt 0 view .LVU19
+  98 0058 D960     		str	r1, [r3, #12]
+  31:bsp/boards/Src/bsp_spi.c ****     //data length
+  32:bsp/boards/Src/bsp_spi.c ****     //数据长度
+  33:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_SET_COUNTER(&hdma_spi1_rx, num);
+  99              		.loc 1 33 5 is_stmt 1 view .LVU20
+ 100 005a 5A60     		str	r2, [r3, #4]
+  34:bsp/boards/Src/bsp_spi.c **** 
+  35:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_ENABLE_IT(&hdma_spi1_rx, DMA_IT_TC);
+ 101              		.loc 1 35 5 view .LVU21
+ 102 005c 1C68     		ldr	r4, [r3]
+  36:bsp/boards/Src/bsp_spi.c **** 
+  37:bsp/boards/Src/bsp_spi.c **** 
+  38:bsp/boards/Src/bsp_spi.c ****     //disable DMA
+  39:bsp/boards/Src/bsp_spi.c ****     //失效DMA
+  40:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_DISABLE(&hdma_spi1_tx);
+ 103              		.loc 1 40 5 is_stmt 0 view .LVU22
+ 104 005e 1D49     		ldr	r1, .L28+24
+ 105              	.LVL1:
+  35:bsp/boards/Src/bsp_spi.c **** 
+ 106              		.loc 1 35 5 view .LVU23
+ 107 0060 44F01004 		orr	r4, r4, #16
+ 108              		.loc 1 40 5 view .LVU24
+ 109 0064 0968     		ldr	r1, [r1]
+  35:bsp/boards/Src/bsp_spi.c **** 
+ 110              		.loc 1 35 5 view .LVU25
+ 111 0066 1C60     		str	r4, [r3]
+ 112              	.L25:
+ 113              		.loc 1 40 5 is_stmt 1 view .LVU26
+ 114 0068 0B68     		ldr	r3, [r1]
+ 115 006a 23F00103 		bic	r3, r3, #1
+ 116 006e 0B60     		str	r3, [r1]
+  41:bsp/boards/Src/bsp_spi.c ****     
+  42:bsp/boards/Src/bsp_spi.c ****     while(hdma_spi1_tx.Instance->CR & DMA_SxCR_EN)
+ 117              		.loc 1 42 5 view .LVU27
+ 118              		.loc 1 42 10 view .LVU28
+ 119              		.loc 1 42 32 is_stmt 0 view .LVU29
+ 120 0070 0B68     		ldr	r3, [r1]
+ 121              		.loc 1 42 10 view .LVU30
+ 122 0072 DB07     		lsls	r3, r3, #31
+ 123 0074 F8D4     		bmi	.L25
+  43:bsp/boards/Src/bsp_spi.c ****     {
+  44:bsp/boards/Src/bsp_spi.c ****         __HAL_DMA_DISABLE(&hdma_spi1_tx);
+  45:bsp/boards/Src/bsp_spi.c ****     }
+  46:bsp/boards/Src/bsp_spi.c **** 
+ARM GAS  /tmp/cceTCweU.s 			page 4
+
+
+  47:bsp/boards/Src/bsp_spi.c **** 
+  48:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG(&hdma_spi1_tx, DMA_LISR_TCIF3);
+ 124              		.loc 1 48 5 is_stmt 1 view .LVU31
+ 125 0076 134B     		ldr	r3, .L28+8
+ 126 0078 9942     		cmp	r1, r3
+ 127 007a 0AD8     		bhi	.L26
+ 128              		.loc 1 48 5 is_stmt 0 discriminator 2 view .LVU32
+ 129 007c 124B     		ldr	r3, .L28+12
+ 130 007e 9942     		cmp	r1, r3
+ 131 0080 04D9     		bls	.L12
+ 132              		.loc 1 48 5 discriminator 3 view .LVU33
+ 133 0082 4FF00064 		mov	r4, #134217728
+ 134 0086 C3F85043 		str	r4, [r3, #848]
+ 135 008a 06E0     		b	.L11
+ 136              	.L12:
+ 137              		.loc 1 48 5 discriminator 4 view .LVU34
+ 138 008c 0F4B     		ldr	r3, .L28+16
+ 139 008e 9942     		cmp	r1, r3
+ 140 0090 0ED9     		bls	.L13
+ 141              	.L26:
+ 142              		.loc 1 48 5 discriminator 6 view .LVU35
+ 143 0092 4FF00064 		mov	r4, #134217728
+ 144 0096 43F84C4C 		str	r4, [r3, #-76]
+ 145              	.L11:
+  49:bsp/boards/Src/bsp_spi.c **** 
+  50:bsp/boards/Src/bsp_spi.c ****     hdma_spi1_tx.Instance->PAR = (uint32_t) & (SPI1->DR);
+ 146              		.loc 1 50 5 is_stmt 1 view .LVU36
+ 147              		.loc 1 50 32 is_stmt 0 view .LVU37
+ 148 009a 0D4B     		ldr	r3, .L28+20
+ 149 009c 8B60     		str	r3, [r1, #8]
+  51:bsp/boards/Src/bsp_spi.c ****     //memory buffer 1
+  52:bsp/boards/Src/bsp_spi.c ****     //内存缓冲区1
+  53:bsp/boards/Src/bsp_spi.c ****     hdma_spi1_tx.Instance->M0AR = (uint32_t)(tx_buf);
+ 150              		.loc 1 53 5 is_stmt 1 view .LVU38
+  54:bsp/boards/Src/bsp_spi.c ****     //data length
+  55:bsp/boards/Src/bsp_spi.c ****     //数据长度
+  56:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_SET_COUNTER(&hdma_spi1_tx, num);
+  57:bsp/boards/Src/bsp_spi.c **** 
+  58:bsp/boards/Src/bsp_spi.c **** 
+  59:bsp/boards/Src/bsp_spi.c **** }
+ 151              		.loc 1 59 1 is_stmt 0 view .LVU39
+ 152 009e 30BC     		pop	{r4, r5}
+ 153              		.cfi_remember_state
+ 154              		.cfi_restore 5
+ 155              		.cfi_restore 4
+ 156              		.cfi_def_cfa_offset 0
+  53:bsp/boards/Src/bsp_spi.c ****     //data length
+ 157              		.loc 1 53 33 view .LVU40
+ 158 00a0 C860     		str	r0, [r1, #12]
+  56:bsp/boards/Src/bsp_spi.c **** 
+ 159              		.loc 1 56 5 is_stmt 1 view .LVU41
+ 160 00a2 4A60     		str	r2, [r1, #4]
+ 161              		.loc 1 59 1 is_stmt 0 view .LVU42
+ 162 00a4 7047     		bx	lr
+ 163              	.LVL2:
+ 164              	.L7:
+ 165              		.cfi_restore_state
+ARM GAS  /tmp/cceTCweU.s 			page 5
+
+
+  25:bsp/boards/Src/bsp_spi.c **** 
+ 166              		.loc 1 25 5 discriminator 7 view .LVU43
+ 167 00a6 0C4C     		ldr	r4, .L28+28
+ 168 00a8 4FF40015 		mov	r5, #2097152
+ 169 00ac A560     		str	r5, [r4, #8]
+ 170 00ae D1E7     		b	.L5
+ 171              	.LVL3:
+ 172              	.L13:
+  48:bsp/boards/Src/bsp_spi.c **** 
+ 173              		.loc 1 48 5 discriminator 7 view .LVU44
+ 174 00b0 094B     		ldr	r3, .L28+28
+ 175 00b2 4FF00064 		mov	r4, #134217728
+ 176 00b6 9C60     		str	r4, [r3, #8]
+ 177 00b8 EFE7     		b	.L11
+ 178              	.L29:
+ 179 00ba 00BF     		.align	2
+ 180              	.L28:
+ 181 00bc 00000000 		.word	hspi1
+ 182 00c0 00000000 		.word	hdma_spi1_rx
+ 183 00c4 58640240 		.word	1073898584
+ 184 00c8 B8600240 		.word	1073897656
+ 185 00cc 58600240 		.word	1073897560
+ 186 00d0 0C300140 		.word	1073819660
+ 187 00d4 00000000 		.word	hdma_spi1_tx
+ 188 00d8 00600240 		.word	1073897472
+ 189              		.cfi_endproc
+ 190              	.LFE235:
+ 192              		.section	.text.SPI1_DMA_enable,"ax",%progbits
+ 193              		.align	1
+ 194              		.p2align 2,,3
+ 195              		.global	SPI1_DMA_enable
+ 196              		.syntax unified
+ 197              		.thumb
+ 198              		.thumb_func
+ 200              	SPI1_DMA_enable:
+ 201              	.LVL4:
+ 202              	.LFB236:
+  60:bsp/boards/Src/bsp_spi.c **** 
+  61:bsp/boards/Src/bsp_spi.c **** void SPI1_DMA_enable(uint32_t tx_buf, uint32_t rx_buf, uint16_t ndtr)
+  62:bsp/boards/Src/bsp_spi.c **** {
+ 203              		.loc 1 62 1 is_stmt 1 view -0
+ 204              		.cfi_startproc
+ 205              		@ args = 0, pretend = 0, frame = 0
+ 206              		@ frame_needed = 0, uses_anonymous_args = 0
+ 207              		@ link register save eliminated.
+  63:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_DISABLE(&hdma_spi1_rx);
+ 208              		.loc 1 63 5 view .LVU46
+ 209 0000 B44B     		ldr	r3, .L175
+  62:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_DISABLE(&hdma_spi1_rx);
+ 210              		.loc 1 62 1 is_stmt 0 view .LVU47
+ 211 0002 F0B4     		push	{r4, r5, r6, r7}
+ 212              		.cfi_def_cfa_offset 16
+ 213              		.cfi_offset 4, -16
+ 214              		.cfi_offset 5, -12
+ 215              		.cfi_offset 6, -8
+ 216              		.cfi_offset 7, -4
+ 217              		.loc 1 63 5 view .LVU48
+ARM GAS  /tmp/cceTCweU.s 			page 6
+
+
+ 218 0004 1C68     		ldr	r4, [r3]
+ 219 0006 2368     		ldr	r3, [r4]
+ 220 0008 23F00103 		bic	r3, r3, #1
+ 221 000c 2360     		str	r3, [r4]
+  64:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_DISABLE(&hdma_spi1_tx);
+ 222              		.loc 1 64 5 is_stmt 1 view .LVU49
+ 223 000e B24B     		ldr	r3, .L175+4
+ 224 0010 1D68     		ldr	r5, [r3]
+ 225 0012 2B68     		ldr	r3, [r5]
+ 226 0014 23F00103 		bic	r3, r3, #1
+ 227 0018 2B60     		str	r3, [r5]
+  65:bsp/boards/Src/bsp_spi.c **** 
+  66:bsp/boards/Src/bsp_spi.c **** 
+  67:bsp/boards/Src/bsp_spi.c ****     while(hdma_spi1_rx.Instance->CR & DMA_SxCR_EN)
+ 228              		.loc 1 67 5 view .LVU50
+ 229              		.loc 1 67 10 view .LVU51
+ 230              		.loc 1 67 32 is_stmt 0 view .LVU52
+ 231 001a 2368     		ldr	r3, [r4]
+ 232              		.loc 1 67 10 view .LVU53
+ 233 001c DF07     		lsls	r7, r3, #31
+ 234 001e 0DD5     		bpl	.L173
+ 235              	.L32:
+  68:bsp/boards/Src/bsp_spi.c ****     {
+  69:bsp/boards/Src/bsp_spi.c ****         __HAL_DMA_DISABLE(&hdma_spi1_rx);
+ 236              		.loc 1 69 9 is_stmt 1 view .LVU54
+ 237 0020 2368     		ldr	r3, [r4]
+ 238 0022 23F00103 		bic	r3, r3, #1
+ 239 0026 2360     		str	r3, [r4]
+  67:bsp/boards/Src/bsp_spi.c ****     {
+ 240              		.loc 1 67 10 view .LVU55
+  67:bsp/boards/Src/bsp_spi.c ****     {
+ 241              		.loc 1 67 32 is_stmt 0 view .LVU56
+ 242 0028 2368     		ldr	r3, [r4]
+  67:bsp/boards/Src/bsp_spi.c ****     {
+ 243              		.loc 1 67 10 view .LVU57
+ 244 002a DE07     		lsls	r6, r3, #31
+ 245 002c F8D4     		bmi	.L32
+  70:bsp/boards/Src/bsp_spi.c ****     }
+  71:bsp/boards/Src/bsp_spi.c ****     while(hdma_spi1_tx.Instance->CR & DMA_SxCR_EN)
+ 246              		.loc 1 71 10 is_stmt 1 view .LVU58
+ 247              		.loc 1 71 32 is_stmt 0 view .LVU59
+ 248 002e 2B68     		ldr	r3, [r5]
+ 249              		.loc 1 71 10 view .LVU60
+ 250 0030 DB07     		lsls	r3, r3, #31
+ 251 0032 06D5     		bpl	.L174
+ 252              	.L34:
+  72:bsp/boards/Src/bsp_spi.c ****     {
+  73:bsp/boards/Src/bsp_spi.c ****         __HAL_DMA_DISABLE(&hdma_spi1_tx);
+ 253              		.loc 1 73 9 is_stmt 1 view .LVU61
+ 254 0034 2B68     		ldr	r3, [r5]
+ 255 0036 23F00103 		bic	r3, r3, #1
+ 256 003a 2B60     		str	r3, [r5]
+ 257              	.L173:
+  71:bsp/boards/Src/bsp_spi.c ****     {
+ 258              		.loc 1 71 10 view .LVU62
+  71:bsp/boards/Src/bsp_spi.c ****     {
+ 259              		.loc 1 71 32 is_stmt 0 view .LVU63
+ARM GAS  /tmp/cceTCweU.s 			page 7
+
+
+ 260 003c 2B68     		ldr	r3, [r5]
+  71:bsp/boards/Src/bsp_spi.c ****     {
+ 261              		.loc 1 71 10 view .LVU64
+ 262 003e DB07     		lsls	r3, r3, #31
+ 263 0040 F8D4     		bmi	.L34
+ 264              	.L174:
+  74:bsp/boards/Src/bsp_spi.c ****     }
+  75:bsp/boards/Src/bsp_spi.c **** 
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TC_FLAG_INDEX(hspi1.hdmarx));
+ 265              		.loc 1 76 5 is_stmt 1 view .LVU65
+ 266 0042 A64E     		ldr	r6, .L175+8
+ 267 0044 A64F     		ldr	r7, .L175+12
+ 268 0046 F36C     		ldr	r3, [r6, #76]
+ 269 0048 1B68     		ldr	r3, [r3]
+ 270 004a BB42     		cmp	r3, r7
+ 271 004c 4BD9     		bls	.L35
+ 272              		.loc 1 76 5 is_stmt 0 discriminator 1 view .LVU66
+ 273 004e A7F58967 		sub	r7, r7, #1096
+ 274 0052 BB42     		cmp	r3, r7
+ 275 0054 00F0E480 		beq	.L38
+ 276              		.loc 1 76 5 discriminator 3 view .LVU67
+ 277 0058 07F58067 		add	r7, r7, #1024
+ 278 005c BB42     		cmp	r3, r7
+ 279 005e 00F0DF80 		beq	.L38
+ 280              		.loc 1 76 5 discriminator 5 view .LVU68
+ 281 0062 A7F56877 		sub	r7, r7, #928
+ 282 0066 BB42     		cmp	r3, r7
+ 283 0068 00F0DA80 		beq	.L38
+ 284              		.loc 1 76 5 discriminator 7 view .LVU69
+ 285 006c 07F58067 		add	r7, r7, #1024
+ 286 0070 BB42     		cmp	r3, r7
+ 287 0072 00F0D580 		beq	.L38
+ 288              		.loc 1 76 5 discriminator 9 view .LVU70
+ 289 0076 A7F58967 		sub	r7, r7, #1096
+ 290 007a BB42     		cmp	r3, r7
+ 291 007c 00F0DB82 		beq	.L40
+ 292              		.loc 1 76 5 discriminator 11 view .LVU71
+ 293 0080 07F58067 		add	r7, r7, #1024
+ 294 0084 BB42     		cmp	r3, r7
+ 295 0086 00F0D682 		beq	.L40
+ 296              		.loc 1 76 5 discriminator 13 view .LVU72
+ 297 008a A7F56877 		sub	r7, r7, #928
+ 298 008e BB42     		cmp	r3, r7
+ 299 0090 00F0D182 		beq	.L40
+ 300              		.loc 1 76 5 discriminator 15 view .LVU73
+ 301 0094 07F58067 		add	r7, r7, #1024
+ 302 0098 BB42     		cmp	r3, r7
+ 303 009a 00F0CC82 		beq	.L40
+ 304              		.loc 1 76 5 discriminator 17 view .LVU74
+ 305 009e A7F58967 		sub	r7, r7, #1096
+ 306 00a2 BB42     		cmp	r3, r7
+ 307 00a4 00F03F83 		beq	.L44
+ 308              		.loc 1 76 5 discriminator 19 view .LVU75
+ 309 00a8 07F58067 		add	r7, r7, #1024
+ 310 00ac BB42     		cmp	r3, r7
+ 311 00ae 00F03A83 		beq	.L44
+ 312              		.loc 1 76 5 discriminator 21 view .LVU76
+ARM GAS  /tmp/cceTCweU.s 			page 8
+
+
+ 313 00b2 A7F56877 		sub	r7, r7, #928
+ 314 00b6 BB42     		cmp	r3, r7
+ 315 00b8 00F03583 		beq	.L44
+ 316              		.loc 1 76 5 discriminator 23 view .LVU77
+ 317 00bc 07F58067 		add	r7, r7, #1024
+ 318 00c0 BB42     		cmp	r3, r7
+ 319 00c2 00F03083 		beq	.L44
+ 320              		.loc 1 76 5 view .LVU78
+ 321 00c6 874B     		ldr	r3, .L175+16
+ 322 00c8 4FF00067 		mov	r7, #134217728
+ 323 00cc DF60     		str	r7, [r3, #12]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 324              		.loc 1 77 5 is_stmt 1 view .LVU79
+ 325 00ce 4FF08067 		mov	r7, #67108864
+ 326 00d2 DF60     		str	r7, [r3, #12]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 327              		.loc 1 78 5 view .LVU80
+ 328 00d4 4FF00077 		mov	r7, #33554432
+ 329 00d8 DF60     		str	r7, [r3, #12]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 330              		.loc 1 79 5 view .LVU81
+ 331 00da 4FF08077 		mov	r7, #16777216
+ 332 00de DF60     		str	r7, [r3, #12]
+  80:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 333              		.loc 1 80 5 view .LVU82
+ 334 00e0 4FF48007 		mov	r7, #4194304
+ 335 00e4 A6E0     		b	.L148
+ 336              	.L35:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 337              		.loc 1 76 5 is_stmt 0 discriminator 2 view .LVU83
+ 338 00e6 804F     		ldr	r7, .L175+20
+ 339 00e8 BB42     		cmp	r3, r7
+ 340 00ea 4AD9     		bls	.L49
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 341              		.loc 1 76 5 discriminator 51 view .LVU84
+ 342 00ec A83F     		subs	r7, r7, #168
+ 343 00ee BB42     		cmp	r3, r7
+ 344 00f0 00F04982 		beq	.L50
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 345              		.loc 1 76 5 discriminator 53 view .LVU85
+ 346 00f4 07F58067 		add	r7, r7, #1024
+ 347 00f8 BB42     		cmp	r3, r7
+ 348 00fa 00F04482 		beq	.L50
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 349              		.loc 1 76 5 discriminator 55 view .LVU86
+ 350 00fe A7F56877 		sub	r7, r7, #928
+ 351 0102 BB42     		cmp	r3, r7
+ 352 0104 00F03F82 		beq	.L50
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 353              		.loc 1 76 5 discriminator 57 view .LVU87
+ 354 0108 07F58067 		add	r7, r7, #1024
+ 355 010c BB42     		cmp	r3, r7
+ 356 010e 00F03A82 		beq	.L50
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 357              		.loc 1 76 5 discriminator 59 view .LVU88
+ 358 0112 A7F58967 		sub	r7, r7, #1096
+ 359 0116 BB42     		cmp	r3, r7
+ARM GAS  /tmp/cceTCweU.s 			page 9
+
+
+ 360 0118 00F0AB82 		beq	.L54
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 361              		.loc 1 76 5 discriminator 61 view .LVU89
+ 362 011c 07F58067 		add	r7, r7, #1024
+ 363 0120 BB42     		cmp	r3, r7
+ 364 0122 00F0A682 		beq	.L54
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 365              		.loc 1 76 5 discriminator 63 view .LVU90
+ 366 0126 A7F56877 		sub	r7, r7, #928
+ 367 012a BB42     		cmp	r3, r7
+ 368 012c 00F0A182 		beq	.L54
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 369              		.loc 1 76 5 discriminator 65 view .LVU91
+ 370 0130 07F58067 		add	r7, r7, #1024
+ 371 0134 BB42     		cmp	r3, r7
+ 372 0136 00F09C82 		beq	.L54
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 373              		.loc 1 76 5 discriminator 67 view .LVU92
+ 374 013a A7F58967 		sub	r7, r7, #1096
+ 375 013e BB42     		cmp	r3, r7
+ 376 0140 00F02183 		beq	.L61
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 377              		.loc 1 76 5 discriminator 69 view .LVU93
+ 378 0144 07F58067 		add	r7, r7, #1024
+ 379 0148 BB42     		cmp	r3, r7
+ 380 014a 00F01C83 		beq	.L61
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 381              		.loc 1 76 5 discriminator 71 view .LVU94
+ 382 014e A7F56877 		sub	r7, r7, #928
+ 383 0152 BB42     		cmp	r3, r7
+ 384 0154 00F01783 		beq	.L61
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 385              		.loc 1 76 5 discriminator 73 view .LVU95
+ 386 0158 07F58067 		add	r7, r7, #1024
+ 387 015c BB42     		cmp	r3, r7
+ 388 015e 00F01283 		beq	.L61
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 389              		.loc 1 76 5 view .LVU96
+ 390 0162 604B     		ldr	r3, .L175+16
+ 391 0164 4FF00067 		mov	r7, #134217728
+ 392 0168 9F60     		str	r7, [r3, #8]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 393              		.loc 1 77 5 is_stmt 1 view .LVU97
+ 394 016a 4FF08067 		mov	r7, #67108864
+ 395 016e 9F60     		str	r7, [r3, #8]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 396              		.loc 1 78 5 view .LVU98
+ 397 0170 4FF00077 		mov	r7, #33554432
+ 398 0174 9F60     		str	r7, [r3, #8]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 399              		.loc 1 79 5 view .LVU99
+ 400 0176 4FF08077 		mov	r7, #16777216
+ 401 017a 9F60     		str	r7, [r3, #8]
+ 402              		.loc 1 80 5 view .LVU100
+ 403 017c 4FF48003 		mov	r3, #4194304
+ 404 0180 0BE2     		b	.L152
+ 405              	.L49:
+ARM GAS  /tmp/cceTCweU.s 			page 10
+
+
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 406              		.loc 1 76 5 is_stmt 0 discriminator 52 view .LVU101
+ 407 0182 5A4F     		ldr	r7, .L175+24
+ 408 0184 BB42     		cmp	r3, r7
+ 409 0186 40F26C81 		bls	.L63
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 410              		.loc 1 76 5 discriminator 102 view .LVU102
+ 411 018a 483F     		subs	r7, r7, #72
+ 412 018c BB42     		cmp	r3, r7
+ 413 018e 00F03882 		beq	.L64
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 414              		.loc 1 76 5 discriminator 104 view .LVU103
+ 415 0192 07F58067 		add	r7, r7, #1024
+ 416 0196 BB42     		cmp	r3, r7
+ 417 0198 00F03382 		beq	.L64
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 418              		.loc 1 76 5 discriminator 106 view .LVU104
+ 419 019c A7F56877 		sub	r7, r7, #928
+ 420 01a0 BB42     		cmp	r3, r7
+ 421 01a2 00F02E82 		beq	.L64
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 422              		.loc 1 76 5 discriminator 108 view .LVU105
+ 423 01a6 07F58067 		add	r7, r7, #1024
+ 424 01aa BB42     		cmp	r3, r7
+ 425 01ac 00F02982 		beq	.L64
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 426              		.loc 1 76 5 discriminator 110 view .LVU106
+ 427 01b0 A7F58967 		sub	r7, r7, #1096
+ 428 01b4 BB42     		cmp	r3, r7
+ 429 01b6 00F07A82 		beq	.L68
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 430              		.loc 1 76 5 discriminator 112 view .LVU107
+ 431 01ba 07F58067 		add	r7, r7, #1024
+ 432 01be BB42     		cmp	r3, r7
+ 433 01c0 00F07582 		beq	.L68
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 434              		.loc 1 76 5 discriminator 114 view .LVU108
+ 435 01c4 A7F56877 		sub	r7, r7, #928
+ 436 01c8 BB42     		cmp	r3, r7
+ 437 01ca 00F07082 		beq	.L68
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 438              		.loc 1 76 5 discriminator 116 view .LVU109
+ 439 01ce 07F58067 		add	r7, r7, #1024
+ 440 01d2 BB42     		cmp	r3, r7
+ 441 01d4 00F06B82 		beq	.L68
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 442              		.loc 1 76 5 discriminator 118 view .LVU110
+ 443 01d8 A7F58967 		sub	r7, r7, #1096
+ 444 01dc BB42     		cmp	r3, r7
+ 445 01de 00F00283 		beq	.L72
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 446              		.loc 1 76 5 discriminator 120 view .LVU111
+ 447 01e2 07F58067 		add	r7, r7, #1024
+ 448 01e6 BB42     		cmp	r3, r7
+ 449 01e8 00F0FD82 		beq	.L72
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 450              		.loc 1 76 5 discriminator 122 view .LVU112
+ARM GAS  /tmp/cceTCweU.s 			page 11
+
+
+ 451 01ec A7F56877 		sub	r7, r7, #928
+ 452 01f0 BB42     		cmp	r3, r7
+ 453 01f2 00F0F882 		beq	.L72
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 454              		.loc 1 76 5 discriminator 124 view .LVU113
+ 455 01f6 07F58067 		add	r7, r7, #1024
+ 456 01fa BB42     		cmp	r3, r7
+ 457 01fc 00F0F382 		beq	.L72
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 458              		.loc 1 76 5 view .LVU114
+ 459 0200 3B4B     		ldr	r3, .L175+28
+ 460 0202 4FF00067 		mov	r7, #134217728
+ 461 0206 DF60     		str	r7, [r3, #12]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 462              		.loc 1 77 5 is_stmt 1 view .LVU115
+ 463 0208 4FF08067 		mov	r7, #67108864
+ 464 020c DF60     		str	r7, [r3, #12]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 465              		.loc 1 78 5 view .LVU116
+ 466 020e 4FF00077 		mov	r7, #33554432
+ 467 0212 DF60     		str	r7, [r3, #12]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 468              		.loc 1 79 5 view .LVU117
+ 469 0214 4FF08077 		mov	r7, #16777216
+ 470 0218 DF60     		str	r7, [r3, #12]
+ 471              		.loc 1 80 5 view .LVU118
+ 472 021a 4FF48003 		mov	r3, #4194304
+ 473 021e FAE1     		b	.L153
+ 474              	.L38:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 475              		.loc 1 76 5 is_stmt 0 view .LVU119
+ 476 0220 304B     		ldr	r3, .L175+16
+ 477 0222 2027     		movs	r7, #32
+ 478 0224 DF60     		str	r7, [r3, #12]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 479              		.loc 1 77 5 is_stmt 1 view .LVU120
+ 480 0226 1027     		movs	r7, #16
+ 481 0228 DF60     		str	r7, [r3, #12]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 482              		.loc 1 78 5 view .LVU121
+ 483 022a 0827     		movs	r7, #8
+ 484 022c DF60     		str	r7, [r3, #12]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 485              		.loc 1 79 5 view .LVU122
+ 486 022e 0427     		movs	r7, #4
+ 487 0230 DF60     		str	r7, [r3, #12]
+ 488              		.loc 1 80 5 view .LVU123
+ 489 0232 0127     		movs	r7, #1
+ 490              	.L148:
+ 491              		.loc 1 80 5 is_stmt 0 discriminator 50 view .LVU124
+ 492 0234 2B4B     		ldr	r3, .L175+16
+ 493 0236 DF60     		str	r7, [r3, #12]
+ 494              	.L90:
+  81:bsp/boards/Src/bsp_spi.c **** 
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TC_FLAG_INDEX(hspi1.hdmatx));
+ 495              		.loc 1 82 5 is_stmt 1 view .LVU125
+ 496 0238 B36C     		ldr	r3, [r6, #72]
+ARM GAS  /tmp/cceTCweU.s 			page 12
+
+
+ 497 023a 294E     		ldr	r6, .L175+12
+ 498 023c 1B68     		ldr	r3, [r3]
+ 499 023e B342     		cmp	r3, r6
+ 500 0240 72D9     		bls	.L91
+ 501              		.loc 1 82 5 is_stmt 0 discriminator 1 view .LVU126
+ 502 0242 A6F58966 		sub	r6, r6, #1096
+ 503 0246 B342     		cmp	r3, r6
+ 504 0248 54D0     		beq	.L92
+ 505              		.loc 1 82 5 discriminator 3 view .LVU127
+ 506 024a 06F58066 		add	r6, r6, #1024
+ 507 024e B342     		cmp	r3, r6
+ 508 0250 50D0     		beq	.L92
+ 509              		.loc 1 82 5 discriminator 5 view .LVU128
+ 510 0252 A6F56876 		sub	r6, r6, #928
+ 511 0256 B342     		cmp	r3, r6
+ 512 0258 4CD0     		beq	.L92
+ 513              		.loc 1 82 5 discriminator 7 view .LVU129
+ 514 025a 06F58066 		add	r6, r6, #1024
+ 515 025e B342     		cmp	r3, r6
+ 516 0260 48D0     		beq	.L92
+ 517              		.loc 1 82 5 discriminator 9 view .LVU130
+ 518 0262 A6F58966 		sub	r6, r6, #1096
+ 519 0266 B342     		cmp	r3, r6
+ 520 0268 00F0F481 		beq	.L99
+ 521              		.loc 1 82 5 discriminator 11 view .LVU131
+ 522 026c 06F58066 		add	r6, r6, #1024
+ 523 0270 B342     		cmp	r3, r6
+ 524 0272 00F0EF81 		beq	.L99
+ 525              		.loc 1 82 5 discriminator 13 view .LVU132
+ 526 0276 A6F56876 		sub	r6, r6, #928
+ 527 027a B342     		cmp	r3, r6
+ 528 027c 00F0EA81 		beq	.L99
+ 529              		.loc 1 82 5 discriminator 15 view .LVU133
+ 530 0280 06F58066 		add	r6, r6, #1024
+ 531 0284 B342     		cmp	r3, r6
+ 532 0286 00F0E581 		beq	.L99
+ 533              		.loc 1 82 5 discriminator 17 view .LVU134
+ 534 028a A6F58966 		sub	r6, r6, #1096
+ 535 028e B342     		cmp	r3, r6
+ 536 0290 00F05982 		beq	.L100
+ 537              		.loc 1 82 5 discriminator 19 view .LVU135
+ 538 0294 06F58066 		add	r6, r6, #1024
+ 539 0298 B342     		cmp	r3, r6
+ 540 029a 00F05482 		beq	.L100
+ 541              		.loc 1 82 5 discriminator 21 view .LVU136
+ 542 029e A6F56876 		sub	r6, r6, #928
+ 543 02a2 B342     		cmp	r3, r6
+ 544 02a4 00F04F82 		beq	.L100
+ 545              		.loc 1 82 5 discriminator 23 view .LVU137
+ 546 02a8 06F58066 		add	r6, r6, #1024
+ 547 02ac B342     		cmp	r3, r6
+ 548 02ae 00F04A82 		beq	.L100
+ 549              		.loc 1 82 5 view .LVU138
+ 550 02b2 0C4B     		ldr	r3, .L175+16
+ 551 02b4 4FF00066 		mov	r6, #134217728
+ 552 02b8 DE60     		str	r6, [r3, #12]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ARM GAS  /tmp/cceTCweU.s 			page 13
+
+
+ 553              		.loc 1 83 5 is_stmt 1 view .LVU139
+ 554 02ba 4FF08066 		mov	r6, #67108864
+ 555 02be DE60     		str	r6, [r3, #12]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 556              		.loc 1 84 5 view .LVU140
+ 557 02c0 4FF00076 		mov	r6, #33554432
+ 558 02c4 DE60     		str	r6, [r3, #12]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 559              		.loc 1 85 5 view .LVU141
+ 560 02c6 4FF08076 		mov	r6, #16777216
+ 561 02ca DE60     		str	r6, [r3, #12]
+  86:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 562              		.loc 1 86 5 view .LVU142
+ 563 02cc 4FF48006 		mov	r6, #4194304
+ 564 02d0 1AE0     		b	.L147
+ 565              	.L176:
+ 566 02d2 00BF     		.align	2
+ 567              	.L175:
+ 568 02d4 00000000 		.word	hdma_spi1_rx
+ 569 02d8 00000000 		.word	hdma_spi1_tx
+ 570 02dc 00000000 		.word	hspi1
+ 571 02e0 58640240 		.word	1073898584
+ 572 02e4 00640240 		.word	1073898496
+ 573 02e8 B8600240 		.word	1073897656
+ 574 02ec 58600240 		.word	1073897560
+ 575 02f0 00600240 		.word	1073897472
+ 576              	.L92:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 577              		.loc 1 82 5 is_stmt 0 view .LVU143
+ 578 02f4 B74B     		ldr	r3, .L177
+ 579 02f6 2026     		movs	r6, #32
+ 580 02f8 DE60     		str	r6, [r3, #12]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 581              		.loc 1 83 5 is_stmt 1 view .LVU144
+ 582 02fa 1026     		movs	r6, #16
+ 583 02fc DE60     		str	r6, [r3, #12]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 584              		.loc 1 84 5 view .LVU145
+ 585 02fe 0826     		movs	r6, #8
+ 586 0300 DE60     		str	r6, [r3, #12]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 587              		.loc 1 85 5 view .LVU146
+ 588 0302 0426     		movs	r6, #4
+ 589 0304 DE60     		str	r6, [r3, #12]
+ 590              		.loc 1 86 5 view .LVU147
+ 591 0306 0126     		movs	r6, #1
+ 592              	.L147:
+ 593              		.loc 1 86 5 is_stmt 0 discriminator 50 view .LVU148
+ 594 0308 B24B     		ldr	r3, .L177
+ 595 030a DE60     		str	r6, [r3, #12]
+ 596              	.L146:
+  87:bsp/boards/Src/bsp_spi.c **** 
+  88:bsp/boards/Src/bsp_spi.c **** 
+  89:bsp/boards/Src/bsp_spi.c ****     hdma_spi1_rx.Instance->M0AR = rx_buf;
+ 597              		.loc 1 89 5 is_stmt 1 view .LVU149
+ 598              		.loc 1 89 33 is_stmt 0 view .LVU150
+ 599 030c E160     		str	r1, [r4, #12]
+ARM GAS  /tmp/cceTCweU.s 			page 14
+
+
+  90:bsp/boards/Src/bsp_spi.c ****     hdma_spi1_tx.Instance->M0AR = tx_buf;
+ 600              		.loc 1 90 5 is_stmt 1 view .LVU151
+ 601              		.loc 1 90 33 is_stmt 0 view .LVU152
+ 602 030e E860     		str	r0, [r5, #12]
+  91:bsp/boards/Src/bsp_spi.c **** 
+  92:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_SET_COUNTER(&hdma_spi1_rx, ndtr);
+ 603              		.loc 1 92 5 is_stmt 1 view .LVU153
+ 604 0310 6260     		str	r2, [r4, #4]
+  93:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_SET_COUNTER(&hdma_spi1_tx, ndtr);
+ 605              		.loc 1 93 5 view .LVU154
+ 606 0312 6A60     		str	r2, [r5, #4]
+  94:bsp/boards/Src/bsp_spi.c **** 
+  95:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_ENABLE(&hdma_spi1_rx);
+ 607              		.loc 1 95 5 view .LVU155
+ 608 0314 2368     		ldr	r3, [r4]
+ 609 0316 43F00103 		orr	r3, r3, #1
+ 610 031a 2360     		str	r3, [r4]
+  96:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_ENABLE(&hdma_spi1_tx);
+ 611              		.loc 1 96 5 view .LVU156
+ 612 031c 2B68     		ldr	r3, [r5]
+ 613 031e 43F00103 		orr	r3, r3, #1
+ 614 0322 2B60     		str	r3, [r5]
+  97:bsp/boards/Src/bsp_spi.c **** }
+ 615              		.loc 1 97 1 is_stmt 0 view .LVU157
+ 616 0324 F0BC     		pop	{r4, r5, r6, r7}
+ 617              		.cfi_remember_state
+ 618              		.cfi_restore 7
+ 619              		.cfi_restore 6
+ 620              		.cfi_restore 5
+ 621              		.cfi_restore 4
+ 622              		.cfi_def_cfa_offset 0
+ 623 0326 7047     		bx	lr
+ 624              	.L91:
+ 625              		.cfi_restore_state
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 626              		.loc 1 82 5 discriminator 2 view .LVU158
+ 627 0328 AB4E     		ldr	r6, .L177+4
+ 628 032a B342     		cmp	r3, r6
+ 629 032c 4AD9     		bls	.L105
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 630              		.loc 1 82 5 discriminator 51 view .LVU159
+ 631 032e A83E     		subs	r6, r6, #168
+ 632 0330 B342     		cmp	r3, r6
+ 633 0332 00F03581 		beq	.L106
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 634              		.loc 1 82 5 discriminator 53 view .LVU160
+ 635 0336 06F58066 		add	r6, r6, #1024
+ 636 033a B342     		cmp	r3, r6
+ 637 033c 00F03081 		beq	.L106
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 638              		.loc 1 82 5 discriminator 55 view .LVU161
+ 639 0340 A6F56876 		sub	r6, r6, #928
+ 640 0344 B342     		cmp	r3, r6
+ 641 0346 00F02B81 		beq	.L106
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 642              		.loc 1 82 5 discriminator 57 view .LVU162
+ 643 034a 06F58066 		add	r6, r6, #1024
+ARM GAS  /tmp/cceTCweU.s 			page 15
+
+
+ 644 034e B342     		cmp	r3, r6
+ 645 0350 00F02681 		beq	.L106
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 646              		.loc 1 82 5 discriminator 59 view .LVU163
+ 647 0354 A6F58966 		sub	r6, r6, #1096
+ 648 0358 B342     		cmp	r3, r6
+ 649 035a 00F09981 		beq	.L110
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 650              		.loc 1 82 5 discriminator 61 view .LVU164
+ 651 035e 06F58066 		add	r6, r6, #1024
+ 652 0362 B342     		cmp	r3, r6
+ 653 0364 00F09481 		beq	.L110
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 654              		.loc 1 82 5 discriminator 63 view .LVU165
+ 655 0368 A6F56876 		sub	r6, r6, #928
+ 656 036c B342     		cmp	r3, r6
+ 657 036e 00F08F81 		beq	.L110
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 658              		.loc 1 82 5 discriminator 65 view .LVU166
+ 659 0372 06F58066 		add	r6, r6, #1024
+ 660 0376 B342     		cmp	r3, r6
+ 661 0378 00F08A81 		beq	.L110
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 662              		.loc 1 82 5 discriminator 67 view .LVU167
+ 663 037c A6F58966 		sub	r6, r6, #1096
+ 664 0380 B342     		cmp	r3, r6
+ 665 0382 00F0F081 		beq	.L117
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 666              		.loc 1 82 5 discriminator 69 view .LVU168
+ 667 0386 06F58066 		add	r6, r6, #1024
+ 668 038a B342     		cmp	r3, r6
+ 669 038c 00F0EB81 		beq	.L117
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 670              		.loc 1 82 5 discriminator 71 view .LVU169
+ 671 0390 A6F56876 		sub	r6, r6, #928
+ 672 0394 B342     		cmp	r3, r6
+ 673 0396 00F0E681 		beq	.L117
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 674              		.loc 1 82 5 discriminator 73 view .LVU170
+ 675 039a 06F58066 		add	r6, r6, #1024
+ 676 039e B342     		cmp	r3, r6
+ 677 03a0 00F0E181 		beq	.L117
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 678              		.loc 1 82 5 view .LVU171
+ 679 03a4 8B4B     		ldr	r3, .L177
+ 680 03a6 4FF00066 		mov	r6, #134217728
+ 681 03aa 9E60     		str	r6, [r3, #8]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 682              		.loc 1 83 5 is_stmt 1 view .LVU172
+ 683 03ac 4FF08066 		mov	r6, #67108864
+ 684 03b0 9E60     		str	r6, [r3, #8]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 685              		.loc 1 84 5 view .LVU173
+ 686 03b2 4FF00076 		mov	r6, #33554432
+ 687 03b6 9E60     		str	r6, [r3, #8]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 688              		.loc 1 85 5 view .LVU174
+ARM GAS  /tmp/cceTCweU.s 			page 16
+
+
+ 689 03b8 4FF08076 		mov	r6, #16777216
+ 690 03bc 9E60     		str	r6, [r3, #8]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 691              		.loc 1 86 5 view .LVU175
+ 692 03be 4FF48003 		mov	r3, #4194304
+ 693 03c2 F7E0     		b	.L149
+ 694              	.L105:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 695              		.loc 1 82 5 is_stmt 0 discriminator 52 view .LVU176
+ 696 03c4 854E     		ldr	r6, .L177+8
+ 697 03c6 B342     		cmp	r3, r6
+ 698 03c8 40F29680 		bls	.L119
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 699              		.loc 1 82 5 discriminator 102 view .LVU177
+ 700 03cc 483E     		subs	r6, r6, #72
+ 701 03ce B342     		cmp	r3, r6
+ 702 03d0 00F02481 		beq	.L121
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 703              		.loc 1 82 5 discriminator 104 view .LVU178
+ 704 03d4 06F58066 		add	r6, r6, #1024
+ 705 03d8 B342     		cmp	r3, r6
+ 706 03da 00F01F81 		beq	.L121
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 707              		.loc 1 82 5 discriminator 106 view .LVU179
+ 708 03de A6F56876 		sub	r6, r6, #928
+ 709 03e2 B342     		cmp	r3, r6
+ 710 03e4 00F01A81 		beq	.L121
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 711              		.loc 1 82 5 discriminator 108 view .LVU180
+ 712 03e8 06F58066 		add	r6, r6, #1024
+ 713 03ec B342     		cmp	r3, r6
+ 714 03ee 00F01581 		beq	.L121
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 715              		.loc 1 82 5 discriminator 110 view .LVU181
+ 716 03f2 A6F58966 		sub	r6, r6, #1096
+ 717 03f6 B342     		cmp	r3, r6
+ 718 03f8 00F08681 		beq	.L127
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 719              		.loc 1 82 5 discriminator 112 view .LVU182
+ 720 03fc 06F58066 		add	r6, r6, #1024
+ 721 0400 B342     		cmp	r3, r6
+ 722 0402 00F08181 		beq	.L127
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 723              		.loc 1 82 5 discriminator 114 view .LVU183
+ 724 0406 A6F56876 		sub	r6, r6, #928
+ 725 040a B342     		cmp	r3, r6
+ 726 040c 00F07C81 		beq	.L127
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 727              		.loc 1 82 5 discriminator 116 view .LVU184
+ 728 0410 06F58066 		add	r6, r6, #1024
+ 729 0414 B342     		cmp	r3, r6
+ 730 0416 00F07781 		beq	.L127
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 731              		.loc 1 82 5 discriminator 118 view .LVU185
+ 732 041a A6F58966 		sub	r6, r6, #1096
+ 733 041e B342     		cmp	r3, r6
+ 734 0420 00F0D181 		beq	.L130
+ARM GAS  /tmp/cceTCweU.s 			page 17
+
+
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 735              		.loc 1 82 5 discriminator 120 view .LVU186
+ 736 0424 06F58066 		add	r6, r6, #1024
+ 737 0428 B342     		cmp	r3, r6
+ 738 042a 00F0CC81 		beq	.L130
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 739              		.loc 1 82 5 discriminator 122 view .LVU187
+ 740 042e A6F56876 		sub	r6, r6, #928
+ 741 0432 B342     		cmp	r3, r6
+ 742 0434 00F0C781 		beq	.L130
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 743              		.loc 1 82 5 discriminator 124 view .LVU188
+ 744 0438 06F58066 		add	r6, r6, #1024
+ 745 043c B342     		cmp	r3, r6
+ 746 043e 00F0C281 		beq	.L130
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 747              		.loc 1 82 5 view .LVU189
+ 748 0442 674B     		ldr	r3, .L177+12
+ 749 0444 4FF00066 		mov	r6, #134217728
+ 750 0448 DE60     		str	r6, [r3, #12]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 751              		.loc 1 83 5 is_stmt 1 view .LVU190
+ 752 044a 4FF08066 		mov	r6, #67108864
+ 753 044e DE60     		str	r6, [r3, #12]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 754              		.loc 1 84 5 view .LVU191
+ 755 0450 4FF00076 		mov	r6, #33554432
+ 756 0454 DE60     		str	r6, [r3, #12]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 757              		.loc 1 85 5 view .LVU192
+ 758 0456 4FF08076 		mov	r6, #16777216
+ 759 045a DE60     		str	r6, [r3, #12]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 760              		.loc 1 86 5 view .LVU193
+ 761 045c 4FF48003 		mov	r3, #4194304
+ 762 0460 E6E0     		b	.L150
+ 763              	.L63:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 764              		.loc 1 76 5 is_stmt 0 discriminator 103 view .LVU194
+ 765 0462 604F     		ldr	r7, .L177+16
+ 766 0464 BB42     		cmp	r3, r7
+ 767 0466 00F0A880 		beq	.L79
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 768              		.loc 1 76 5 discriminator 153 view .LVU195
+ 769 046a 07F58067 		add	r7, r7, #1024
+ 770 046e BB42     		cmp	r3, r7
+ 771 0470 00F0A380 		beq	.L79
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 772              		.loc 1 76 5 discriminator 155 view .LVU196
+ 773 0474 A7F56877 		sub	r7, r7, #928
+ 774 0478 BB42     		cmp	r3, r7
+ 775 047a 00F09E80 		beq	.L79
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 776              		.loc 1 76 5 discriminator 157 view .LVU197
+ 777 047e 07F58067 		add	r7, r7, #1024
+ 778 0482 BB42     		cmp	r3, r7
+ 779 0484 00F09980 		beq	.L79
+ARM GAS  /tmp/cceTCweU.s 			page 18
+
+
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 780              		.loc 1 76 5 discriminator 159 view .LVU198
+ 781 0488 A7F58967 		sub	r7, r7, #1096
+ 782 048c BB42     		cmp	r3, r7
+ 783 048e 00F02C81 		beq	.L81
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 784              		.loc 1 76 5 discriminator 161 view .LVU199
+ 785 0492 07F58067 		add	r7, r7, #1024
+ 786 0496 BB42     		cmp	r3, r7
+ 787 0498 00F02781 		beq	.L81
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 788              		.loc 1 76 5 discriminator 163 view .LVU200
+ 789 049c A7F56877 		sub	r7, r7, #928
+ 790 04a0 BB42     		cmp	r3, r7
+ 791 04a2 00F02281 		beq	.L81
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 792              		.loc 1 76 5 discriminator 165 view .LVU201
+ 793 04a6 07F58067 		add	r7, r7, #1024
+ 794 04aa BB42     		cmp	r3, r7
+ 795 04ac 00F01D81 		beq	.L81
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 796              		.loc 1 76 5 discriminator 167 view .LVU202
+ 797 04b0 A7F58967 		sub	r7, r7, #1096
+ 798 04b4 BB42     		cmp	r3, r7
+ 799 04b6 00F07681 		beq	.L87
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 800              		.loc 1 76 5 discriminator 169 view .LVU203
+ 801 04ba 07F58067 		add	r7, r7, #1024
+ 802 04be BB42     		cmp	r3, r7
+ 803 04c0 00F07181 		beq	.L87
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 804              		.loc 1 76 5 discriminator 171 view .LVU204
+ 805 04c4 A7F56877 		sub	r7, r7, #928
+ 806 04c8 BB42     		cmp	r3, r7
+ 807 04ca 00F06C81 		beq	.L87
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 808              		.loc 1 76 5 discriminator 173 view .LVU205
+ 809 04ce 07F58067 		add	r7, r7, #1024
+ 810 04d2 BB42     		cmp	r3, r7
+ 811 04d4 00F06781 		beq	.L87
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 812              		.loc 1 76 5 view .LVU206
+ 813 04d8 414B     		ldr	r3, .L177+12
+ 814 04da 4FF00067 		mov	r7, #134217728
+ 815 04de 9F60     		str	r7, [r3, #8]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 816              		.loc 1 77 5 is_stmt 1 view .LVU207
+ 817 04e0 4FF08067 		mov	r7, #67108864
+ 818 04e4 9F60     		str	r7, [r3, #8]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 819              		.loc 1 78 5 view .LVU208
+ 820 04e6 4FF00077 		mov	r7, #33554432
+ 821 04ea 9F60     		str	r7, [r3, #8]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 822              		.loc 1 79 5 view .LVU209
+ 823 04ec 4FF08077 		mov	r7, #16777216
+ 824 04f0 9F60     		str	r7, [r3, #8]
+ARM GAS  /tmp/cceTCweU.s 			page 19
+
+
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 825              		.loc 1 80 5 view .LVU210
+ 826 04f2 4FF48003 		mov	r3, #4194304
+ 827 04f6 6AE0     		b	.L154
+ 828              	.L119:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 829              		.loc 1 82 5 is_stmt 0 discriminator 103 view .LVU211
+ 830 04f8 3A4E     		ldr	r6, .L177+16
+ 831 04fa B342     		cmp	r3, r6
+ 832 04fc 74D0     		beq	.L136
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 833              		.loc 1 82 5 discriminator 153 view .LVU212
+ 834 04fe 06F58066 		add	r6, r6, #1024
+ 835 0502 B342     		cmp	r3, r6
+ 836 0504 70D0     		beq	.L136
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 837              		.loc 1 82 5 discriminator 155 view .LVU213
+ 838 0506 A6F56876 		sub	r6, r6, #928
+ 839 050a B342     		cmp	r3, r6
+ 840 050c 6CD0     		beq	.L136
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 841              		.loc 1 82 5 discriminator 157 view .LVU214
+ 842 050e 06F58066 		add	r6, r6, #1024
+ 843 0512 B342     		cmp	r3, r6
+ 844 0514 68D0     		beq	.L136
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 845              		.loc 1 82 5 discriminator 159 view .LVU215
+ 846 0516 A6F58966 		sub	r6, r6, #1096
+ 847 051a B342     		cmp	r3, r6
+ 848 051c 00F0D680 		beq	.L137
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 849              		.loc 1 82 5 discriminator 161 view .LVU216
+ 850 0520 06F58066 		add	r6, r6, #1024
+ 851 0524 B342     		cmp	r3, r6
+ 852 0526 00F0D180 		beq	.L137
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 853              		.loc 1 82 5 discriminator 163 view .LVU217
+ 854 052a A6F56876 		sub	r6, r6, #928
+ 855 052e B342     		cmp	r3, r6
+ 856 0530 00F0CC80 		beq	.L137
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 857              		.loc 1 82 5 discriminator 165 view .LVU218
+ 858 0534 06F58066 		add	r6, r6, #1024
+ 859 0538 B342     		cmp	r3, r6
+ 860 053a 00F0C780 		beq	.L137
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 861              		.loc 1 82 5 discriminator 167 view .LVU219
+ 862 053e A6F58966 		sub	r6, r6, #1096
+ 863 0542 B342     		cmp	r3, r6
+ 864 0544 00F05F81 		beq	.L141
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 865              		.loc 1 82 5 discriminator 169 view .LVU220
+ 866 0548 06F58066 		add	r6, r6, #1024
+ 867 054c B342     		cmp	r3, r6
+ 868 054e 00F05A81 		beq	.L141
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 869              		.loc 1 82 5 discriminator 171 view .LVU221
+ARM GAS  /tmp/cceTCweU.s 			page 20
+
+
+ 870 0552 A6F56876 		sub	r6, r6, #928
+ 871 0556 B342     		cmp	r3, r6
+ 872 0558 00F05581 		beq	.L141
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 873              		.loc 1 82 5 discriminator 173 view .LVU222
+ 874 055c 06F58066 		add	r6, r6, #1024
+ 875 0560 B342     		cmp	r3, r6
+ 876 0562 00F05081 		beq	.L141
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 877              		.loc 1 82 5 view .LVU223
+ 878 0566 1E4B     		ldr	r3, .L177+12
+ 879 0568 4FF00066 		mov	r6, #134217728
+ 880 056c 9E60     		str	r6, [r3, #8]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 881              		.loc 1 83 5 is_stmt 1 view .LVU224
+ 882 056e 4FF08066 		mov	r6, #67108864
+ 883 0572 9E60     		str	r6, [r3, #8]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 884              		.loc 1 84 5 view .LVU225
+ 885 0574 4FF00076 		mov	r6, #33554432
+ 886 0578 9E60     		str	r6, [r3, #8]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 887              		.loc 1 85 5 view .LVU226
+ 888 057a 4FF08076 		mov	r6, #16777216
+ 889 057e 9E60     		str	r6, [r3, #8]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 890              		.loc 1 86 5 view .LVU227
+ 891 0580 4FF48003 		mov	r3, #4194304
+ 892 0584 3AE0     		b	.L151
+ 893              	.L50:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 894              		.loc 1 76 5 is_stmt 0 view .LVU228
+ 895 0586 134B     		ldr	r3, .L177
+ 896 0588 2027     		movs	r7, #32
+ 897 058a 9F60     		str	r7, [r3, #8]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 898              		.loc 1 77 5 is_stmt 1 view .LVU229
+ 899 058c 1027     		movs	r7, #16
+ 900 058e 9F60     		str	r7, [r3, #8]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 901              		.loc 1 78 5 view .LVU230
+ 902 0590 0827     		movs	r7, #8
+ 903 0592 9F60     		str	r7, [r3, #8]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 904              		.loc 1 79 5 view .LVU231
+ 905 0594 0427     		movs	r7, #4
+ 906 0596 9F60     		str	r7, [r3, #8]
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 907              		.loc 1 80 5 view .LVU232
+ 908 0598 0123     		movs	r3, #1
+ 909              	.L152:
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 910              		.loc 1 80 5 is_stmt 0 discriminator 100 view .LVU233
+ 911 059a 0E4F     		ldr	r7, .L177
+ 912 059c BB60     		str	r3, [r7, #8]
+ 913 059e 4BE6     		b	.L90
+ 914              	.L106:
+ARM GAS  /tmp/cceTCweU.s 			page 21
+
+
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 915              		.loc 1 82 5 view .LVU234
+ 916 05a0 0C4B     		ldr	r3, .L177
+ 917 05a2 2026     		movs	r6, #32
+ 918 05a4 9E60     		str	r6, [r3, #8]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 919              		.loc 1 83 5 is_stmt 1 view .LVU235
+ 920 05a6 1026     		movs	r6, #16
+ 921 05a8 9E60     		str	r6, [r3, #8]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 922              		.loc 1 84 5 view .LVU236
+ 923 05aa 0826     		movs	r6, #8
+ 924 05ac 9E60     		str	r6, [r3, #8]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 925              		.loc 1 85 5 view .LVU237
+ 926 05ae 0426     		movs	r6, #4
+ 927 05b0 9E60     		str	r6, [r3, #8]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 928              		.loc 1 86 5 view .LVU238
+ 929 05b2 0123     		movs	r3, #1
+ 930              	.L149:
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 931              		.loc 1 86 5 is_stmt 0 discriminator 100 view .LVU239
+ 932 05b4 074E     		ldr	r6, .L177
+ 933 05b6 B360     		str	r3, [r6, #8]
+ 934 05b8 A8E6     		b	.L146
+ 935              	.L79:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 936              		.loc 1 76 5 view .LVU240
+ 937 05ba 094B     		ldr	r3, .L177+12
+ 938 05bc 2027     		movs	r7, #32
+ 939 05be 9F60     		str	r7, [r3, #8]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 940              		.loc 1 77 5 is_stmt 1 view .LVU241
+ 941 05c0 1027     		movs	r7, #16
+ 942 05c2 9F60     		str	r7, [r3, #8]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 943              		.loc 1 78 5 view .LVU242
+ 944 05c4 0827     		movs	r7, #8
+ 945 05c6 9F60     		str	r7, [r3, #8]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 946              		.loc 1 79 5 view .LVU243
+ 947 05c8 0427     		movs	r7, #4
+ 948 05ca 9F60     		str	r7, [r3, #8]
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 949              		.loc 1 80 5 view .LVU244
+ 950 05cc 0123     		movs	r3, #1
+ 951              	.L154:
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 952              		.loc 1 80 5 is_stmt 0 discriminator 200 view .LVU245
+ 953 05ce 044F     		ldr	r7, .L177+12
+ 954 05d0 BB60     		str	r3, [r7, #8]
+ 955 05d2 31E6     		b	.L90
+ 956              	.L178:
+ 957              		.align	2
+ 958              	.L177:
+ 959 05d4 00640240 		.word	1073898496
+ARM GAS  /tmp/cceTCweU.s 			page 22
+
+
+ 960 05d8 B8600240 		.word	1073897656
+ 961 05dc 58600240 		.word	1073897560
+ 962 05e0 00600240 		.word	1073897472
+ 963 05e4 10600240 		.word	1073897488
+ 964              	.L136:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 965              		.loc 1 82 5 view .LVU246
+ 966 05e8 8F4B     		ldr	r3, .L179
+ 967 05ea 2026     		movs	r6, #32
+ 968 05ec 9E60     		str	r6, [r3, #8]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 969              		.loc 1 83 5 is_stmt 1 view .LVU247
+ 970 05ee 1026     		movs	r6, #16
+ 971 05f0 9E60     		str	r6, [r3, #8]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 972              		.loc 1 84 5 view .LVU248
+ 973 05f2 0826     		movs	r6, #8
+ 974 05f4 9E60     		str	r6, [r3, #8]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 975              		.loc 1 85 5 view .LVU249
+ 976 05f6 0426     		movs	r6, #4
+ 977 05f8 9E60     		str	r6, [r3, #8]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 978              		.loc 1 86 5 view .LVU250
+ 979 05fa 0123     		movs	r3, #1
+ 980              	.L151:
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 981              		.loc 1 86 5 is_stmt 0 discriminator 200 view .LVU251
+ 982 05fc 8A4E     		ldr	r6, .L179
+ 983 05fe B360     		str	r3, [r6, #8]
+ 984 0600 84E6     		b	.L146
+ 985              	.L64:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 986              		.loc 1 76 5 view .LVU252
+ 987 0602 894B     		ldr	r3, .L179
+ 988 0604 2027     		movs	r7, #32
+ 989 0606 DF60     		str	r7, [r3, #12]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 990              		.loc 1 77 5 is_stmt 1 view .LVU253
+ 991 0608 1027     		movs	r7, #16
+ 992 060a DF60     		str	r7, [r3, #12]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 993              		.loc 1 78 5 view .LVU254
+ 994 060c 0827     		movs	r7, #8
+ 995 060e DF60     		str	r7, [r3, #12]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 996              		.loc 1 79 5 view .LVU255
+ 997 0610 0427     		movs	r7, #4
+ 998 0612 DF60     		str	r7, [r3, #12]
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 999              		.loc 1 80 5 view .LVU256
+ 1000 0614 0123     		movs	r3, #1
+ 1001              	.L153:
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 1002              		.loc 1 80 5 is_stmt 0 discriminator 151 view .LVU257
+ 1003 0616 844F     		ldr	r7, .L179
+ 1004 0618 FB60     		str	r3, [r7, #12]
+ARM GAS  /tmp/cceTCweU.s 			page 23
+
+
+ 1005 061a 0DE6     		b	.L90
+ 1006              	.L121:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 1007              		.loc 1 82 5 view .LVU258
+ 1008 061c 824B     		ldr	r3, .L179
+ 1009 061e 2026     		movs	r6, #32
+ 1010 0620 DE60     		str	r6, [r3, #12]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 1011              		.loc 1 83 5 is_stmt 1 view .LVU259
+ 1012 0622 1026     		movs	r6, #16
+ 1013 0624 DE60     		str	r6, [r3, #12]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 1014              		.loc 1 84 5 view .LVU260
+ 1015 0626 0826     		movs	r6, #8
+ 1016 0628 DE60     		str	r6, [r3, #12]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 1017              		.loc 1 85 5 view .LVU261
+ 1018 062a 0426     		movs	r6, #4
+ 1019 062c DE60     		str	r6, [r3, #12]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 1020              		.loc 1 86 5 view .LVU262
+ 1021 062e 0123     		movs	r3, #1
+ 1022              	.L150:
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 1023              		.loc 1 86 5 is_stmt 0 discriminator 151 view .LVU263
+ 1024 0630 7D4E     		ldr	r6, .L179
+ 1025 0632 F360     		str	r3, [r6, #12]
+ 1026 0634 6AE6     		b	.L146
+ 1027              	.L40:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 1028              		.loc 1 76 5 view .LVU264
+ 1029 0636 7D4B     		ldr	r3, .L179+4
+ 1030 0638 4FF40067 		mov	r7, #2048
+ 1031 063c DF60     		str	r7, [r3, #12]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 1032              		.loc 1 77 5 is_stmt 1 view .LVU265
+ 1033 063e 4FF48067 		mov	r7, #1024
+ 1034 0642 DF60     		str	r7, [r3, #12]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 1035              		.loc 1 78 5 view .LVU266
+ 1036 0644 4FF40077 		mov	r7, #512
+ 1037 0648 DF60     		str	r7, [r3, #12]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 1038              		.loc 1 79 5 view .LVU267
+ 1039 064a 4FF48077 		mov	r7, #256
+ 1040 064e DF60     		str	r7, [r3, #12]
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 1041              		.loc 1 80 5 view .LVU268
+ 1042 0650 4027     		movs	r7, #64
+ 1043 0652 EFE5     		b	.L148
+ 1044              	.L99:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 1045              		.loc 1 82 5 is_stmt 0 view .LVU269
+ 1046 0654 754B     		ldr	r3, .L179+4
+ 1047 0656 4FF40066 		mov	r6, #2048
+ 1048 065a DE60     		str	r6, [r3, #12]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ARM GAS  /tmp/cceTCweU.s 			page 24
+
+
+ 1049              		.loc 1 83 5 is_stmt 1 view .LVU270
+ 1050 065c 4FF48066 		mov	r6, #1024
+ 1051 0660 DE60     		str	r6, [r3, #12]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 1052              		.loc 1 84 5 view .LVU271
+ 1053 0662 4FF40076 		mov	r6, #512
+ 1054 0666 DE60     		str	r6, [r3, #12]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 1055              		.loc 1 85 5 view .LVU272
+ 1056 0668 4FF48076 		mov	r6, #256
+ 1057 066c DE60     		str	r6, [r3, #12]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 1058              		.loc 1 86 5 view .LVU273
+ 1059 066e 4026     		movs	r6, #64
+ 1060 0670 4AE6     		b	.L147
+ 1061              	.L54:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 1062              		.loc 1 76 5 is_stmt 0 view .LVU274
+ 1063 0672 6E4B     		ldr	r3, .L179+4
+ 1064 0674 4FF40067 		mov	r7, #2048
+ 1065 0678 9F60     		str	r7, [r3, #8]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 1066              		.loc 1 77 5 is_stmt 1 view .LVU275
+ 1067 067a 4FF48067 		mov	r7, #1024
+ 1068 067e 9F60     		str	r7, [r3, #8]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 1069              		.loc 1 78 5 view .LVU276
+ 1070 0680 4FF40077 		mov	r7, #512
+ 1071 0684 9F60     		str	r7, [r3, #8]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 1072              		.loc 1 79 5 view .LVU277
+ 1073 0686 4FF48077 		mov	r7, #256
+ 1074 068a 9F60     		str	r7, [r3, #8]
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 1075              		.loc 1 80 5 view .LVU278
+ 1076 068c 4023     		movs	r3, #64
+ 1077 068e 84E7     		b	.L152
+ 1078              	.L110:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 1079              		.loc 1 82 5 is_stmt 0 view .LVU279
+ 1080 0690 664B     		ldr	r3, .L179+4
+ 1081 0692 4FF40066 		mov	r6, #2048
+ 1082 0696 9E60     		str	r6, [r3, #8]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 1083              		.loc 1 83 5 is_stmt 1 view .LVU280
+ 1084 0698 4FF48066 		mov	r6, #1024
+ 1085 069c 9E60     		str	r6, [r3, #8]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 1086              		.loc 1 84 5 view .LVU281
+ 1087 069e 4FF40076 		mov	r6, #512
+ 1088 06a2 9E60     		str	r6, [r3, #8]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 1089              		.loc 1 85 5 view .LVU282
+ 1090 06a4 4FF48076 		mov	r6, #256
+ 1091 06a8 9E60     		str	r6, [r3, #8]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 1092              		.loc 1 86 5 view .LVU283
+ARM GAS  /tmp/cceTCweU.s 			page 25
+
+
+ 1093 06aa 4023     		movs	r3, #64
+ 1094 06ac 82E7     		b	.L149
+ 1095              	.L68:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 1096              		.loc 1 76 5 is_stmt 0 view .LVU284
+ 1097 06ae 5E4B     		ldr	r3, .L179
+ 1098 06b0 4FF40067 		mov	r7, #2048
+ 1099 06b4 DF60     		str	r7, [r3, #12]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 1100              		.loc 1 77 5 is_stmt 1 view .LVU285
+ 1101 06b6 4FF48067 		mov	r7, #1024
+ 1102 06ba DF60     		str	r7, [r3, #12]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 1103              		.loc 1 78 5 view .LVU286
+ 1104 06bc 4FF40077 		mov	r7, #512
+ 1105 06c0 DF60     		str	r7, [r3, #12]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 1106              		.loc 1 79 5 view .LVU287
+ 1107 06c2 4FF48077 		mov	r7, #256
+ 1108 06c6 DF60     		str	r7, [r3, #12]
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 1109              		.loc 1 80 5 view .LVU288
+ 1110 06c8 4023     		movs	r3, #64
+ 1111 06ca A4E7     		b	.L153
+ 1112              	.L137:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 1113              		.loc 1 82 5 is_stmt 0 view .LVU289
+ 1114 06cc 564B     		ldr	r3, .L179
+ 1115 06ce 4FF40066 		mov	r6, #2048
+ 1116 06d2 9E60     		str	r6, [r3, #8]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 1117              		.loc 1 83 5 is_stmt 1 view .LVU290
+ 1118 06d4 4FF48066 		mov	r6, #1024
+ 1119 06d8 9E60     		str	r6, [r3, #8]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 1120              		.loc 1 84 5 view .LVU291
+ 1121 06da 4FF40076 		mov	r6, #512
+ 1122 06de 9E60     		str	r6, [r3, #8]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 1123              		.loc 1 85 5 view .LVU292
+ 1124 06e0 4FF48076 		mov	r6, #256
+ 1125 06e4 9E60     		str	r6, [r3, #8]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 1126              		.loc 1 86 5 view .LVU293
+ 1127 06e6 4023     		movs	r3, #64
+ 1128 06e8 88E7     		b	.L151
+ 1129              	.L81:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 1130              		.loc 1 76 5 is_stmt 0 view .LVU294
+ 1131 06ea 4F4B     		ldr	r3, .L179
+ 1132 06ec 4FF40067 		mov	r7, #2048
+ 1133 06f0 9F60     		str	r7, [r3, #8]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 1134              		.loc 1 77 5 is_stmt 1 view .LVU295
+ 1135 06f2 4FF48067 		mov	r7, #1024
+ 1136 06f6 9F60     		str	r7, [r3, #8]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ARM GAS  /tmp/cceTCweU.s 			page 26
+
+
+ 1137              		.loc 1 78 5 view .LVU296
+ 1138 06f8 4FF40077 		mov	r7, #512
+ 1139 06fc 9F60     		str	r7, [r3, #8]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 1140              		.loc 1 79 5 view .LVU297
+ 1141 06fe 4FF48077 		mov	r7, #256
+ 1142 0702 9F60     		str	r7, [r3, #8]
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 1143              		.loc 1 80 5 view .LVU298
+ 1144 0704 4023     		movs	r3, #64
+ 1145 0706 62E7     		b	.L154
+ 1146              	.L127:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 1147              		.loc 1 82 5 is_stmt 0 view .LVU299
+ 1148 0708 474B     		ldr	r3, .L179
+ 1149 070a 4FF40066 		mov	r6, #2048
+ 1150 070e DE60     		str	r6, [r3, #12]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 1151              		.loc 1 83 5 is_stmt 1 view .LVU300
+ 1152 0710 4FF48066 		mov	r6, #1024
+ 1153 0714 DE60     		str	r6, [r3, #12]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 1154              		.loc 1 84 5 view .LVU301
+ 1155 0716 4FF40076 		mov	r6, #512
+ 1156 071a DE60     		str	r6, [r3, #12]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 1157              		.loc 1 85 5 view .LVU302
+ 1158 071c 4FF48076 		mov	r6, #256
+ 1159 0720 DE60     		str	r6, [r3, #12]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 1160              		.loc 1 86 5 view .LVU303
+ 1161 0722 4023     		movs	r3, #64
+ 1162 0724 84E7     		b	.L150
+ 1163              	.L44:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 1164              		.loc 1 76 5 is_stmt 0 view .LVU304
+ 1165 0726 414B     		ldr	r3, .L179+4
+ 1166 0728 4FF40017 		mov	r7, #2097152
+ 1167 072c DF60     		str	r7, [r3, #12]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 1168              		.loc 1 77 5 is_stmt 1 view .LVU305
+ 1169 072e 4FF48017 		mov	r7, #1048576
+ 1170 0732 DF60     		str	r7, [r3, #12]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 1171              		.loc 1 78 5 view .LVU306
+ 1172 0734 4FF40027 		mov	r7, #524288
+ 1173 0738 DF60     		str	r7, [r3, #12]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 1174              		.loc 1 79 5 view .LVU307
+ 1175 073a 4FF48027 		mov	r7, #262144
+ 1176 073e DF60     		str	r7, [r3, #12]
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 1177              		.loc 1 80 5 view .LVU308
+ 1178 0740 4FF48037 		mov	r7, #65536
+ 1179 0744 76E5     		b	.L148
+ 1180              	.L100:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ARM GAS  /tmp/cceTCweU.s 			page 27
+
+
+ 1181              		.loc 1 82 5 is_stmt 0 view .LVU309
+ 1182 0746 394B     		ldr	r3, .L179+4
+ 1183 0748 4FF40016 		mov	r6, #2097152
+ 1184 074c DE60     		str	r6, [r3, #12]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 1185              		.loc 1 83 5 is_stmt 1 view .LVU310
+ 1186 074e 4FF48016 		mov	r6, #1048576
+ 1187 0752 DE60     		str	r6, [r3, #12]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 1188              		.loc 1 84 5 view .LVU311
+ 1189 0754 4FF40026 		mov	r6, #524288
+ 1190 0758 DE60     		str	r6, [r3, #12]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 1191              		.loc 1 85 5 view .LVU312
+ 1192 075a 4FF48026 		mov	r6, #262144
+ 1193 075e DE60     		str	r6, [r3, #12]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 1194              		.loc 1 86 5 view .LVU313
+ 1195 0760 4FF48036 		mov	r6, #65536
+ 1196 0764 D0E5     		b	.L147
+ 1197              	.L117:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 1198              		.loc 1 82 5 is_stmt 0 view .LVU314
+ 1199 0766 314B     		ldr	r3, .L179+4
+ 1200 0768 4FF40016 		mov	r6, #2097152
+ 1201 076c 9E60     		str	r6, [r3, #8]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 1202              		.loc 1 83 5 is_stmt 1 view .LVU315
+ 1203 076e 4FF48016 		mov	r6, #1048576
+ 1204 0772 9E60     		str	r6, [r3, #8]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 1205              		.loc 1 84 5 view .LVU316
+ 1206 0774 4FF40026 		mov	r6, #524288
+ 1207 0778 9E60     		str	r6, [r3, #8]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 1208              		.loc 1 85 5 view .LVU317
+ 1209 077a 4FF48026 		mov	r6, #262144
+ 1210 077e 9E60     		str	r6, [r3, #8]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 1211              		.loc 1 86 5 view .LVU318
+ 1212 0780 4FF48033 		mov	r3, #65536
+ 1213 0784 16E7     		b	.L149
+ 1214              	.L61:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 1215              		.loc 1 76 5 is_stmt 0 view .LVU319
+ 1216 0786 294B     		ldr	r3, .L179+4
+ 1217 0788 4FF40017 		mov	r7, #2097152
+ 1218 078c 9F60     		str	r7, [r3, #8]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 1219              		.loc 1 77 5 is_stmt 1 view .LVU320
+ 1220 078e 4FF48017 		mov	r7, #1048576
+ 1221 0792 9F60     		str	r7, [r3, #8]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 1222              		.loc 1 78 5 view .LVU321
+ 1223 0794 4FF40027 		mov	r7, #524288
+ 1224 0798 9F60     		str	r7, [r3, #8]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ARM GAS  /tmp/cceTCweU.s 			page 28
+
+
+ 1225              		.loc 1 79 5 view .LVU322
+ 1226 079a 4FF48027 		mov	r7, #262144
+ 1227 079e 9F60     		str	r7, [r3, #8]
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 1228              		.loc 1 80 5 view .LVU323
+ 1229 07a0 4FF48033 		mov	r3, #65536
+ 1230 07a4 F9E6     		b	.L152
+ 1231              	.L87:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 1232              		.loc 1 76 5 is_stmt 0 view .LVU324
+ 1233 07a6 204B     		ldr	r3, .L179
+ 1234 07a8 4FF40017 		mov	r7, #2097152
+ 1235 07ac 9F60     		str	r7, [r3, #8]
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 1236              		.loc 1 77 5 is_stmt 1 view .LVU325
+ 1237 07ae 4FF48017 		mov	r7, #1048576
+ 1238 07b2 9F60     		str	r7, [r3, #8]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 1239              		.loc 1 78 5 view .LVU326
+ 1240 07b4 4FF40027 		mov	r7, #524288
+ 1241 07b8 9F60     		str	r7, [r3, #8]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 1242              		.loc 1 79 5 view .LVU327
+ 1243 07ba 4FF48027 		mov	r7, #262144
+ 1244 07be 9F60     		str	r7, [r3, #8]
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 1245              		.loc 1 80 5 view .LVU328
+ 1246 07c0 4FF48033 		mov	r3, #65536
+ 1247 07c4 03E7     		b	.L154
+ 1248              	.L130:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 1249              		.loc 1 82 5 is_stmt 0 view .LVU329
+ 1250 07c6 184B     		ldr	r3, .L179
+ 1251 07c8 4FF40016 		mov	r6, #2097152
+ 1252 07cc DE60     		str	r6, [r3, #12]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 1253              		.loc 1 83 5 is_stmt 1 view .LVU330
+ 1254 07ce 4FF48016 		mov	r6, #1048576
+ 1255 07d2 DE60     		str	r6, [r3, #12]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 1256              		.loc 1 84 5 view .LVU331
+ 1257 07d4 4FF40026 		mov	r6, #524288
+ 1258 07d8 DE60     		str	r6, [r3, #12]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 1259              		.loc 1 85 5 view .LVU332
+ 1260 07da 4FF48026 		mov	r6, #262144
+ 1261 07de DE60     		str	r6, [r3, #12]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 1262              		.loc 1 86 5 view .LVU333
+ 1263 07e0 4FF48033 		mov	r3, #65536
+ 1264 07e4 24E7     		b	.L150
+ 1265              	.L72:
+  76:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmarx));
+ 1266              		.loc 1 76 5 is_stmt 0 view .LVU334
+ 1267 07e6 104B     		ldr	r3, .L179
+ 1268 07e8 4FF40017 		mov	r7, #2097152
+ 1269 07ec DF60     		str	r7, [r3, #12]
+ARM GAS  /tmp/cceTCweU.s 			page 29
+
+
+  77:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmarx));
+ 1270              		.loc 1 77 5 is_stmt 1 view .LVU335
+ 1271 07ee 4FF48017 		mov	r7, #1048576
+ 1272 07f2 DF60     		str	r7, [r3, #12]
+  78:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmarx));
+ 1273              		.loc 1 78 5 view .LVU336
+ 1274 07f4 4FF40027 		mov	r7, #524288
+ 1275 07f8 DF60     		str	r7, [r3, #12]
+  79:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmarx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmarx));
+ 1276              		.loc 1 79 5 view .LVU337
+ 1277 07fa 4FF48027 		mov	r7, #262144
+ 1278 07fe DF60     		str	r7, [r3, #12]
+  80:bsp/boards/Src/bsp_spi.c **** 
+ 1279              		.loc 1 80 5 view .LVU338
+ 1280 0800 4FF48033 		mov	r3, #65536
+ 1281 0804 07E7     		b	.L153
+ 1282              	.L141:
+  82:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(hspi1.hdmatx));
+ 1283              		.loc 1 82 5 is_stmt 0 view .LVU339
+ 1284 0806 084B     		ldr	r3, .L179
+ 1285 0808 4FF40016 		mov	r6, #2097152
+ 1286 080c 9E60     		str	r6, [r3, #8]
+  83:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(hspi1.hdmatx));
+ 1287              		.loc 1 83 5 is_stmt 1 view .LVU340
+ 1288 080e 4FF48016 		mov	r6, #1048576
+ 1289 0812 9E60     		str	r6, [r3, #8]
+  84:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(hspi1.hdmatx));
+ 1290              		.loc 1 84 5 view .LVU341
+ 1291 0814 4FF40026 		mov	r6, #524288
+ 1292 0818 9E60     		str	r6, [r3, #8]
+  85:bsp/boards/Src/bsp_spi.c ****     __HAL_DMA_CLEAR_FLAG (hspi1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(hspi1.hdmatx));
+ 1293              		.loc 1 85 5 view .LVU342
+ 1294 081a 4FF48026 		mov	r6, #262144
+ 1295 081e 9E60     		str	r6, [r3, #8]
+  86:bsp/boards/Src/bsp_spi.c **** 
+ 1296              		.loc 1 86 5 view .LVU343
+ 1297 0820 4FF48033 		mov	r3, #65536
+ 1298 0824 EAE6     		b	.L151
+ 1299              	.L180:
+ 1300 0826 00BF     		.align	2
+ 1301              	.L179:
+ 1302 0828 00600240 		.word	1073897472
+ 1303 082c 00640240 		.word	1073898496
+ 1304              		.cfi_endproc
+ 1305              	.LFE236:
+ 1307              		.text
+ 1308              	.Letext0:
+ 1309              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 1310              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 1311              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 1312              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 1313              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 1314              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h"
+ARM GAS  /tmp/cceTCweU.s 			page 30
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_spi.c
+     /tmp/cceTCweU.s:20     .text.SPI1_DMA_init:0000000000000000 $t
+     /tmp/cceTCweU.s:27     .text.SPI1_DMA_init:0000000000000000 SPI1_DMA_init
+     /tmp/cceTCweU.s:181    .text.SPI1_DMA_init:00000000000000bc $d
+     /tmp/cceTCweU.s:193    .text.SPI1_DMA_enable:0000000000000000 $t
+     /tmp/cceTCweU.s:200    .text.SPI1_DMA_enable:0000000000000000 SPI1_DMA_enable
+     /tmp/cceTCweU.s:568    .text.SPI1_DMA_enable:00000000000002d4 $d
+     /tmp/cceTCweU.s:578    .text.SPI1_DMA_enable:00000000000002f4 $t
+     /tmp/cceTCweU.s:959    .text.SPI1_DMA_enable:00000000000005d4 $d
+     /tmp/cceTCweU.s:966    .text.SPI1_DMA_enable:00000000000005e8 $t
+     /tmp/cceTCweU.s:1302   .text.SPI1_DMA_enable:0000000000000828 $d
+
+UNDEFINED SYMBOLS
+hspi1
+hdma_spi1_rx
+hdma_spi1_tx

@@ -1,0 +1,187 @@
+ARM GAS  /tmp/cc8Emktj.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"CAN.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.CAN_cmd_send_angle,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	CAN_cmd_send_angle
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	CAN_cmd_send_angle:
+  28              	.LFB240:
+  29              		.file 1 "application/src/CAN.c"
+   1:application/src/CAN.c **** #include "CAN.h"
+   2:application/src/CAN.c **** #include "cmsis_os.h"
+   3:application/src/CAN.c **** #include "main.h"
+   4:application/src/CAN.c **** #include "bsp_rng.h"
+   5:application/src/CAN.c **** #include "imu.h"
+   6:application/src/CAN.c **** #include "quaternion.h"
+   7:application/src/CAN.c **** 
+   8:application/src/CAN.c **** 
+   9:application/src/CAN.c **** extern CAN_HandleTypeDef hcan1;
+  10:application/src/CAN.c **** extern CAN_HandleTypeDef hcan2;
+  11:application/src/CAN.c **** 
+  12:application/src/CAN.c **** static CAN_TxHeaderTypeDef  gimbal_tx_message;
+  13:application/src/CAN.c **** static uint8_t              gimbal_can_send_data[8];
+  14:application/src/CAN.c **** 
+  15:application/src/CAN.c **** void CAN_cmd_send_angle(void)
+  16:application/src/CAN.c **** {
+  30              		.loc 1 16 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 8
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  17:application/src/CAN.c ****   //yaw pitch firc_pwm Micro_switch 
+  18:application/src/CAN.c ****     uint32_t send_mail_box;
+  34              		.loc 1 18 5 view .LVU1
+  19:application/src/CAN.c ****     gimbal_tx_message.StdId = CAN_BOARD_CHASSIS_ID;
+  35              		.loc 1 19 5 view .LVU2
+  16:application/src/CAN.c ****   //yaw pitch firc_pwm Micro_switch 
+  36              		.loc 1 16 1 is_stmt 0 view .LVU3
+  37 0000 10B5     		push	{r4, lr}
+  38              		.cfi_def_cfa_offset 8
+ARM GAS  /tmp/cc8Emktj.s 			page 2
+
+
+  39              		.cfi_offset 4, -8
+  40              		.cfi_offset 14, -4
+  41              		.loc 1 19 29 view .LVU4
+  42 0002 0949     		ldr	r1, .L4
+  20:application/src/CAN.c ****     gimbal_tx_message.IDE = CAN_ID_STD;
+  21:application/src/CAN.c ****     gimbal_tx_message.RTR = CAN_RTR_DATA;
+  22:application/src/CAN.c ****     gimbal_tx_message.DLC = 0x08;
+  23:application/src/CAN.c ****     gimbal_can_send_data[0] = 0;//yaw
+  43              		.loc 1 23 29 view .LVU5
+  44 0004 094A     		ldr	r2, .L4+4
+  16:application/src/CAN.c ****   //yaw pitch firc_pwm Micro_switch 
+  45              		.loc 1 16 1 view .LVU6
+  46 0006 82B0     		sub	sp, sp, #8
+  47              		.cfi_def_cfa_offset 16
+  20:application/src/CAN.c ****     gimbal_tx_message.IDE = CAN_ID_STD;
+  48              		.loc 1 20 27 view .LVU7
+  49 0008 0020     		movs	r0, #0
+  22:application/src/CAN.c ****     gimbal_can_send_data[0] = 0;//yaw
+  50              		.loc 1 22 27 view .LVU8
+  51 000a 0823     		movs	r3, #8
+  21:application/src/CAN.c ****     gimbal_tx_message.DLC = 0x08;
+  52              		.loc 1 21 27 view .LVU9
+  53 000c C1E90200 		strd	r0, r0, [r1, #8]
+  24:application/src/CAN.c ****     gimbal_can_send_data[1] = 0;
+  25:application/src/CAN.c ****     gimbal_can_send_data[2] = 0;//pitch
+  26:application/src/CAN.c ****     gimbal_can_send_data[3] = 0;
+  27:application/src/CAN.c ****     gimbal_can_send_data[4] = 0;//roll
+  54              		.loc 1 27 29 view .LVU10
+  55 0010 C2E90000 		strd	r0, r0, [r2]
+  22:application/src/CAN.c ****     gimbal_can_send_data[0] = 0;//yaw
+  56              		.loc 1 22 27 view .LVU11
+  57 0014 0B61     		str	r3, [r1, #16]
+  19:application/src/CAN.c ****     gimbal_tx_message.IDE = CAN_ID_STD;
+  58              		.loc 1 19 29 view .LVU12
+  59 0016 40F20544 		movw	r4, #1029
+  28:application/src/CAN.c ****     gimbal_can_send_data[5] = 0;
+  29:application/src/CAN.c ****     gimbal_can_send_data[6] = 0;//mic_sw;
+  30:application/src/CAN.c ****     gimbal_can_send_data[7] = 0;
+  31:application/src/CAN.c ****     HAL_CAN_AddTxMessage(&GIMBAL_CAN, &gimbal_tx_message, gimbal_can_send_data, &send_mail_box);
+  60              		.loc 1 31 5 view .LVU13
+  61 001a 01AB     		add	r3, sp, #4
+  62 001c 0448     		ldr	r0, .L4+8
+  19:application/src/CAN.c ****     gimbal_tx_message.IDE = CAN_ID_STD;
+  63              		.loc 1 19 29 view .LVU14
+  64 001e 0C60     		str	r4, [r1]
+  20:application/src/CAN.c ****     gimbal_tx_message.RTR = CAN_RTR_DATA;
+  65              		.loc 1 20 5 is_stmt 1 view .LVU15
+  22:application/src/CAN.c ****     gimbal_can_send_data[0] = 0;//yaw
+  66              		.loc 1 22 5 view .LVU16
+  23:application/src/CAN.c ****     gimbal_can_send_data[1] = 0;
+  67              		.loc 1 23 5 view .LVU17
+  24:application/src/CAN.c ****     gimbal_can_send_data[2] = 0;//pitch
+  68              		.loc 1 24 5 view .LVU18
+  25:application/src/CAN.c ****     gimbal_can_send_data[3] = 0;
+  69              		.loc 1 25 5 view .LVU19
+  26:application/src/CAN.c ****     gimbal_can_send_data[4] = 0;//roll
+  70              		.loc 1 26 5 view .LVU20
+ARM GAS  /tmp/cc8Emktj.s 			page 3
+
+
+  27:application/src/CAN.c ****     gimbal_can_send_data[5] = 0;
+  71              		.loc 1 27 5 view .LVU21
+  28:application/src/CAN.c ****     gimbal_can_send_data[6] = 0;//mic_sw;
+  72              		.loc 1 28 5 view .LVU22
+  29:application/src/CAN.c ****     gimbal_can_send_data[7] = 0;
+  73              		.loc 1 29 5 view .LVU23
+  30:application/src/CAN.c ****     HAL_CAN_AddTxMessage(&GIMBAL_CAN, &gimbal_tx_message, gimbal_can_send_data, &send_mail_box);
+  74              		.loc 1 30 5 view .LVU24
+  75              		.loc 1 31 5 view .LVU25
+  76 0020 FFF7FEFF 		bl	HAL_CAN_AddTxMessage
+  77              	.LVL0:
+  32:application/src/CAN.c **** } 
+  78              		.loc 1 32 1 is_stmt 0 view .LVU26
+  79 0024 02B0     		add	sp, sp, #8
+  80              		.cfi_def_cfa_offset 8
+  81              		@ sp needed
+  82 0026 10BD     		pop	{r4, pc}
+  83              	.L5:
+  84              		.align	2
+  85              	.L4:
+  86 0028 00000000 		.word	.LANCHOR0
+  87 002c 00000000 		.word	.LANCHOR1
+  88 0030 00000000 		.word	hcan2
+  89              		.cfi_endproc
+  90              	.LFE240:
+  92              		.section	.bss.gimbal_can_send_data,"aw",%nobits
+  93              		.align	2
+  94              		.set	.LANCHOR1,. + 0
+  97              	gimbal_can_send_data:
+  98 0000 00000000 		.space	8
+  98      00000000 
+  99              		.section	.bss.gimbal_tx_message,"aw",%nobits
+ 100              		.align	2
+ 101              		.set	.LANCHOR0,. + 0
+ 104              	gimbal_tx_message:
+ 105 0000 00000000 		.space	24
+ 105      00000000 
+ 105      00000000 
+ 105      00000000 
+ 105      00000000 
+ 106              		.text
+ 107              	.Letext0:
+ 108              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 109              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 110              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 111              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h"
+ 112              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_can.h"
+ 113              		.file 7 "application/include/CAN.h"
+ARM GAS  /tmp/cc8Emktj.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 CAN.c
+     /tmp/cc8Emktj.s:20     .text.CAN_cmd_send_angle:0000000000000000 $t
+     /tmp/cc8Emktj.s:27     .text.CAN_cmd_send_angle:0000000000000000 CAN_cmd_send_angle
+     /tmp/cc8Emktj.s:86     .text.CAN_cmd_send_angle:0000000000000028 $d
+     /tmp/cc8Emktj.s:93     .bss.gimbal_can_send_data:0000000000000000 $d
+     /tmp/cc8Emktj.s:97     .bss.gimbal_can_send_data:0000000000000000 gimbal_can_send_data
+     /tmp/cc8Emktj.s:100    .bss.gimbal_tx_message:0000000000000000 $d
+     /tmp/cc8Emktj.s:104    .bss.gimbal_tx_message:0000000000000000 gimbal_tx_message
+
+UNDEFINED SYMBOLS
+HAL_CAN_AddTxMessage
+hcan2

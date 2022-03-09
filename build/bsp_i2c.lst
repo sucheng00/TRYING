@@ -1,0 +1,1462 @@
+ARM GAS  /tmp/cc4TfOfw.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_i2c.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.bsp_I2C_master_transmit,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	bsp_I2C_master_transmit
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	bsp_I2C_master_transmit:
+  28              	.LVL0:
+  29              	.LFB235:
+  30              		.file 1 "bsp/boards/Src/bsp_i2c.c"
+   1:bsp/boards/Src/bsp_i2c.c **** #include "bsp_i2c.h"
+   2:bsp/boards/Src/bsp_i2c.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_i2c.c **** 
+   4:bsp/boards/Src/bsp_i2c.c **** 
+   5:bsp/boards/Src/bsp_i2c.c **** extern I2C_HandleTypeDef hi2c1;
+   6:bsp/boards/Src/bsp_i2c.c **** extern I2C_HandleTypeDef hi2c2;
+   7:bsp/boards/Src/bsp_i2c.c **** 
+   8:bsp/boards/Src/bsp_i2c.c **** 
+   9:bsp/boards/Src/bsp_i2c.c **** void bsp_I2C_master_transmit(I2C_TypeDef *I2C, uint16_t I2C_address, uint8_t *data, uint16_t len)
+  10:bsp/boards/Src/bsp_i2c.c **** {
+  31              		.loc 1 10 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  11:bsp/boards/Src/bsp_i2c.c ****     if(I2C == I2C1)
+  35              		.loc 1 11 5 view .LVU1
+  10:bsp/boards/Src/bsp_i2c.c ****     if(I2C == I2C1)
+  36              		.loc 1 10 1 is_stmt 0 view .LVU2
+  37 0000 10B5     		push	{r4, lr}
+  38              		.cfi_def_cfa_offset 8
+  39              		.cfi_offset 4, -8
+  40              		.cfi_offset 14, -4
+  41              		.loc 1 11 7 view .LVU3
+  42 0002 0B4C     		ldr	r4, .L8
+  43 0004 A042     		cmp	r0, r4
+  10:bsp/boards/Src/bsp_i2c.c ****     if(I2C == I2C1)
+  44              		.loc 1 10 1 view .LVU4
+  45 0006 82B0     		sub	sp, sp, #8
+ARM GAS  /tmp/cc4TfOfw.s 			page 2
+
+
+  46              		.cfi_def_cfa_offset 16
+  47              		.loc 1 11 7 view .LVU5
+  48 0008 04D0     		beq	.L6
+  12:bsp/boards/Src/bsp_i2c.c ****     {
+  13:bsp/boards/Src/bsp_i2c.c ****         HAL_I2C_Master_Transmit(&hi2c1, I2C_address, data, len, 100);
+  14:bsp/boards/Src/bsp_i2c.c ****     }
+  15:bsp/boards/Src/bsp_i2c.c ****     else if(I2C == I2C2)
+  49              		.loc 1 15 10 is_stmt 1 view .LVU6
+  50              		.loc 1 15 12 is_stmt 0 view .LVU7
+  51 000a 0A4C     		ldr	r4, .L8+4
+  52 000c A042     		cmp	r0, r4
+  53 000e 08D0     		beq	.L7
+  16:bsp/boards/Src/bsp_i2c.c ****     {
+  17:bsp/boards/Src/bsp_i2c.c ****         HAL_I2C_Master_Transmit(&hi2c2, I2C_address, data, len, 100);
+  18:bsp/boards/Src/bsp_i2c.c ****     }
+  19:bsp/boards/Src/bsp_i2c.c **** }
+  54              		.loc 1 19 1 view .LVU8
+  55 0010 02B0     		add	sp, sp, #8
+  56              		.cfi_remember_state
+  57              		.cfi_def_cfa_offset 8
+  58              		@ sp needed
+  59 0012 10BD     		pop	{r4, pc}
+  60              	.L6:
+  61              		.cfi_restore_state
+  13:bsp/boards/Src/bsp_i2c.c ****     }
+  62              		.loc 1 13 9 is_stmt 1 view .LVU9
+  63 0014 6420     		movs	r0, #100
+  64              	.LVL1:
+  13:bsp/boards/Src/bsp_i2c.c ****     }
+  65              		.loc 1 13 9 is_stmt 0 view .LVU10
+  66 0016 0090     		str	r0, [sp]
+  67 0018 0748     		ldr	r0, .L8+8
+  68 001a FFF7FEFF 		bl	HAL_I2C_Master_Transmit
+  69              	.LVL2:
+  70              		.loc 1 19 1 view .LVU11
+  71 001e 02B0     		add	sp, sp, #8
+  72              		.cfi_remember_state
+  73              		.cfi_def_cfa_offset 8
+  74              		@ sp needed
+  75 0020 10BD     		pop	{r4, pc}
+  76              	.LVL3:
+  77              	.L7:
+  78              		.cfi_restore_state
+  17:bsp/boards/Src/bsp_i2c.c ****     }
+  79              		.loc 1 17 9 is_stmt 1 view .LVU12
+  80 0022 6424     		movs	r4, #100
+  81 0024 0094     		str	r4, [sp]
+  82 0026 0548     		ldr	r0, .L8+12
+  83              	.LVL4:
+  17:bsp/boards/Src/bsp_i2c.c ****     }
+  84              		.loc 1 17 9 is_stmt 0 view .LVU13
+  85 0028 FFF7FEFF 		bl	HAL_I2C_Master_Transmit
+  86              	.LVL5:
+  87              		.loc 1 19 1 view .LVU14
+  88 002c 02B0     		add	sp, sp, #8
+  89              		.cfi_def_cfa_offset 8
+  90              		@ sp needed
+ARM GAS  /tmp/cc4TfOfw.s 			page 3
+
+
+  91 002e 10BD     		pop	{r4, pc}
+  92              	.L9:
+  93              		.align	2
+  94              	.L8:
+  95 0030 00540040 		.word	1073763328
+  96 0034 00580040 		.word	1073764352
+  97 0038 00000000 		.word	hi2c1
+  98 003c 00000000 		.word	hi2c2
+  99              		.cfi_endproc
+ 100              	.LFE235:
+ 102              		.section	.text.bsp_I2C_reset,"ax",%progbits
+ 103              		.align	1
+ 104              		.p2align 2,,3
+ 105              		.global	bsp_I2C_reset
+ 106              		.syntax unified
+ 107              		.thumb
+ 108              		.thumb_func
+ 110              	bsp_I2C_reset:
+ 111              	.LVL6:
+ 112              	.LFB236:
+  20:bsp/boards/Src/bsp_i2c.c **** 
+  21:bsp/boards/Src/bsp_i2c.c **** 
+  22:bsp/boards/Src/bsp_i2c.c **** void bsp_I2C_reset(I2C_TypeDef *I2C)
+  23:bsp/boards/Src/bsp_i2c.c **** {
+ 113              		.loc 1 23 1 is_stmt 1 view -0
+ 114              		.cfi_startproc
+ 115              		@ args = 0, pretend = 0, frame = 0
+ 116              		@ frame_needed = 0, uses_anonymous_args = 0
+  24:bsp/boards/Src/bsp_i2c.c ****     I2C_HandleTypeDef *hi2c;
+ 117              		.loc 1 24 5 view .LVU16
+  25:bsp/boards/Src/bsp_i2c.c ****     if(I2C == I2C1)
+ 118              		.loc 1 25 5 view .LVU17
+  23:bsp/boards/Src/bsp_i2c.c ****     I2C_HandleTypeDef *hi2c;
+ 119              		.loc 1 23 1 is_stmt 0 view .LVU18
+ 120 0000 08B5     		push	{r3, lr}
+ 121              		.cfi_def_cfa_offset 8
+ 122              		.cfi_offset 3, -8
+ 123              		.cfi_offset 14, -4
+ 124              		.loc 1 25 7 view .LVU19
+ 125 0002 0E4B     		ldr	r3, .L16
+ 126 0004 9842     		cmp	r0, r3
+ 127 0006 17D0     		beq	.L13
+  26:bsp/boards/Src/bsp_i2c.c ****     {
+  27:bsp/boards/Src/bsp_i2c.c ****         hi2c = &hi2c1;
+  28:bsp/boards/Src/bsp_i2c.c ****     }
+  29:bsp/boards/Src/bsp_i2c.c ****     else if(I2C == I2C2)
+ 128              		.loc 1 29 10 is_stmt 1 view .LVU20
+  30:bsp/boards/Src/bsp_i2c.c ****     {
+  31:bsp/boards/Src/bsp_i2c.c ****         hi2c = &hi2c2;
+ 129              		.loc 1 31 14 is_stmt 0 view .LVU21
+ 130 0008 0D4A     		ldr	r2, .L16+4
+  29:bsp/boards/Src/bsp_i2c.c ****     {
+ 131              		.loc 1 29 12 view .LVU22
+ 132 000a 03F58063 		add	r3, r3, #1024
+ 133              		.loc 1 31 14 view .LVU23
+ 134 000e 9842     		cmp	r0, r3
+ 135 0010 18BF     		it	ne
+ARM GAS  /tmp/cc4TfOfw.s 			page 4
+
+
+ 136 0012 0022     		movne	r2, #0
+ 137              	.L11:
+ 138              	.LVL7:
+  32:bsp/boards/Src/bsp_i2c.c ****     }
+  33:bsp/boards/Src/bsp_i2c.c **** 
+  34:bsp/boards/Src/bsp_i2c.c ****     SET_BIT(hi2c->Instance->CR1, I2C_CR1_SWRST);
+ 139              		.loc 1 34 5 is_stmt 1 view .LVU24
+ 140 0014 1368     		ldr	r3, [r2]
+  35:bsp/boards/Src/bsp_i2c.c ****     CLEAR_BIT(hi2c->Instance->CR1, I2C_CR1_SWRST);
+  36:bsp/boards/Src/bsp_i2c.c ****     if (HAL_I2C_Init(hi2c) != HAL_OK)
+ 141              		.loc 1 36 9 is_stmt 0 view .LVU25
+ 142 0016 1046     		mov	r0, r2
+ 143              	.LVL8:
+  34:bsp/boards/Src/bsp_i2c.c ****     CLEAR_BIT(hi2c->Instance->CR1, I2C_CR1_SWRST);
+ 144              		.loc 1 34 5 view .LVU26
+ 145 0018 1A68     		ldr	r2, [r3]
+ 146              	.LVL9:
+  34:bsp/boards/Src/bsp_i2c.c ****     CLEAR_BIT(hi2c->Instance->CR1, I2C_CR1_SWRST);
+ 147              		.loc 1 34 5 view .LVU27
+ 148 001a 42F40042 		orr	r2, r2, #32768
+ 149 001e 1A60     		str	r2, [r3]
+  35:bsp/boards/Src/bsp_i2c.c ****     CLEAR_BIT(hi2c->Instance->CR1, I2C_CR1_SWRST);
+ 150              		.loc 1 35 5 is_stmt 1 view .LVU28
+ 151 0020 1A68     		ldr	r2, [r3]
+ 152 0022 22F40042 		bic	r2, r2, #32768
+ 153 0026 1A60     		str	r2, [r3]
+ 154              		.loc 1 36 5 view .LVU29
+ 155              		.loc 1 36 9 is_stmt 0 view .LVU30
+ 156 0028 FFF7FEFF 		bl	HAL_I2C_Init
+ 157              	.LVL10:
+ 158              		.loc 1 36 8 view .LVU31
+ 159 002c 00B9     		cbnz	r0, .L15
+  37:bsp/boards/Src/bsp_i2c.c ****     {
+  38:bsp/boards/Src/bsp_i2c.c ****         Error_Handler();
+  39:bsp/boards/Src/bsp_i2c.c ****     }
+  40:bsp/boards/Src/bsp_i2c.c **** }
+ 160              		.loc 1 40 1 view .LVU32
+ 161 002e 08BD     		pop	{r3, pc}
+ 162              	.L15:
+  38:bsp/boards/Src/bsp_i2c.c ****     }
+ 163              		.loc 1 38 9 is_stmt 1 view .LVU33
+ 164              		.loc 1 40 1 is_stmt 0 view .LVU34
+ 165 0030 BDE80840 		pop	{r3, lr}
+ 166              		.cfi_remember_state
+ 167              		.cfi_restore 14
+ 168              		.cfi_restore 3
+ 169              		.cfi_def_cfa_offset 0
+  38:bsp/boards/Src/bsp_i2c.c ****     }
+ 170              		.loc 1 38 9 view .LVU35
+ 171 0034 FFF7FEBF 		b	Error_Handler
+ 172              	.LVL11:
+ 173              	.L13:
+ 174              		.cfi_restore_state
+  27:bsp/boards/Src/bsp_i2c.c ****     }
+ 175              		.loc 1 27 14 view .LVU36
+ 176 0038 024A     		ldr	r2, .L16+8
+ 177 003a EBE7     		b	.L11
+ARM GAS  /tmp/cc4TfOfw.s 			page 5
+
+
+ 178              	.L17:
+ 179              		.align	2
+ 180              	.L16:
+ 181 003c 00540040 		.word	1073763328
+ 182 0040 00000000 		.word	hi2c2
+ 183 0044 00000000 		.word	hi2c1
+ 184              		.cfi_endproc
+ 185              	.LFE236:
+ 187              		.section	.text.bsp_I2C_check_ack,"ax",%progbits
+ 188              		.align	1
+ 189              		.p2align 2,,3
+ 190              		.global	bsp_I2C_check_ack
+ 191              		.syntax unified
+ 192              		.thumb
+ 193              		.thumb_func
+ 195              	bsp_I2C_check_ack:
+ 196              	.LVL12:
+ 197              	.LFB237:
+  41:bsp/boards/Src/bsp_i2c.c **** 
+  42:bsp/boards/Src/bsp_i2c.c **** 
+  43:bsp/boards/Src/bsp_i2c.c **** 
+  44:bsp/boards/Src/bsp_i2c.c **** bool_t bsp_I2C_check_ack(I2C_TypeDef *I2C, uint16_t I2C_address)
+  45:bsp/boards/Src/bsp_i2c.c **** {
+ 198              		.loc 1 45 1 is_stmt 1 view -0
+ 199              		.cfi_startproc
+ 200              		@ args = 0, pretend = 0, frame = 8
+ 201              		@ frame_needed = 0, uses_anonymous_args = 0
+ 202              		@ link register save eliminated.
+  46:bsp/boards/Src/bsp_i2c.c ****     I2C_HandleTypeDef *hi2c;
+ 203              		.loc 1 46 5 view .LVU38
+  47:bsp/boards/Src/bsp_i2c.c ****     if(I2C == I2C1)
+ 204              		.loc 1 47 5 view .LVU39
+ 205              		.loc 1 47 7 is_stmt 0 view .LVU40
+ 206 0000 344B     		ldr	r3, .L50
+ 207 0002 9842     		cmp	r0, r3
+ 208 0004 59D0     		beq	.L30
+  48:bsp/boards/Src/bsp_i2c.c ****     {
+  49:bsp/boards/Src/bsp_i2c.c ****         hi2c = &hi2c1;
+  50:bsp/boards/Src/bsp_i2c.c ****     }
+  51:bsp/boards/Src/bsp_i2c.c ****     else if(I2C == I2C2)
+ 209              		.loc 1 51 10 is_stmt 1 view .LVU41
+  52:bsp/boards/Src/bsp_i2c.c ****     {
+  53:bsp/boards/Src/bsp_i2c.c ****         hi2c = &hi2c2;
+ 210              		.loc 1 53 14 is_stmt 0 view .LVU42
+ 211 0006 344A     		ldr	r2, .L50+4
+  51:bsp/boards/Src/bsp_i2c.c ****     {
+ 212              		.loc 1 51 12 view .LVU43
+ 213 0008 03F58063 		add	r3, r3, #1024
+ 214              		.loc 1 53 14 view .LVU44
+ 215 000c 9842     		cmp	r0, r3
+ 216 000e 18BF     		it	ne
+ 217 0010 0022     		movne	r2, #0
+ 218              	.L19:
+ 219              	.LVL13:
+  54:bsp/boards/Src/bsp_i2c.c ****     }
+  55:bsp/boards/Src/bsp_i2c.c **** 
+  56:bsp/boards/Src/bsp_i2c.c ****     if((hi2c->Instance->CR2 & I2C_CR2_DMAEN) && ((hi2c->hdmatx != NULL && hi2c->hdmatx->Instance->N
+ARM GAS  /tmp/cc4TfOfw.s 			page 6
+
+
+ 220              		.loc 1 56 5 is_stmt 1 view .LVU45
+ 221              		.loc 1 56 13 is_stmt 0 view .LVU46
+ 222 0012 1368     		ldr	r3, [r2]
+ 223              		.loc 1 56 23 view .LVU47
+ 224 0014 5868     		ldr	r0, [r3, #4]
+ 225              	.LVL14:
+ 226              		.loc 1 56 7 view .LVU48
+ 227 0016 0005     		lsls	r0, r0, #20
+ 228 0018 0BD5     		bpl	.L33
+ 229              		.loc 1 56 55 discriminator 1 view .LVU49
+ 230 001a 506B     		ldr	r0, [r2, #52]
+ 231              		.loc 1 56 46 discriminator 1 view .LVU50
+ 232 001c 18B1     		cbz	r0, .L21
+ 233              		.loc 1 56 87 discriminator 2 view .LVU51
+ 234 001e 0068     		ldr	r0, [r0]
+ 235              		.loc 1 56 97 discriminator 2 view .LVU52
+ 236 0020 4068     		ldr	r0, [r0, #4]
+ 237              		.loc 1 56 72 discriminator 2 view .LVU53
+ 238 0022 0028     		cmp	r0, #0
+ 239 0024 47D1     		bne	.L34
+ 240              	.L21:
+ 241              		.loc 1 56 118 discriminator 4 view .LVU54
+ 242 0026 926B     		ldr	r2, [r2, #56]
+ 243              	.LVL15:
+ 244              		.loc 1 56 110 discriminator 4 view .LVU55
+ 245 0028 1AB1     		cbz	r2, .L33
+ 246              		.loc 1 56 150 discriminator 5 view .LVU56
+ 247 002a 1268     		ldr	r2, [r2]
+ 248              		.loc 1 56 160 discriminator 5 view .LVU57
+ 249 002c 5268     		ldr	r2, [r2, #4]
+ 250              		.loc 1 56 135 discriminator 5 view .LVU58
+ 251 002e 002A     		cmp	r2, #0
+ 252 0030 41D1     		bne	.L34
+ 253              	.L33:
+ 254              		.loc 1 56 135 discriminator 5 view .LVU59
+ 255 0032 6520     		movs	r0, #101
+ 256 0034 01E0     		b	.L37
+ 257              	.LVL16:
+ 258              	.L23:
+ 259              	.LBB2:
+  57:bsp/boards/Src/bsp_i2c.c ****     {
+  58:bsp/boards/Src/bsp_i2c.c ****         return I2C_ACK;
+  59:bsp/boards/Src/bsp_i2c.c ****     }
+  60:bsp/boards/Src/bsp_i2c.c ****     else
+  61:bsp/boards/Src/bsp_i2c.c ****     {
+  62:bsp/boards/Src/bsp_i2c.c ****         uint16_t timeout = 0;
+  63:bsp/boards/Src/bsp_i2c.c **** 
+  64:bsp/boards/Src/bsp_i2c.c ****         timeout = 0;
+  65:bsp/boards/Src/bsp_i2c.c ****         while(hi2c->Instance->SR2 & 0x02)
+  66:bsp/boards/Src/bsp_i2c.c ****         {
+  67:bsp/boards/Src/bsp_i2c.c ****             timeout ++;
+  68:bsp/boards/Src/bsp_i2c.c ****             if(timeout > 100)
+ 260              		.loc 1 68 15 view .LVU60
+ 261 0036 0028     		cmp	r0, #0
+ 262 0038 41D0     		beq	.L48
+ 263              	.L37:
+  67:bsp/boards/Src/bsp_i2c.c ****             if(timeout > 100)
+ARM GAS  /tmp/cc4TfOfw.s 			page 7
+
+
+ 264              		.loc 1 67 13 is_stmt 1 view .LVU61
+ 265              	.LVL17:
+ 266              		.loc 1 68 13 view .LVU62
+  65:bsp/boards/Src/bsp_i2c.c ****         {
+ 267              		.loc 1 65 14 view .LVU63
+  65:bsp/boards/Src/bsp_i2c.c ****         {
+ 268              		.loc 1 65 29 is_stmt 0 view .LVU64
+ 269 003a 9A69     		ldr	r2, [r3, #24]
+ 270              		.loc 1 68 15 view .LVU65
+ 271 003c 0138     		subs	r0, r0, #1
+ 272              	.LVL18:
+  65:bsp/boards/Src/bsp_i2c.c ****         {
+ 273              		.loc 1 65 14 view .LVU66
+ 274 003e 12F0020F 		tst	r2, #2
+ 275              		.loc 1 68 15 view .LVU67
+ 276 0042 80B2     		uxth	r0, r0
+  65:bsp/boards/Src/bsp_i2c.c ****         {
+ 277              		.loc 1 65 14 view .LVU68
+ 278 0044 F7D1     		bne	.L23
+  69:bsp/boards/Src/bsp_i2c.c ****             {
+  70:bsp/boards/Src/bsp_i2c.c ****                 SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
+  71:bsp/boards/Src/bsp_i2c.c ****                 return I2C_NO_ACK;
+  72:bsp/boards/Src/bsp_i2c.c ****             }
+  73:bsp/boards/Src/bsp_i2c.c ****         }
+  74:bsp/boards/Src/bsp_i2c.c **** 
+  75:bsp/boards/Src/bsp_i2c.c ****         CLEAR_BIT(hi2c->Instance->CR1, I2C_CR1_POS);
+ 279              		.loc 1 75 9 is_stmt 1 view .LVU69
+ 280 0046 1A68     		ldr	r2, [r3]
+ 281 0048 22F40062 		bic	r2, r2, #2048
+ 282 004c 1A60     		str	r2, [r3]
+  76:bsp/boards/Src/bsp_i2c.c **** 
+  77:bsp/boards/Src/bsp_i2c.c ****         SET_BIT(hi2c->Instance->CR1, I2C_CR1_START);
+ 283              		.loc 1 77 9 view .LVU70
+ 284 004e 1A68     		ldr	r2, [r3]
+ 285 0050 42F48072 		orr	r2, r2, #256
+  78:bsp/boards/Src/bsp_i2c.c **** 
+  79:bsp/boards/Src/bsp_i2c.c ****         timeout = 0;
+  80:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x01))
+ 286              		.loc 1 80 14 is_stmt 0 view .LVU71
+ 287 0054 6520     		movs	r0, #101
+  77:bsp/boards/Src/bsp_i2c.c **** 
+ 288              		.loc 1 77 9 view .LVU72
+ 289 0056 1A60     		str	r2, [r3]
+  79:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x01))
+ 290              		.loc 1 79 9 is_stmt 1 view .LVU73
+ 291              	.LVL19:
+ 292              		.loc 1 80 9 view .LVU74
+ 293              		.loc 1 80 14 is_stmt 0 view .LVU75
+ 294 0058 01E0     		b	.L24
+ 295              	.LVL20:
+ 296              	.L25:
+  81:bsp/boards/Src/bsp_i2c.c ****         {
+  82:bsp/boards/Src/bsp_i2c.c ****             timeout ++;
+  83:bsp/boards/Src/bsp_i2c.c ****             if(timeout > 100)
+ 297              		.loc 1 83 15 view .LVU76
+ 298 005a 0028     		cmp	r0, #0
+ 299 005c 2FD0     		beq	.L48
+ARM GAS  /tmp/cc4TfOfw.s 			page 8
+
+
+ 300              	.L24:
+  82:bsp/boards/Src/bsp_i2c.c ****             if(timeout > 100)
+ 301              		.loc 1 82 13 is_stmt 1 view .LVU77
+ 302              	.LVL21:
+ 303              		.loc 1 83 13 view .LVU78
+  80:bsp/boards/Src/bsp_i2c.c ****         {
+ 304              		.loc 1 80 14 view .LVU79
+  80:bsp/boards/Src/bsp_i2c.c ****         {
+ 305              		.loc 1 80 31 is_stmt 0 view .LVU80
+ 306 005e 5A69     		ldr	r2, [r3, #20]
+ 307              		.loc 1 83 15 view .LVU81
+ 308 0060 0138     		subs	r0, r0, #1
+ 309              	.LVL22:
+  80:bsp/boards/Src/bsp_i2c.c ****         {
+ 310              		.loc 1 80 14 view .LVU82
+ 311 0062 12F0010F 		tst	r2, #1
+ 312              		.loc 1 83 15 view .LVU83
+ 313 0066 80B2     		uxth	r0, r0
+  80:bsp/boards/Src/bsp_i2c.c ****         {
+ 314              		.loc 1 80 14 view .LVU84
+ 315 0068 F7D0     		beq	.L25
+  84:bsp/boards/Src/bsp_i2c.c ****             {
+  85:bsp/boards/Src/bsp_i2c.c ****                 SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
+  86:bsp/boards/Src/bsp_i2c.c ****                 return I2C_NO_ACK;
+  87:bsp/boards/Src/bsp_i2c.c ****             }
+  88:bsp/boards/Src/bsp_i2c.c ****         }
+  89:bsp/boards/Src/bsp_i2c.c **** 
+  90:bsp/boards/Src/bsp_i2c.c ****         hi2c->Instance->DR = I2C_7BIT_ADD_WRITE(I2C_address);
+ 316              		.loc 1 90 9 is_stmt 1 view .LVU85
+ 317              		.loc 1 90 30 is_stmt 0 view .LVU86
+ 318 006a 01F0FE01 		and	r1, r1, #254
+ 319              	.LVL23:
+ 320              		.loc 1 90 28 view .LVU87
+ 321 006e 1961     		str	r1, [r3, #16]
+  91:bsp/boards/Src/bsp_i2c.c **** 
+  92:bsp/boards/Src/bsp_i2c.c ****         timeout = 0;
+ 322              		.loc 1 92 9 is_stmt 1 view .LVU88
+ 323              	.LVL24:
+  93:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x02))
+ 324              		.loc 1 93 9 view .LVU89
+ 325              		.loc 1 93 14 is_stmt 0 view .LVU90
+ 326 0070 40F2F510 		movw	r0, #501
+ 327 0074 00E0     		b	.L26
+ 328              	.LVL25:
+ 329              	.L27:
+  94:bsp/boards/Src/bsp_i2c.c ****         {
+  95:bsp/boards/Src/bsp_i2c.c ****             timeout ++;
+  96:bsp/boards/Src/bsp_i2c.c ****             if(timeout > 500)
+ 330              		.loc 1 96 15 view .LVU91
+ 331 0076 10B3     		cbz	r0, .L48
+ 332              	.L26:
+  95:bsp/boards/Src/bsp_i2c.c ****             if(timeout > 500)
+ 333              		.loc 1 95 13 is_stmt 1 view .LVU92
+ 334              	.LVL26:
+ 335              		.loc 1 96 13 view .LVU93
+  93:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x02))
+ 336              		.loc 1 93 14 view .LVU94
+ARM GAS  /tmp/cc4TfOfw.s 			page 9
+
+
+  93:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x02))
+ 337              		.loc 1 93 31 is_stmt 0 view .LVU95
+ 338 0078 5A69     		ldr	r2, [r3, #20]
+ 339              		.loc 1 96 15 view .LVU96
+ 340 007a 0138     		subs	r0, r0, #1
+ 341              	.LVL27:
+  93:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x02))
+ 342              		.loc 1 93 14 view .LVU97
+ 343 007c 12F0020F 		tst	r2, #2
+ 344              		.loc 1 96 15 view .LVU98
+ 345 0080 80B2     		uxth	r0, r0
+  93:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x02))
+ 346              		.loc 1 93 14 view .LVU99
+ 347 0082 F8D0     		beq	.L27
+  97:bsp/boards/Src/bsp_i2c.c ****             {
+  98:bsp/boards/Src/bsp_i2c.c ****                 SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
+  99:bsp/boards/Src/bsp_i2c.c ****                 return I2C_NO_ACK;
+ 100:bsp/boards/Src/bsp_i2c.c ****             }
+ 101:bsp/boards/Src/bsp_i2c.c ****         }
+ 102:bsp/boards/Src/bsp_i2c.c **** 
+ 103:bsp/boards/Src/bsp_i2c.c ****         do{
+ 348              		.loc 1 103 9 is_stmt 1 view .LVU100
+ 349              	.LBB3:
+ 104:bsp/boards/Src/bsp_i2c.c ****             __IO uint32_t tmpreg = 0x00U;
+ 350              		.loc 1 104 13 view .LVU101
+ 351              	.LBE3:
+ 352              	.LBE2:
+  45:bsp/boards/Src/bsp_i2c.c ****     I2C_HandleTypeDef *hi2c;
+ 353              		.loc 1 45 1 is_stmt 0 view .LVU102
+ 354 0084 82B0     		sub	sp, sp, #8
+ 355              		.cfi_def_cfa_offset 8
+ 356              	.LBB5:
+ 357              	.LBB4:
+ 358              		.loc 1 104 27 view .LVU103
+ 359 0086 0022     		movs	r2, #0
+ 360 0088 0192     		str	r2, [sp, #4]
+ 105:bsp/boards/Src/bsp_i2c.c ****             tmpreg = hi2c->Instance->SR1;
+ 361              		.loc 1 105 13 is_stmt 1 view .LVU104
+ 362              		.loc 1 105 36 is_stmt 0 view .LVU105
+ 363 008a 5A69     		ldr	r2, [r3, #20]
+ 364              		.loc 1 105 20 view .LVU106
+ 365 008c 0192     		str	r2, [sp, #4]
+ 106:bsp/boards/Src/bsp_i2c.c ****             tmpreg = hi2c->Instance->SR2;
+ 366              		.loc 1 106 13 is_stmt 1 view .LVU107
+ 367              		.loc 1 106 36 is_stmt 0 view .LVU108
+ 368 008e 9A69     		ldr	r2, [r3, #24]
+ 369              		.loc 1 106 20 view .LVU109
+ 370 0090 0192     		str	r2, [sp, #4]
+ 107:bsp/boards/Src/bsp_i2c.c ****             UNUSED(tmpreg);
+ 371              		.loc 1 107 13 is_stmt 1 view .LVU110
+ 372 0092 019A     		ldr	r2, [sp, #4]
+ 373              	.LBE4:
+ 108:bsp/boards/Src/bsp_i2c.c ****         } while(0);
+ 374              		.loc 1 108 16 view .LVU111
+ 109:bsp/boards/Src/bsp_i2c.c **** 
+ 110:bsp/boards/Src/bsp_i2c.c ****         timeout = 0;
+ 375              		.loc 1 110 9 view .LVU112
+ARM GAS  /tmp/cc4TfOfw.s 			page 10
+
+
+ 376              	.LVL28:
+ 111:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x80))
+ 377              		.loc 1 111 9 view .LVU113
+ 378              		.loc 1 111 14 is_stmt 0 view .LVU114
+ 379 0094 40F2F510 		movw	r0, #501
+ 380 0098 00E0     		b	.L28
+ 381              	.LVL29:
+ 382              	.L29:
+ 112:bsp/boards/Src/bsp_i2c.c ****         {
+ 113:bsp/boards/Src/bsp_i2c.c ****             timeout ++;
+ 114:bsp/boards/Src/bsp_i2c.c ****             if(timeout > 500)
+ 383              		.loc 1 114 15 view .LVU115
+ 384 009a A8B1     		cbz	r0, .L49
+ 385              	.L28:
+ 113:bsp/boards/Src/bsp_i2c.c ****             if(timeout > 500)
+ 386              		.loc 1 113 13 is_stmt 1 view .LVU116
+ 387              	.LVL30:
+ 388              		.loc 1 114 13 view .LVU117
+ 111:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x80))
+ 389              		.loc 1 111 14 view .LVU118
+ 111:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x80))
+ 390              		.loc 1 111 31 is_stmt 0 view .LVU119
+ 391 009c 5A69     		ldr	r2, [r3, #20]
+ 392              		.loc 1 114 15 view .LVU120
+ 393 009e 0138     		subs	r0, r0, #1
+ 394              	.LVL31:
+ 111:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x80))
+ 395              		.loc 1 111 14 view .LVU121
+ 396 00a0 12F0800F 		tst	r2, #128
+ 397              		.loc 1 114 15 view .LVU122
+ 398 00a4 80B2     		uxth	r0, r0
+ 111:bsp/boards/Src/bsp_i2c.c ****         while(!(hi2c->Instance->SR1 & 0x80))
+ 399              		.loc 1 111 14 view .LVU123
+ 400 00a6 F8D0     		beq	.L29
+ 115:bsp/boards/Src/bsp_i2c.c ****             {
+ 116:bsp/boards/Src/bsp_i2c.c ****                 SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
+ 117:bsp/boards/Src/bsp_i2c.c ****                 return I2C_NO_ACK;
+ 118:bsp/boards/Src/bsp_i2c.c ****             }
+ 119:bsp/boards/Src/bsp_i2c.c ****         }
+ 120:bsp/boards/Src/bsp_i2c.c **** 
+ 121:bsp/boards/Src/bsp_i2c.c ****         SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
+ 401              		.loc 1 121 9 is_stmt 1 view .LVU124
+ 402 00a8 1A68     		ldr	r2, [r3]
+ 403 00aa 42F40072 		orr	r2, r2, #512
+ 122:bsp/boards/Src/bsp_i2c.c **** 
+ 123:bsp/boards/Src/bsp_i2c.c ****         return I2C_ACK;
+ 404              		.loc 1 123 16 is_stmt 0 view .LVU125
+ 405 00ae 0120     		movs	r0, #1
+ 121:bsp/boards/Src/bsp_i2c.c **** 
+ 406              		.loc 1 121 9 view .LVU126
+ 407 00b0 1A60     		str	r2, [r3]
+ 408              		.loc 1 123 9 is_stmt 1 view .LVU127
+ 409              	.L22:
+ 410              	.LBE5:
+ 124:bsp/boards/Src/bsp_i2c.c ****     }
+ 125:bsp/boards/Src/bsp_i2c.c **** 
+ 126:bsp/boards/Src/bsp_i2c.c **** 
+ARM GAS  /tmp/cc4TfOfw.s 			page 11
+
+
+ 127:bsp/boards/Src/bsp_i2c.c **** }
+ 411              		.loc 1 127 1 is_stmt 0 view .LVU128
+ 412 00b2 02B0     		add	sp, sp, #8
+ 413              		.cfi_def_cfa_offset 0
+ 414              		@ sp needed
+ 415 00b4 7047     		bx	lr
+ 416              	.LVL32:
+ 417              	.L34:
+  58:bsp/boards/Src/bsp_i2c.c ****     }
+ 418              		.loc 1 58 16 view .LVU129
+ 419 00b6 0120     		movs	r0, #1
+ 420              		.loc 1 127 1 view .LVU130
+ 421 00b8 7047     		bx	lr
+ 422              	.LVL33:
+ 423              	.L30:
+  49:bsp/boards/Src/bsp_i2c.c ****     }
+ 424              		.loc 1 49 14 view .LVU131
+ 425 00ba 084A     		ldr	r2, .L50+8
+ 426 00bc A9E7     		b	.L19
+ 427              	.LVL34:
+ 428              	.L48:
+ 429              	.LBB6:
+  98:bsp/boards/Src/bsp_i2c.c ****                 return I2C_NO_ACK;
+ 430              		.loc 1 98 17 is_stmt 1 view .LVU132
+ 431 00be 1A68     		ldr	r2, [r3]
+ 432 00c0 42F40072 		orr	r2, r2, #512
+ 433 00c4 1A60     		str	r2, [r3]
+  99:bsp/boards/Src/bsp_i2c.c ****             }
+ 434              		.loc 1 99 17 view .LVU133
+  99:bsp/boards/Src/bsp_i2c.c ****             }
+ 435              		.loc 1 99 24 is_stmt 0 view .LVU134
+ 436 00c6 7047     		bx	lr
+ 437              	.L49:
+ 438              		.cfi_def_cfa_offset 8
+ 116:bsp/boards/Src/bsp_i2c.c ****                 return I2C_NO_ACK;
+ 439              		.loc 1 116 17 is_stmt 1 view .LVU135
+ 440 00c8 1A68     		ldr	r2, [r3]
+ 441 00ca 42F40072 		orr	r2, r2, #512
+ 442 00ce 1A60     		str	r2, [r3]
+ 117:bsp/boards/Src/bsp_i2c.c ****             }
+ 443              		.loc 1 117 17 view .LVU136
+ 117:bsp/boards/Src/bsp_i2c.c ****             }
+ 444              		.loc 1 117 24 is_stmt 0 view .LVU137
+ 445 00d0 EFE7     		b	.L22
+ 446              	.L51:
+ 447 00d2 00BF     		.align	2
+ 448              	.L50:
+ 449 00d4 00540040 		.word	1073763328
+ 450 00d8 00000000 		.word	hi2c2
+ 451 00dc 00000000 		.word	hi2c1
+ 452              	.LBE6:
+ 453              		.cfi_endproc
+ 454              	.LFE237:
+ 456              		.section	.text.DMA1_Stream7_IRQHandler,"ax",%progbits
+ 457              		.align	1
+ 458              		.p2align 2,,3
+ 459              		.global	DMA1_Stream7_IRQHandler
+ARM GAS  /tmp/cc4TfOfw.s 			page 12
+
+
+ 460              		.syntax unified
+ 461              		.thumb
+ 462              		.thumb_func
+ 464              	DMA1_Stream7_IRQHandler:
+ 465              	.LFB238:
+ 128:bsp/boards/Src/bsp_i2c.c **** 
+ 129:bsp/boards/Src/bsp_i2c.c **** 
+ 130:bsp/boards/Src/bsp_i2c.c **** 
+ 131:bsp/boards/Src/bsp_i2c.c **** void DMA1_Stream7_IRQHandler(void)
+ 132:bsp/boards/Src/bsp_i2c.c **** {
+ 466              		.loc 1 132 1 is_stmt 1 view -0
+ 467              		.cfi_startproc
+ 468              		@ args = 0, pretend = 0, frame = 0
+ 469              		@ frame_needed = 0, uses_anonymous_args = 0
+ 470              		@ link register save eliminated.
+ 133:bsp/boards/Src/bsp_i2c.c ****     if(DMA1->HISR & (1<<27))
+ 471              		.loc 1 133 5 view .LVU139
+ 472              		.loc 1 133 12 is_stmt 0 view .LVU140
+ 473 0000 114B     		ldr	r3, .L61
+ 474 0002 5A68     		ldr	r2, [r3, #4]
+ 475              		.loc 1 133 7 view .LVU141
+ 476 0004 1201     		lsls	r2, r2, #4
+ 477 0006 0ED5     		bpl	.L52
+ 134:bsp/boards/Src/bsp_i2c.c ****     {
+ 135:bsp/boards/Src/bsp_i2c.c ****         __HAL_DMA_CLEAR_FLAG(hi2c2.hdmatx, DMA_HISR_TCIF7);
+ 478              		.loc 1 135 9 is_stmt 1 view .LVU142
+ 479 0008 104A     		ldr	r2, .L61+4
+ 480 000a 1148     		ldr	r0, .L61+8
+ 481 000c 516B     		ldr	r1, [r2, #52]
+ 482 000e 0968     		ldr	r1, [r1]
+ 483 0010 8142     		cmp	r1, r0
+ 484 0012 09D9     		bls	.L54
+ 485              		.loc 1 135 9 is_stmt 0 discriminator 1 view .LVU143
+ 486 0014 4FF00061 		mov	r1, #134217728
+ 487 0018 C3F80C14 		str	r1, [r3, #1036]
+ 488              	.L55:
+ 136:bsp/boards/Src/bsp_i2c.c ****         SET_BIT(hi2c2.Instance->CR1, I2C_CR1_STOP);
+ 489              		.loc 1 136 9 is_stmt 1 view .LVU144
+ 490 001c 1268     		ldr	r2, [r2]
+ 491 001e 1368     		ldr	r3, [r2]
+ 492 0020 43F40073 		orr	r3, r3, #512
+ 493 0024 1360     		str	r3, [r2]
+ 494              	.L52:
+ 137:bsp/boards/Src/bsp_i2c.c ****     }
+ 138:bsp/boards/Src/bsp_i2c.c **** }
+ 495              		.loc 1 138 1 is_stmt 0 view .LVU145
+ 496 0026 7047     		bx	lr
+ 497              	.L54:
+ 135:bsp/boards/Src/bsp_i2c.c ****         SET_BIT(hi2c2.Instance->CR1, I2C_CR1_STOP);
+ 498              		.loc 1 135 9 discriminator 2 view .LVU146
+ 499 0028 0A48     		ldr	r0, .L61+12
+ 500 002a 8142     		cmp	r1, r0
+ 501 002c 04D9     		bls	.L56
+ 135:bsp/boards/Src/bsp_i2c.c ****         SET_BIT(hi2c2.Instance->CR1, I2C_CR1_STOP);
+ 502              		.loc 1 135 9 discriminator 3 view .LVU147
+ 503 002e 0A4B     		ldr	r3, .L61+16
+ 504 0030 4FF00061 		mov	r1, #134217728
+ARM GAS  /tmp/cc4TfOfw.s 			page 13
+
+
+ 505 0034 9960     		str	r1, [r3, #8]
+ 506 0036 F1E7     		b	.L55
+ 507              	.L56:
+ 135:bsp/boards/Src/bsp_i2c.c ****         SET_BIT(hi2c2.Instance->CR1, I2C_CR1_STOP);
+ 508              		.loc 1 135 9 discriminator 4 view .LVU148
+ 509 0038 0848     		ldr	r0, .L61+20
+ 510 003a 8142     		cmp	r1, r0
+ 511 003c 4FF00061 		mov	r1, #134217728
+ 512 0040 8CBF     		ite	hi
+ 513 0042 D960     		strhi	r1, [r3, #12]
+ 514 0044 9960     		strls	r1, [r3, #8]
+ 515 0046 E9E7     		b	.L55
+ 516              	.L62:
+ 517              		.align	2
+ 518              	.L61:
+ 519 0048 00600240 		.word	1073897472
+ 520 004c 00000000 		.word	hi2c2
+ 521 0050 58640240 		.word	1073898584
+ 522 0054 B8600240 		.word	1073897656
+ 523 0058 00640240 		.word	1073898496
+ 524 005c 58600240 		.word	1073897560
+ 525              		.cfi_endproc
+ 526              	.LFE238:
+ 528              		.section	.text.I2C2_tx_DMA_init,"ax",%progbits
+ 529              		.align	1
+ 530              		.p2align 2,,3
+ 531              		.global	I2C2_tx_DMA_init
+ 532              		.syntax unified
+ 533              		.thumb
+ 534              		.thumb_func
+ 536              	I2C2_tx_DMA_init:
+ 537              	.LFB239:
+ 139:bsp/boards/Src/bsp_i2c.c **** 
+ 140:bsp/boards/Src/bsp_i2c.c **** 
+ 141:bsp/boards/Src/bsp_i2c.c **** 
+ 142:bsp/boards/Src/bsp_i2c.c **** void I2C2_tx_DMA_init(void)
+ 143:bsp/boards/Src/bsp_i2c.c **** {
+ 538              		.loc 1 143 1 is_stmt 1 view -0
+ 539              		.cfi_startproc
+ 540              		@ args = 0, pretend = 0, frame = 0
+ 541              		@ frame_needed = 0, uses_anonymous_args = 0
+ 542              		@ link register save eliminated.
+ 144:bsp/boards/Src/bsp_i2c.c **** 
+ 145:bsp/boards/Src/bsp_i2c.c ****     //disable DMA
+ 146:bsp/boards/Src/bsp_i2c.c ****     //ʧЧDMA
+ 147:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_DISABLE(hi2c2.hdmatx);
+ 543              		.loc 1 147 5 view .LVU150
+ 544 0000 174B     		ldr	r3, .L76
+ 545 0002 5B6B     		ldr	r3, [r3, #52]
+ 546 0004 1B68     		ldr	r3, [r3]
+ 547              	.L74:
+ 548 0006 1A68     		ldr	r2, [r3]
+ 549 0008 22F00102 		bic	r2, r2, #1
+ 550 000c 1A60     		str	r2, [r3]
+ 148:bsp/boards/Src/bsp_i2c.c ****     
+ 149:bsp/boards/Src/bsp_i2c.c ****     while(hi2c2.hdmatx->Instance->CR & DMA_SxCR_EN)
+ 551              		.loc 1 149 5 view .LVU151
+ARM GAS  /tmp/cc4TfOfw.s 			page 14
+
+
+ 552              		.loc 1 149 10 view .LVU152
+ 553              		.loc 1 149 33 is_stmt 0 view .LVU153
+ 554 000e 1A68     		ldr	r2, [r3]
+ 555              		.loc 1 149 10 view .LVU154
+ 556 0010 D207     		lsls	r2, r2, #31
+ 557 0012 F8D4     		bmi	.L74
+ 150:bsp/boards/Src/bsp_i2c.c ****     {
+ 151:bsp/boards/Src/bsp_i2c.c ****         __HAL_DMA_DISABLE(hi2c2.hdmatx);
+ 152:bsp/boards/Src/bsp_i2c.c ****     }
+ 153:bsp/boards/Src/bsp_i2c.c ****     hi2c2.hdmatx->Instance->PAR = (uint32_t)(&I2C2->DR);
+ 558              		.loc 1 153 5 is_stmt 1 view .LVU155
+ 154:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_CLEAR_FLAG(hi2c2.hdmatx, DMA_HISR_TCIF7);
+ 559              		.loc 1 154 5 is_stmt 0 view .LVU156
+ 560 0014 134A     		ldr	r2, .L76+4
+ 153:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_CLEAR_FLAG(hi2c2.hdmatx, DMA_HISR_TCIF7);
+ 561              		.loc 1 153 33 view .LVU157
+ 562 0016 1449     		ldr	r1, .L76+8
+ 563 0018 9960     		str	r1, [r3, #8]
+ 564              		.loc 1 154 5 is_stmt 1 view .LVU158
+ 565 001a 9342     		cmp	r3, r2
+ 566 001c 0ED8     		bhi	.L75
+ 567              		.loc 1 154 5 is_stmt 0 discriminator 2 view .LVU159
+ 568 001e 134A     		ldr	r2, .L76+12
+ 569 0020 9342     		cmp	r3, r2
+ 570 0022 08D9     		bls	.L68
+ 571              		.loc 1 154 5 discriminator 3 view .LVU160
+ 572 0024 4FF00061 		mov	r1, #134217728
+ 573 0028 C2F85013 		str	r1, [r2, #848]
+ 155:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_ENABLE_IT(hi2c2.hdmatx, DMA_IT_TC);
+ 574              		.loc 1 155 5 is_stmt 1 discriminator 3 view .LVU161
+ 575 002c 1A68     		ldr	r2, [r3]
+ 576 002e 42F01002 		orr	r2, r2, #16
+ 577 0032 1A60     		str	r2, [r3]
+ 156:bsp/boards/Src/bsp_i2c.c **** 
+ 157:bsp/boards/Src/bsp_i2c.c **** 
+ 158:bsp/boards/Src/bsp_i2c.c **** 
+ 159:bsp/boards/Src/bsp_i2c.c **** }
+ 578              		.loc 1 159 1 is_stmt 0 discriminator 3 view .LVU162
+ 579 0034 7047     		bx	lr
+ 580              	.L68:
+ 154:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_ENABLE_IT(hi2c2.hdmatx, DMA_IT_TC);
+ 581              		.loc 1 154 5 discriminator 4 view .LVU163
+ 582 0036 0E4A     		ldr	r2, .L76+16
+ 583 0038 9342     		cmp	r3, r2
+ 584 003a 08D9     		bls	.L69
+ 585              	.L75:
+ 154:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_ENABLE_IT(hi2c2.hdmatx, DMA_IT_TC);
+ 586              		.loc 1 154 5 discriminator 6 view .LVU164
+ 587 003c 4FF00061 		mov	r1, #134217728
+ 588 0040 42F84C1C 		str	r1, [r2, #-76]
+ 155:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_ENABLE_IT(hi2c2.hdmatx, DMA_IT_TC);
+ 589              		.loc 1 155 5 is_stmt 1 discriminator 6 view .LVU165
+ 590 0044 1A68     		ldr	r2, [r3]
+ 591 0046 42F01002 		orr	r2, r2, #16
+ 592 004a 1A60     		str	r2, [r3]
+ 593              		.loc 1 159 1 is_stmt 0 discriminator 6 view .LVU166
+ 594 004c 7047     		bx	lr
+ARM GAS  /tmp/cc4TfOfw.s 			page 15
+
+
+ 595              	.L69:
+ 154:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_ENABLE_IT(hi2c2.hdmatx, DMA_IT_TC);
+ 596              		.loc 1 154 5 discriminator 7 view .LVU167
+ 597 004e 094A     		ldr	r2, .L76+20
+ 598 0050 4FF00061 		mov	r1, #134217728
+ 599 0054 9160     		str	r1, [r2, #8]
+ 155:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_ENABLE_IT(hi2c2.hdmatx, DMA_IT_TC);
+ 600              		.loc 1 155 5 is_stmt 1 discriminator 7 view .LVU168
+ 601 0056 1A68     		ldr	r2, [r3]
+ 602 0058 42F01002 		orr	r2, r2, #16
+ 603 005c 1A60     		str	r2, [r3]
+ 604              		.loc 1 159 1 is_stmt 0 discriminator 7 view .LVU169
+ 605 005e 7047     		bx	lr
+ 606              	.L77:
+ 607              		.align	2
+ 608              	.L76:
+ 609 0060 00000000 		.word	hi2c2
+ 610 0064 58640240 		.word	1073898584
+ 611 0068 10580040 		.word	1073764368
+ 612 006c B8600240 		.word	1073897656
+ 613 0070 58600240 		.word	1073897560
+ 614 0074 00600240 		.word	1073897472
+ 615              		.cfi_endproc
+ 616              	.LFE239:
+ 618              		.section	.text.I2C2_tx_DMA_enable,"ax",%progbits
+ 619              		.align	1
+ 620              		.p2align 2,,3
+ 621              		.global	I2C2_tx_DMA_enable
+ 622              		.syntax unified
+ 623              		.thumb
+ 624              		.thumb_func
+ 626              	I2C2_tx_DMA_enable:
+ 627              	.LVL35:
+ 628              	.LFB240:
+ 160:bsp/boards/Src/bsp_i2c.c **** 
+ 161:bsp/boards/Src/bsp_i2c.c **** void I2C2_tx_DMA_enable(uint32_t tx_buf, uint16_t ndtr)
+ 162:bsp/boards/Src/bsp_i2c.c **** {
+ 629              		.loc 1 162 1 is_stmt 1 view -0
+ 630              		.cfi_startproc
+ 631              		@ args = 0, pretend = 0, frame = 0
+ 632              		@ frame_needed = 0, uses_anonymous_args = 0
+ 633              		@ link register save eliminated.
+ 163:bsp/boards/Src/bsp_i2c.c ****     //disable DMA
+ 164:bsp/boards/Src/bsp_i2c.c ****     //ʧЧDMA
+ 165:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_DISABLE(hi2c2.hdmatx);
+ 634              		.loc 1 165 5 view .LVU171
+ 635 0000 154B     		ldr	r3, .L92
+ 162:bsp/boards/Src/bsp_i2c.c ****     //disable DMA
+ 636              		.loc 1 162 1 is_stmt 0 view .LVU172
+ 637 0002 10B4     		push	{r4}
+ 638              		.cfi_def_cfa_offset 4
+ 639              		.cfi_offset 4, -4
+ 640              		.loc 1 165 5 view .LVU173
+ 641 0004 5B6B     		ldr	r3, [r3, #52]
+ 642 0006 1B68     		ldr	r3, [r3]
+ 643              	.L90:
+ 644 0008 1A68     		ldr	r2, [r3]
+ARM GAS  /tmp/cc4TfOfw.s 			page 16
+
+
+ 645 000a 22F00102 		bic	r2, r2, #1
+ 646 000e 1A60     		str	r2, [r3]
+ 166:bsp/boards/Src/bsp_i2c.c **** 
+ 167:bsp/boards/Src/bsp_i2c.c ****     while(hi2c2.hdmatx->Instance->CR & DMA_SxCR_EN)
+ 647              		.loc 1 167 5 is_stmt 1 view .LVU174
+ 648              		.loc 1 167 10 view .LVU175
+ 649              		.loc 1 167 33 is_stmt 0 view .LVU176
+ 650 0010 1A68     		ldr	r2, [r3]
+ 651              		.loc 1 167 10 view .LVU177
+ 652 0012 D207     		lsls	r2, r2, #31
+ 653 0014 F8D4     		bmi	.L90
+ 168:bsp/boards/Src/bsp_i2c.c ****     {
+ 169:bsp/boards/Src/bsp_i2c.c ****         __HAL_DMA_DISABLE(hi2c2.hdmatx);
+ 170:bsp/boards/Src/bsp_i2c.c ****     }
+ 171:bsp/boards/Src/bsp_i2c.c **** 
+ 172:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_CLEAR_FLAG(hi2c2.hdmatx, DMA_HISR_TCIF7);
+ 654              		.loc 1 172 5 is_stmt 1 view .LVU178
+ 655 0016 114A     		ldr	r2, .L92+4
+ 656 0018 9342     		cmp	r3, r2
+ 657 001a 0AD8     		bhi	.L91
+ 658              		.loc 1 172 5 is_stmt 0 discriminator 2 view .LVU179
+ 659 001c 104A     		ldr	r2, .L92+8
+ 660 001e 9342     		cmp	r3, r2
+ 661 0020 04D9     		bls	.L83
+ 662              		.loc 1 172 5 discriminator 3 view .LVU180
+ 663 0022 4FF00064 		mov	r4, #134217728
+ 664 0026 C2F85043 		str	r4, [r2, #848]
+ 665 002a 06E0     		b	.L82
+ 666              	.L83:
+ 667              		.loc 1 172 5 discriminator 4 view .LVU181
+ 668 002c 0D4A     		ldr	r2, .L92+12
+ 669 002e 9342     		cmp	r3, r2
+ 670 0030 0CD9     		bls	.L84
+ 671              	.L91:
+ 672              		.loc 1 172 5 discriminator 6 view .LVU182
+ 673 0032 4FF00064 		mov	r4, #134217728
+ 674 0036 42F84C4C 		str	r4, [r2, #-76]
+ 675              	.L82:
+ 173:bsp/boards/Src/bsp_i2c.c **** 
+ 174:bsp/boards/Src/bsp_i2c.c **** 
+ 175:bsp/boards/Src/bsp_i2c.c ****     hi2c2.hdmatx->Instance->M0AR = tx_buf;
+ 676              		.loc 1 175 5 is_stmt 1 view .LVU183
+ 677              		.loc 1 175 34 is_stmt 0 view .LVU184
+ 678 003a D860     		str	r0, [r3, #12]
+ 176:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_SET_COUNTER(hi2c2.hdmatx, ndtr);
+ 679              		.loc 1 176 5 is_stmt 1 view .LVU185
+ 680 003c 5960     		str	r1, [r3, #4]
+ 177:bsp/boards/Src/bsp_i2c.c **** 
+ 178:bsp/boards/Src/bsp_i2c.c ****     __HAL_DMA_ENABLE(hi2c2.hdmatx);
+ 681              		.loc 1 178 5 view .LVU186
+ 682 003e 1A68     		ldr	r2, [r3]
+ 179:bsp/boards/Src/bsp_i2c.c **** 
+ 180:bsp/boards/Src/bsp_i2c.c **** }
+ 683              		.loc 1 180 1 is_stmt 0 view .LVU187
+ 684 0040 5DF8044B 		ldr	r4, [sp], #4
+ 685              		.cfi_remember_state
+ 686              		.cfi_restore 4
+ARM GAS  /tmp/cc4TfOfw.s 			page 17
+
+
+ 687              		.cfi_def_cfa_offset 0
+ 178:bsp/boards/Src/bsp_i2c.c **** 
+ 688              		.loc 1 178 5 view .LVU188
+ 689 0044 42F00102 		orr	r2, r2, #1
+ 690 0048 1A60     		str	r2, [r3]
+ 691              		.loc 1 180 1 view .LVU189
+ 692 004a 7047     		bx	lr
+ 693              	.L84:
+ 694              		.cfi_restore_state
+ 172:bsp/boards/Src/bsp_i2c.c **** 
+ 695              		.loc 1 172 5 discriminator 7 view .LVU190
+ 696 004c 064A     		ldr	r2, .L92+16
+ 697 004e 4FF00064 		mov	r4, #134217728
+ 698 0052 9460     		str	r4, [r2, #8]
+ 699 0054 F1E7     		b	.L82
+ 700              	.L93:
+ 701 0056 00BF     		.align	2
+ 702              	.L92:
+ 703 0058 00000000 		.word	hi2c2
+ 704 005c 58640240 		.word	1073898584
+ 705 0060 B8600240 		.word	1073897656
+ 706 0064 58600240 		.word	1073897560
+ 707 0068 00600240 		.word	1073897472
+ 708              		.cfi_endproc
+ 709              	.LFE240:
+ 711              		.section	.text.I2C_TX_DMA_START,"ax",%progbits
+ 712              		.align	1
+ 713              		.p2align 2,,3
+ 714              		.global	I2C_TX_DMA_START
+ 715              		.syntax unified
+ 716              		.thumb
+ 717              		.thumb_func
+ 719              	I2C_TX_DMA_START:
+ 720              	.LVL36:
+ 721              	.LFB241:
+ 181:bsp/boards/Src/bsp_i2c.c **** 
+ 182:bsp/boards/Src/bsp_i2c.c **** HAL_StatusTypeDef I2C_TX_DMA_START(I2C_HandleTypeDef *hi2c, uint16_t DevAddress)
+ 183:bsp/boards/Src/bsp_i2c.c **** {
+ 722              		.loc 1 183 1 is_stmt 1 view -0
+ 723              		.cfi_startproc
+ 724              		@ args = 0, pretend = 0, frame = 8
+ 725              		@ frame_needed = 0, uses_anonymous_args = 0
+ 726              		@ link register save eliminated.
+ 184:bsp/boards/Src/bsp_i2c.c ****     uint16_t timeout = 0;
+ 727              		.loc 1 184 5 view .LVU192
+ 185:bsp/boards/Src/bsp_i2c.c **** 
+ 186:bsp/boards/Src/bsp_i2c.c ****     if ((hi2c->Instance->CR1 & I2C_CR1_PE) != I2C_CR1_PE)
+ 728              		.loc 1 186 5 view .LVU193
+ 729              		.loc 1 186 14 is_stmt 0 view .LVU194
+ 730 0000 0268     		ldr	r2, [r0]
+ 731              		.loc 1 186 24 view .LVU195
+ 732 0002 1368     		ldr	r3, [r2]
+ 733              		.loc 1 186 8 view .LVU196
+ 734 0004 DB07     		lsls	r3, r3, #31
+ 735 0006 03D4     		bmi	.L95
+ 187:bsp/boards/Src/bsp_i2c.c ****     {
+ 188:bsp/boards/Src/bsp_i2c.c ****         hi2c->Instance->CR1 |= I2C_CR1_PE;
+ARM GAS  /tmp/cc4TfOfw.s 			page 18
+
+
+ 736              		.loc 1 188 9 is_stmt 1 view .LVU197
+ 737              		.loc 1 188 29 is_stmt 0 view .LVU198
+ 738 0008 1368     		ldr	r3, [r2]
+ 739 000a 43F00103 		orr	r3, r3, #1
+ 740 000e 1360     		str	r3, [r2]
+ 741              	.L95:
+ 189:bsp/boards/Src/bsp_i2c.c ****     }
+ 190:bsp/boards/Src/bsp_i2c.c **** 
+ 191:bsp/boards/Src/bsp_i2c.c **** 
+ 192:bsp/boards/Src/bsp_i2c.c ****     timeout = 0;
+ 742              		.loc 1 192 5 is_stmt 1 view .LVU199
+ 193:bsp/boards/Src/bsp_i2c.c ****     while(hi2c->Instance->SR2 & 0x02)
+ 743              		.loc 1 193 5 view .LVU200
+ 744              		.loc 1 193 10 is_stmt 0 view .LVU201
+ 745 0010 6523     		movs	r3, #101
+ 746 0012 01E0     		b	.L96
+ 747              	.LVL37:
+ 748              	.L98:
+ 194:bsp/boards/Src/bsp_i2c.c ****     {
+ 195:bsp/boards/Src/bsp_i2c.c ****         timeout ++;
+ 196:bsp/boards/Src/bsp_i2c.c ****         if(timeout > 100)
+ 749              		.loc 1 196 11 view .LVU202
+ 750 0014 002B     		cmp	r3, #0
+ 751 0016 3ED0     		beq	.L114
+ 752              	.L96:
+ 195:bsp/boards/Src/bsp_i2c.c ****         if(timeout > 100)
+ 753              		.loc 1 195 9 is_stmt 1 view .LVU203
+ 754              	.LVL38:
+ 755              		.loc 1 196 9 view .LVU204
+ 193:bsp/boards/Src/bsp_i2c.c ****     while(hi2c->Instance->SR2 & 0x02)
+ 756              		.loc 1 193 10 view .LVU205
+ 193:bsp/boards/Src/bsp_i2c.c ****     while(hi2c->Instance->SR2 & 0x02)
+ 757              		.loc 1 193 25 is_stmt 0 view .LVU206
+ 758 0018 9069     		ldr	r0, [r2, #24]
+ 759              		.loc 1 196 11 view .LVU207
+ 760 001a 013B     		subs	r3, r3, #1
+ 761              	.LVL39:
+ 193:bsp/boards/Src/bsp_i2c.c ****     while(hi2c->Instance->SR2 & 0x02)
+ 762              		.loc 1 193 10 view .LVU208
+ 763 001c 10F0020F 		tst	r0, #2
+ 764              		.loc 1 196 11 view .LVU209
+ 765 0020 9BB2     		uxth	r3, r3
+ 193:bsp/boards/Src/bsp_i2c.c ****     while(hi2c->Instance->SR2 & 0x02)
+ 766              		.loc 1 193 10 view .LVU210
+ 767 0022 F7D1     		bne	.L98
+ 197:bsp/boards/Src/bsp_i2c.c ****         {
+ 198:bsp/boards/Src/bsp_i2c.c ****             SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
+ 199:bsp/boards/Src/bsp_i2c.c ****             return HAL_BUSY;
+ 200:bsp/boards/Src/bsp_i2c.c ****         }
+ 201:bsp/boards/Src/bsp_i2c.c ****     }
+ 202:bsp/boards/Src/bsp_i2c.c **** 
+ 203:bsp/boards/Src/bsp_i2c.c **** 
+ 204:bsp/boards/Src/bsp_i2c.c ****     CLEAR_BIT(hi2c->Instance->CR1, I2C_CR1_POS);
+ 768              		.loc 1 204 5 is_stmt 1 view .LVU211
+ 769 0024 1068     		ldr	r0, [r2]
+ 770 0026 20F40060 		bic	r0, r0, #2048
+ 771 002a 1060     		str	r0, [r2]
+ARM GAS  /tmp/cc4TfOfw.s 			page 19
+
+
+ 205:bsp/boards/Src/bsp_i2c.c **** 
+ 206:bsp/boards/Src/bsp_i2c.c ****     SET_BIT(hi2c->Instance->CR1, I2C_CR1_START);
+ 772              		.loc 1 206 5 view .LVU212
+ 773 002c 1068     		ldr	r0, [r2]
+ 774 002e 40F48070 		orr	r0, r0, #256
+ 207:bsp/boards/Src/bsp_i2c.c **** 
+ 208:bsp/boards/Src/bsp_i2c.c ****     timeout = 0;
+ 209:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x01))
+ 775              		.loc 1 209 10 is_stmt 0 view .LVU213
+ 776 0032 6523     		movs	r3, #101
+ 206:bsp/boards/Src/bsp_i2c.c **** 
+ 777              		.loc 1 206 5 view .LVU214
+ 778 0034 1060     		str	r0, [r2]
+ 208:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x01))
+ 779              		.loc 1 208 5 is_stmt 1 view .LVU215
+ 780              	.LVL40:
+ 781              		.loc 1 209 5 view .LVU216
+ 782              		.loc 1 209 10 is_stmt 0 view .LVU217
+ 783 0036 00E0     		b	.L99
+ 784              	.LVL41:
+ 785              	.L100:
+ 210:bsp/boards/Src/bsp_i2c.c ****     {
+ 211:bsp/boards/Src/bsp_i2c.c ****         timeout ++;
+ 212:bsp/boards/Src/bsp_i2c.c ****         if(timeout > 100)
+ 786              		.loc 1 212 11 view .LVU218
+ 787 0038 3BB3     		cbz	r3, .L113
+ 788              	.L99:
+ 211:bsp/boards/Src/bsp_i2c.c ****         if(timeout > 100)
+ 789              		.loc 1 211 9 is_stmt 1 view .LVU219
+ 790              	.LVL42:
+ 791              		.loc 1 212 9 view .LVU220
+ 209:bsp/boards/Src/bsp_i2c.c ****     {
+ 792              		.loc 1 209 10 view .LVU221
+ 209:bsp/boards/Src/bsp_i2c.c ****     {
+ 793              		.loc 1 209 27 is_stmt 0 view .LVU222
+ 794 003a 5069     		ldr	r0, [r2, #20]
+ 795              		.loc 1 212 11 view .LVU223
+ 796 003c 013B     		subs	r3, r3, #1
+ 797              	.LVL43:
+ 209:bsp/boards/Src/bsp_i2c.c ****     {
+ 798              		.loc 1 209 10 view .LVU224
+ 799 003e 10F0010F 		tst	r0, #1
+ 800              		.loc 1 212 11 view .LVU225
+ 801 0042 9BB2     		uxth	r3, r3
+ 209:bsp/boards/Src/bsp_i2c.c ****     {
+ 802              		.loc 1 209 10 view .LVU226
+ 803 0044 F8D0     		beq	.L100
+ 213:bsp/boards/Src/bsp_i2c.c ****         {
+ 214:bsp/boards/Src/bsp_i2c.c ****             SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
+ 215:bsp/boards/Src/bsp_i2c.c ****             return HAL_ERROR;
+ 216:bsp/boards/Src/bsp_i2c.c ****         }
+ 217:bsp/boards/Src/bsp_i2c.c ****     }
+ 218:bsp/boards/Src/bsp_i2c.c **** 
+ 219:bsp/boards/Src/bsp_i2c.c **** 
+ 220:bsp/boards/Src/bsp_i2c.c ****     hi2c->Instance->DR = I2C_7BIT_ADD_WRITE(DevAddress);
+ 804              		.loc 1 220 5 is_stmt 1 view .LVU227
+ 805              		.loc 1 220 26 is_stmt 0 view .LVU228
+ARM GAS  /tmp/cc4TfOfw.s 			page 20
+
+
+ 806 0046 01F0FE01 		and	r1, r1, #254
+ 807              	.LVL44:
+ 808              		.loc 1 220 24 view .LVU229
+ 809 004a 1161     		str	r1, [r2, #16]
+ 221:bsp/boards/Src/bsp_i2c.c **** 
+ 222:bsp/boards/Src/bsp_i2c.c **** 
+ 223:bsp/boards/Src/bsp_i2c.c ****     timeout = 0;
+ 810              		.loc 1 223 5 is_stmt 1 view .LVU230
+ 811              	.LVL45:
+ 224:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x02))
+ 812              		.loc 1 224 5 view .LVU231
+ 813              		.loc 1 224 10 is_stmt 0 view .LVU232
+ 814 004c 40F2F513 		movw	r3, #501
+ 815 0050 00E0     		b	.L101
+ 816              	.LVL46:
+ 817              	.L102:
+ 225:bsp/boards/Src/bsp_i2c.c ****     {
+ 226:bsp/boards/Src/bsp_i2c.c ****         timeout ++;
+ 227:bsp/boards/Src/bsp_i2c.c ****         if(timeout > 500)
+ 818              		.loc 1 227 11 view .LVU233
+ 819 0052 D3B1     		cbz	r3, .L113
+ 820              	.L101:
+ 226:bsp/boards/Src/bsp_i2c.c ****         if(timeout > 500)
+ 821              		.loc 1 226 9 is_stmt 1 view .LVU234
+ 822              	.LVL47:
+ 823              		.loc 1 227 9 view .LVU235
+ 224:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x02))
+ 824              		.loc 1 224 10 view .LVU236
+ 224:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x02))
+ 825              		.loc 1 224 27 is_stmt 0 view .LVU237
+ 826 0054 5169     		ldr	r1, [r2, #20]
+ 827              		.loc 1 227 11 view .LVU238
+ 828 0056 013B     		subs	r3, r3, #1
+ 829              	.LVL48:
+ 224:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x02))
+ 830              		.loc 1 224 10 view .LVU239
+ 831 0058 11F0020F 		tst	r1, #2
+ 832              		.loc 1 227 11 view .LVU240
+ 833 005c 9BB2     		uxth	r3, r3
+ 224:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x02))
+ 834              		.loc 1 224 10 view .LVU241
+ 835 005e F8D0     		beq	.L102
+ 228:bsp/boards/Src/bsp_i2c.c ****         {
+ 229:bsp/boards/Src/bsp_i2c.c ****             SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
+ 230:bsp/boards/Src/bsp_i2c.c ****             return HAL_ERROR;
+ 231:bsp/boards/Src/bsp_i2c.c ****         }
+ 232:bsp/boards/Src/bsp_i2c.c ****     }
+ 233:bsp/boards/Src/bsp_i2c.c **** 
+ 234:bsp/boards/Src/bsp_i2c.c ****     do{
+ 836              		.loc 1 234 5 is_stmt 1 view .LVU242
+ 837              	.LBB7:
+ 235:bsp/boards/Src/bsp_i2c.c ****         __IO uint32_t tmpreg = 0x00U;
+ 838              		.loc 1 235 9 view .LVU243
+ 839              	.LBE7:
+ 183:bsp/boards/Src/bsp_i2c.c ****     uint16_t timeout = 0;
+ 840              		.loc 1 183 1 is_stmt 0 view .LVU244
+ 841 0060 82B0     		sub	sp, sp, #8
+ARM GAS  /tmp/cc4TfOfw.s 			page 21
+
+
+ 842              		.cfi_def_cfa_offset 8
+ 843              	.LBB8:
+ 844              		.loc 1 235 23 view .LVU245
+ 845 0062 0023     		movs	r3, #0
+ 846 0064 0193     		str	r3, [sp, #4]
+ 236:bsp/boards/Src/bsp_i2c.c ****         tmpreg = hi2c->Instance->SR1;
+ 847              		.loc 1 236 9 is_stmt 1 view .LVU246
+ 848              		.loc 1 236 32 is_stmt 0 view .LVU247
+ 849 0066 5369     		ldr	r3, [r2, #20]
+ 850              		.loc 1 236 16 view .LVU248
+ 851 0068 0193     		str	r3, [sp, #4]
+ 237:bsp/boards/Src/bsp_i2c.c ****         tmpreg = hi2c->Instance->SR2;
+ 852              		.loc 1 237 9 is_stmt 1 view .LVU249
+ 853              		.loc 1 237 32 is_stmt 0 view .LVU250
+ 854 006a 9369     		ldr	r3, [r2, #24]
+ 855              		.loc 1 237 16 view .LVU251
+ 856 006c 0193     		str	r3, [sp, #4]
+ 238:bsp/boards/Src/bsp_i2c.c ****         UNUSED(tmpreg);
+ 857              		.loc 1 238 9 is_stmt 1 view .LVU252
+ 858 006e 019B     		ldr	r3, [sp, #4]
+ 859              	.LBE8:
+ 239:bsp/boards/Src/bsp_i2c.c ****     } while(0);
+ 860              		.loc 1 239 12 view .LVU253
+ 240:bsp/boards/Src/bsp_i2c.c **** 
+ 241:bsp/boards/Src/bsp_i2c.c **** 
+ 242:bsp/boards/Src/bsp_i2c.c **** 
+ 243:bsp/boards/Src/bsp_i2c.c ****     timeout = 0;
+ 861              		.loc 1 243 5 view .LVU254
+ 862              	.LVL49:
+ 244:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x80))
+ 863              		.loc 1 244 5 view .LVU255
+ 864              		.loc 1 244 10 is_stmt 0 view .LVU256
+ 865 0070 40F2F513 		movw	r3, #501
+ 866 0074 00E0     		b	.L103
+ 867              	.LVL50:
+ 868              	.L104:
+ 245:bsp/boards/Src/bsp_i2c.c ****     {
+ 246:bsp/boards/Src/bsp_i2c.c ****         timeout ++;
+ 247:bsp/boards/Src/bsp_i2c.c ****         if(timeout > 500)
+ 869              		.loc 1 247 11 view .LVU257
+ 870 0076 A3B1     		cbz	r3, .L115
+ 871              	.L103:
+ 246:bsp/boards/Src/bsp_i2c.c ****         if(timeout > 500)
+ 872              		.loc 1 246 9 is_stmt 1 view .LVU258
+ 873              	.LVL51:
+ 874              		.loc 1 247 9 view .LVU259
+ 244:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x80))
+ 875              		.loc 1 244 10 view .LVU260
+ 244:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x80))
+ 876              		.loc 1 244 27 is_stmt 0 view .LVU261
+ 877 0078 5169     		ldr	r1, [r2, #20]
+ 878              		.loc 1 247 11 view .LVU262
+ 879 007a 013B     		subs	r3, r3, #1
+ 880              	.LVL52:
+ 244:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x80))
+ 881              		.loc 1 244 10 view .LVU263
+ 882 007c 11F0800F 		tst	r1, #128
+ARM GAS  /tmp/cc4TfOfw.s 			page 22
+
+
+ 883              		.loc 1 247 11 view .LVU264
+ 884 0080 9BB2     		uxth	r3, r3
+ 244:bsp/boards/Src/bsp_i2c.c ****     while(!(hi2c->Instance->SR1 & 0x80))
+ 885              		.loc 1 244 10 view .LVU265
+ 886 0082 F8D0     		beq	.L104
+ 248:bsp/boards/Src/bsp_i2c.c ****         {
+ 249:bsp/boards/Src/bsp_i2c.c ****             SET_BIT(hi2c->Instance->CR1, I2C_CR1_STOP);
+ 250:bsp/boards/Src/bsp_i2c.c ****             return HAL_ERROR;
+ 251:bsp/boards/Src/bsp_i2c.c ****         }
+ 252:bsp/boards/Src/bsp_i2c.c ****     }
+ 253:bsp/boards/Src/bsp_i2c.c **** 
+ 254:bsp/boards/Src/bsp_i2c.c ****     return HAL_OK;
+ 887              		.loc 1 254 12 view .LVU266
+ 888 0084 0020     		movs	r0, #0
+ 889              	.L97:
+ 255:bsp/boards/Src/bsp_i2c.c **** }
+ 890              		.loc 1 255 1 view .LVU267
+ 891 0086 02B0     		add	sp, sp, #8
+ 892              		.cfi_def_cfa_offset 0
+ 893              		@ sp needed
+ 894 0088 7047     		bx	lr
+ 895              	.L113:
+ 229:bsp/boards/Src/bsp_i2c.c ****             return HAL_ERROR;
+ 896              		.loc 1 229 13 is_stmt 1 view .LVU268
+ 897 008a 1368     		ldr	r3, [r2]
+ 898 008c 43F40073 		orr	r3, r3, #512
+ 230:bsp/boards/Src/bsp_i2c.c ****         }
+ 899              		.loc 1 230 20 is_stmt 0 view .LVU269
+ 900 0090 0120     		movs	r0, #1
+ 229:bsp/boards/Src/bsp_i2c.c ****             return HAL_ERROR;
+ 901              		.loc 1 229 13 view .LVU270
+ 902 0092 1360     		str	r3, [r2]
+ 230:bsp/boards/Src/bsp_i2c.c ****         }
+ 903              		.loc 1 230 13 is_stmt 1 view .LVU271
+ 904              		.loc 1 255 1 is_stmt 0 view .LVU272
+ 905 0094 7047     		bx	lr
+ 906              	.LVL53:
+ 907              	.L114:
+ 198:bsp/boards/Src/bsp_i2c.c ****             return HAL_BUSY;
+ 908              		.loc 1 198 13 is_stmt 1 view .LVU273
+ 909 0096 1368     		ldr	r3, [r2]
+ 910 0098 43F40073 		orr	r3, r3, #512
+ 199:bsp/boards/Src/bsp_i2c.c ****         }
+ 911              		.loc 1 199 20 is_stmt 0 view .LVU274
+ 912 009c 0220     		movs	r0, #2
+ 198:bsp/boards/Src/bsp_i2c.c ****             return HAL_BUSY;
+ 913              		.loc 1 198 13 view .LVU275
+ 914 009e 1360     		str	r3, [r2]
+ 199:bsp/boards/Src/bsp_i2c.c ****         }
+ 915              		.loc 1 199 13 is_stmt 1 view .LVU276
+ 199:bsp/boards/Src/bsp_i2c.c ****         }
+ 916              		.loc 1 199 20 is_stmt 0 view .LVU277
+ 917 00a0 7047     		bx	lr
+ 918              	.LVL54:
+ 919              	.L115:
+ 920              		.cfi_def_cfa_offset 8
+ 249:bsp/boards/Src/bsp_i2c.c ****             return HAL_ERROR;
+ARM GAS  /tmp/cc4TfOfw.s 			page 23
+
+
+ 921              		.loc 1 249 13 is_stmt 1 view .LVU278
+ 922 00a2 1368     		ldr	r3, [r2]
+ 923 00a4 43F40073 		orr	r3, r3, #512
+ 250:bsp/boards/Src/bsp_i2c.c ****         }
+ 924              		.loc 1 250 20 is_stmt 0 view .LVU279
+ 925 00a8 0120     		movs	r0, #1
+ 249:bsp/boards/Src/bsp_i2c.c ****             return HAL_ERROR;
+ 926              		.loc 1 249 13 view .LVU280
+ 927 00aa 1360     		str	r3, [r2]
+ 250:bsp/boards/Src/bsp_i2c.c ****         }
+ 928              		.loc 1 250 13 is_stmt 1 view .LVU281
+ 250:bsp/boards/Src/bsp_i2c.c ****         }
+ 929              		.loc 1 250 20 is_stmt 0 view .LVU282
+ 930 00ac EBE7     		b	.L97
+ 931              		.cfi_endproc
+ 932              	.LFE241:
+ 934 00ae 00BF     		.section	.text.I2C2_DMA_transmit,"ax",%progbits
+ 935              		.align	1
+ 936              		.p2align 2,,3
+ 937              		.global	I2C2_DMA_transmit
+ 938              		.syntax unified
+ 939              		.thumb
+ 940              		.thumb_func
+ 942              	I2C2_DMA_transmit:
+ 943              	.LVL55:
+ 944              	.LFB242:
+ 256:bsp/boards/Src/bsp_i2c.c **** void I2C2_DMA_transmit(uint16_t DevAddress, uint8_t *pData, uint16_t Size)
+ 257:bsp/boards/Src/bsp_i2c.c **** {
+ 945              		.loc 1 257 1 is_stmt 1 view -0
+ 946              		.cfi_startproc
+ 947              		@ args = 0, pretend = 0, frame = 0
+ 948              		@ frame_needed = 0, uses_anonymous_args = 0
+ 258:bsp/boards/Src/bsp_i2c.c ****     if( I2C_TX_DMA_START(&hi2c2, DevAddress) == HAL_OK)
+ 949              		.loc 1 258 5 view .LVU284
+ 257:bsp/boards/Src/bsp_i2c.c ****     if( I2C_TX_DMA_START(&hi2c2, DevAddress) == HAL_OK)
+ 950              		.loc 1 257 1 is_stmt 0 view .LVU285
+ 951 0000 38B5     		push	{r3, r4, r5, lr}
+ 952              		.cfi_def_cfa_offset 16
+ 953              		.cfi_offset 3, -16
+ 954              		.cfi_offset 4, -12
+ 955              		.cfi_offset 5, -8
+ 956              		.cfi_offset 14, -4
+ 257:bsp/boards/Src/bsp_i2c.c ****     if( I2C_TX_DMA_START(&hi2c2, DevAddress) == HAL_OK)
+ 957              		.loc 1 257 1 view .LVU286
+ 958 0002 0446     		mov	r4, r0
+ 959 0004 0B46     		mov	r3, r1
+ 960              		.loc 1 258 9 view .LVU287
+ 961 0006 0748     		ldr	r0, .L120
+ 962              	.LVL56:
+ 963              		.loc 1 258 9 view .LVU288
+ 964 0008 2146     		mov	r1, r4
+ 965              	.LVL57:
+ 257:bsp/boards/Src/bsp_i2c.c ****     if( I2C_TX_DMA_START(&hi2c2, DevAddress) == HAL_OK)
+ 966              		.loc 1 257 1 view .LVU289
+ 967 000a 1546     		mov	r5, r2
+ 968 000c 1C46     		mov	r4, r3
+ 969              		.loc 1 258 9 view .LVU290
+ARM GAS  /tmp/cc4TfOfw.s 			page 24
+
+
+ 970 000e FFF7FEFF 		bl	I2C_TX_DMA_START
+ 971              	.LVL58:
+ 972              		.loc 1 258 7 view .LVU291
+ 973 0012 00B1     		cbz	r0, .L119
+ 259:bsp/boards/Src/bsp_i2c.c ****     {
+ 260:bsp/boards/Src/bsp_i2c.c ****         I2C2_tx_DMA_enable((uint32_t)pData, Size);
+ 261:bsp/boards/Src/bsp_i2c.c ****     }
+ 262:bsp/boards/Src/bsp_i2c.c **** }
+ 974              		.loc 1 262 1 view .LVU292
+ 975 0014 38BD     		pop	{r3, r4, r5, pc}
+ 976              	.LVL59:
+ 977              	.L119:
+ 260:bsp/boards/Src/bsp_i2c.c ****     }
+ 978              		.loc 1 260 9 is_stmt 1 view .LVU293
+ 979 0016 2946     		mov	r1, r5
+ 980 0018 2046     		mov	r0, r4
+ 981              		.loc 1 262 1 is_stmt 0 view .LVU294
+ 982 001a BDE83840 		pop	{r3, r4, r5, lr}
+ 983              		.cfi_restore 14
+ 984              		.cfi_restore 5
+ 985              		.cfi_restore 4
+ 986              		.cfi_restore 3
+ 987              		.cfi_def_cfa_offset 0
+ 988              	.LVL60:
+ 260:bsp/boards/Src/bsp_i2c.c ****     }
+ 989              		.loc 1 260 9 view .LVU295
+ 990 001e FFF7FEBF 		b	I2C2_tx_DMA_enable
+ 991              	.LVL61:
+ 992              	.L121:
+ 993 0022 00BF     		.align	2
+ 994              	.L120:
+ 995 0024 00000000 		.word	hi2c2
+ 996              		.cfi_endproc
+ 997              	.LFE242:
+ 999              		.text
+ 1000              	.Letext0:
+ 1001              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 1002              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 1003              		.file 4 "application/include/struct_typedef.h"
+ 1004              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 1005              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 1006              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 1007              		.file 8 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_i2c.h"
+ 1008              		.file 9 "Core/Inc/main.h"
+ARM GAS  /tmp/cc4TfOfw.s 			page 25
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_i2c.c
+     /tmp/cc4TfOfw.s:20     .text.bsp_I2C_master_transmit:0000000000000000 $t
+     /tmp/cc4TfOfw.s:27     .text.bsp_I2C_master_transmit:0000000000000000 bsp_I2C_master_transmit
+     /tmp/cc4TfOfw.s:95     .text.bsp_I2C_master_transmit:0000000000000030 $d
+     /tmp/cc4TfOfw.s:103    .text.bsp_I2C_reset:0000000000000000 $t
+     /tmp/cc4TfOfw.s:110    .text.bsp_I2C_reset:0000000000000000 bsp_I2C_reset
+     /tmp/cc4TfOfw.s:181    .text.bsp_I2C_reset:000000000000003c $d
+     /tmp/cc4TfOfw.s:188    .text.bsp_I2C_check_ack:0000000000000000 $t
+     /tmp/cc4TfOfw.s:195    .text.bsp_I2C_check_ack:0000000000000000 bsp_I2C_check_ack
+     /tmp/cc4TfOfw.s:449    .text.bsp_I2C_check_ack:00000000000000d4 $d
+     /tmp/cc4TfOfw.s:457    .text.DMA1_Stream7_IRQHandler:0000000000000000 $t
+     /tmp/cc4TfOfw.s:464    .text.DMA1_Stream7_IRQHandler:0000000000000000 DMA1_Stream7_IRQHandler
+     /tmp/cc4TfOfw.s:519    .text.DMA1_Stream7_IRQHandler:0000000000000048 $d
+     /tmp/cc4TfOfw.s:529    .text.I2C2_tx_DMA_init:0000000000000000 $t
+     /tmp/cc4TfOfw.s:536    .text.I2C2_tx_DMA_init:0000000000000000 I2C2_tx_DMA_init
+     /tmp/cc4TfOfw.s:609    .text.I2C2_tx_DMA_init:0000000000000060 $d
+     /tmp/cc4TfOfw.s:619    .text.I2C2_tx_DMA_enable:0000000000000000 $t
+     /tmp/cc4TfOfw.s:626    .text.I2C2_tx_DMA_enable:0000000000000000 I2C2_tx_DMA_enable
+     /tmp/cc4TfOfw.s:703    .text.I2C2_tx_DMA_enable:0000000000000058 $d
+     /tmp/cc4TfOfw.s:712    .text.I2C_TX_DMA_START:0000000000000000 $t
+     /tmp/cc4TfOfw.s:719    .text.I2C_TX_DMA_START:0000000000000000 I2C_TX_DMA_START
+     /tmp/cc4TfOfw.s:935    .text.I2C2_DMA_transmit:0000000000000000 $t
+     /tmp/cc4TfOfw.s:942    .text.I2C2_DMA_transmit:0000000000000000 I2C2_DMA_transmit
+     /tmp/cc4TfOfw.s:995    .text.I2C2_DMA_transmit:0000000000000024 $d
+
+UNDEFINED SYMBOLS
+HAL_I2C_Master_Transmit
+hi2c1
+hi2c2
+HAL_I2C_Init
+Error_Handler

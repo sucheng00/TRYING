@@ -1,0 +1,163 @@
+ARM GAS  /tmp/ccj4mQBl.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"quaternion.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.quaternion_to_rpy,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	quaternion_to_rpy
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	quaternion_to_rpy:
+  28              	.LVL0:
+  29              	.LFB0:
+  30              		.file 1 "application/src/quaternion.c"
+   1:application/src/quaternion.c **** #include "quaternion.h"
+   2:application/src/quaternion.c **** #include <math.h>
+   3:application/src/quaternion.c **** 
+   4:application/src/quaternion.c **** void quaternion_to_rpy(const quaternion_t *q, float *yaw, float *pitch,
+   5:application/src/quaternion.c ****                        float *roll) {
+  31              		.loc 1 5 37 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+   6:application/src/quaternion.c **** 	*roll = atan2f(q->w * q->x + q->y * q->z, 0.5f - q->x * q->x - q->y * q->y);
+  35              		.loc 1 6 2 view .LVU1
+   5:application/src/quaternion.c **** 	*roll = atan2f(q->w * q->x + q->y * q->z, 0.5f - q->x * q->x - q->y * q->y);
+  36              		.loc 1 5 37 is_stmt 0 view .LVU2
+  37 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+  38              		.cfi_def_cfa_offset 24
+  39              		.cfi_offset 3, -24
+  40              		.cfi_offset 4, -20
+  41              		.cfi_offset 5, -16
+  42              		.cfi_offset 6, -12
+  43              		.cfi_offset 7, -8
+  44              		.cfi_offset 14, -4
+  45              		.loc 1 6 25 view .LVU3
+  46 0002 D0ED017A 		vldr.32	s15, [r0, #4]
+  47              		.loc 1 6 32 view .LVU4
+  48 0006 90ED027A 		vldr.32	s14, [r0, #8]
+  49              		.loc 1 6 36 view .LVU5
+  50 000a 90ED030A 		vldr.32	s0, [r0, #12]
+  51              		.loc 1 6 10 view .LVU6
+ARM GAS  /tmp/ccj4mQBl.s 			page 2
+
+
+  52 000e D0ED006A 		vldr.32	s13, [r0]
+   5:application/src/quaternion.c **** 	*roll = atan2f(q->w * q->x + q->y * q->z, 0.5f - q->x * q->x - q->y * q->y);
+  53              		.loc 1 5 37 view .LVU7
+  54 0012 2DED028B 		vpush.64	{d8}
+  55              		.cfi_def_cfa_offset 32
+  56              		.cfi_offset 80, -32
+  57              		.cfi_offset 81, -28
+  58              		.loc 1 6 49 view .LVU8
+  59 0016 B6EE008A 		vmov.f32	s16, #5.0e-1
+  60 001a F0EE480A 		vmov.f32	s1, s16
+  61 001e E7EEE70A 		vfms.f32	s1, s15, s15
+   5:application/src/quaternion.c **** 	*roll = atan2f(q->w * q->x + q->y * q->z, 0.5f - q->x * q->x - q->y * q->y);
+  62              		.loc 1 5 37 view .LVU9
+  63 0022 0446     		mov	r4, r0
+  64 0024 0D46     		mov	r5, r1
+  65              		.loc 1 6 36 view .LVU10
+  66 0026 27EE000A 		vmul.f32	s0, s14, s0
+  67              		.loc 1 6 10 view .LVU11
+  68 002a E7EE470A 		vfms.f32	s1, s14, s14
+   5:application/src/quaternion.c **** 	*roll = atan2f(q->w * q->x + q->y * q->z, 0.5f - q->x * q->x - q->y * q->y);
+  69              		.loc 1 5 37 view .LVU12
+  70 002e 1646     		mov	r6, r2
+  71 0030 1F46     		mov	r7, r3
+  72              		.loc 1 6 10 view .LVU13
+  73 0032 A6EEA70A 		vfma.f32	s0, s13, s15
+  74 0036 FFF7FEFF 		bl	atan2f
+  75              	.LVL1:
+  76              		.loc 1 6 8 view .LVU14
+  77 003a 87ED000A 		vstr.32	s0, [r7]
+   7:application/src/quaternion.c **** 	*pitch = asinf(-2.0f * (q->x * q->z - q->w * q->y));
+  78              		.loc 1 7 2 is_stmt 1 view .LVU15
+  79              		.loc 1 7 45 is_stmt 0 view .LVU16
+  80 003e 94ED000A 		vldr.32	s0, [r4]
+  81 0042 D4ED027A 		vldr.32	s15, [r4, #8]
+  82              		.loc 1 7 38 view .LVU17
+  83 0046 94ED016A 		vldr.32	s12, [r4, #4]
+  84 004a D4ED036A 		vldr.32	s13, [r4, #12]
+  85 004e 67EEC07A 		vnmul.f32	s15, s15, s0
+  86              		.loc 1 7 11 view .LVU18
+  87 0052 B8EE007A 		vmov.f32	s14, #-2.0e+0
+  88              		.loc 1 7 38 view .LVU19
+  89 0056 E6EE267A 		vfma.f32	s15, s12, s13
+  90              		.loc 1 7 11 view .LVU20
+  91 005a 27EE870A 		vmul.f32	s0, s15, s14
+  92 005e FFF7FEFF 		bl	asinf
+  93              	.LVL2:
+  94              		.loc 1 7 9 view .LVU21
+  95 0062 86ED000A 		vstr.32	s0, [r6]
+   8:application/src/quaternion.c **** 	*yaw = atan2f(q->x * q->y + q->w * q->z, 0.5f - q->y * q->y - q->z * q->z);
+  96              		.loc 1 8 2 is_stmt 1 view .LVU22
+  97              		.loc 1 8 24 is_stmt 0 view .LVU23
+  98 0066 D4ED027A 		vldr.32	s15, [r4, #8]
+  99              		.loc 1 8 38 view .LVU24
+ 100 006a 94ED037A 		vldr.32	s14, [r4, #12]
+ 101              		.loc 1 8 35 view .LVU25
+ 102 006e 94ED000A 		vldr.32	s0, [r4]
+ 103              		.loc 1 8 9 view .LVU26
+ARM GAS  /tmp/ccj4mQBl.s 			page 3
+
+
+ 104 0072 D4ED016A 		vldr.32	s13, [r4, #4]
+ 105              		.loc 1 8 48 view .LVU27
+ 106 0076 F0EE480A 		vmov.f32	s1, s16
+ 107 007a E7EEE70A 		vfms.f32	s1, s15, s15
+ 108              		.loc 1 8 35 view .LVU28
+ 109 007e 27EE000A 		vmul.f32	s0, s14, s0
+ 110              		.loc 1 8 9 view .LVU29
+ 111 0082 E7EE470A 		vfms.f32	s1, s14, s14
+ 112 0086 A6EEA70A 		vfma.f32	s0, s13, s15
+ 113 008a FFF7FEFF 		bl	atan2f
+ 114              	.LVL3:
+   9:application/src/quaternion.c **** }
+ 115              		.loc 1 9 1 view .LVU30
+ 116 008e BDEC028B 		vldm	sp!, {d8}
+ 117              		.cfi_restore 80
+ 118              		.cfi_restore 81
+ 119              		.cfi_def_cfa_offset 24
+   8:application/src/quaternion.c **** 	*yaw = atan2f(q->x * q->y + q->w * q->z, 0.5f - q->y * q->y - q->z * q->z);
+ 120              		.loc 1 8 7 view .LVU31
+ 121 0092 85ED000A 		vstr.32	s0, [r5]
+ 122              		.loc 1 9 1 view .LVU32
+ 123 0096 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 124              		.loc 1 9 1 view .LVU33
+ 125              		.cfi_endproc
+ 126              	.LFE0:
+ 128              		.text
+ 129              	.Letext0:
+ 130              		.file 2 "application/include/quaternion.h"
+ 131              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/math.h"
+ARM GAS  /tmp/ccj4mQBl.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 quaternion.c
+     /tmp/ccj4mQBl.s:20     .text.quaternion_to_rpy:0000000000000000 $t
+     /tmp/ccj4mQBl.s:27     .text.quaternion_to_rpy:0000000000000000 quaternion_to_rpy
+
+UNDEFINED SYMBOLS
+atan2f
+asinf

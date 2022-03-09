@@ -1,0 +1,2060 @@
+ARM GAS  /tmp/cceAUFZ1.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"custom_memory_manager.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.prvInsertBlockIntoFreeList,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	prvInsertBlockIntoFreeList:
+  27              	.LVL0:
+  28              	.LFB14:
+  29              		.file 1 "application/src/micro-ros/custom_memory_manager.c"
+   1:application/src/micro-ros/custom_memory_manager.c **** /*
+   2:application/src/micro-ros/custom_memory_manager.c ****  * A custom implementation of pvPortMallocMicroROS() and vPortFreeMicroROS() with realloc and
+   3:application/src/micro-ros/custom_memory_manager.c ****  * calloc features based on FreeRTOS heap4.c.
+   4:application/src/micro-ros/custom_memory_manager.c ****  */
+   5:application/src/micro-ros/custom_memory_manager.c ****  
+   6:application/src/micro-ros/custom_memory_manager.c **** #include <stdlib.h>
+   7:application/src/micro-ros/custom_memory_manager.c **** #include <string.h>
+   8:application/src/micro-ros/custom_memory_manager.c **** 
+   9:application/src/micro-ros/custom_memory_manager.c **** /* Defining MPU_WRAPPERS_INCLUDED_FROM_API_FILE prevents task.h from redefining
+  10:application/src/micro-ros/custom_memory_manager.c **** all the API functions to use the MPU wrappers.  That should only be done when
+  11:application/src/micro-ros/custom_memory_manager.c **** task.h is included from an application file. */
+  12:application/src/micro-ros/custom_memory_manager.c **** #define MPU_WRAPPERS_INCLUDED_FROM_API_FILE
+  13:application/src/micro-ros/custom_memory_manager.c **** 
+  14:application/src/micro-ros/custom_memory_manager.c **** #include "FreeRTOS.h"
+  15:application/src/micro-ros/custom_memory_manager.c **** #include "task.h"
+  16:application/src/micro-ros/custom_memory_manager.c **** 
+  17:application/src/micro-ros/custom_memory_manager.c **** #undef MPU_WRAPPERS_INCLUDED_FROM_API_FILE
+  18:application/src/micro-ros/custom_memory_manager.c **** 
+  19:application/src/micro-ros/custom_memory_manager.c **** #if( configSUPPORT_DYNAMIC_ALLOCATION == 0 )
+  20:application/src/micro-ros/custom_memory_manager.c **** 	#error This file must not be used if configSUPPORT_DYNAMIC_ALLOCATION is 0
+  21:application/src/micro-ros/custom_memory_manager.c **** #endif
+  22:application/src/micro-ros/custom_memory_manager.c **** 
+  23:application/src/micro-ros/custom_memory_manager.c **** /* Block sizes must not get too small. */
+  24:application/src/micro-ros/custom_memory_manager.c **** #define heapMINIMUM_BLOCK_SIZE	( ( size_t ) ( xHeapStructSize << 1 ) )
+  25:application/src/micro-ros/custom_memory_manager.c **** 
+  26:application/src/micro-ros/custom_memory_manager.c **** /* Assumes 8bit bytes! */
+  27:application/src/micro-ros/custom_memory_manager.c **** #define heapBITS_PER_BYTE		( ( size_t ) 8 )
+  28:application/src/micro-ros/custom_memory_manager.c **** 
+  29:application/src/micro-ros/custom_memory_manager.c **** /* Allocate the memory for the heap. */
+ARM GAS  /tmp/cceAUFZ1.s 			page 2
+
+
+  30:application/src/micro-ros/custom_memory_manager.c **** static uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
+  31:application/src/micro-ros/custom_memory_manager.c **** 
+  32:application/src/micro-ros/custom_memory_manager.c **** /* Define the linked list structure.  This is used to link free blocks in order
+  33:application/src/micro-ros/custom_memory_manager.c **** of their memory address. */
+  34:application/src/micro-ros/custom_memory_manager.c **** typedef struct A_BLOCK_LINK
+  35:application/src/micro-ros/custom_memory_manager.c **** {
+  36:application/src/micro-ros/custom_memory_manager.c **** 	struct A_BLOCK_LINK *pxNextFreeBlock;	/*<< The next free block in the list. */
+  37:application/src/micro-ros/custom_memory_manager.c **** 	size_t xBlockSize;						/*<< The size of the free block. */
+  38:application/src/micro-ros/custom_memory_manager.c **** } BlockLink_t;
+  39:application/src/micro-ros/custom_memory_manager.c **** 
+  40:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+  41:application/src/micro-ros/custom_memory_manager.c **** 
+  42:application/src/micro-ros/custom_memory_manager.c **** /*
+  43:application/src/micro-ros/custom_memory_manager.c ****  * Inserts a block of memory that is being freed into the correct position in
+  44:application/src/micro-ros/custom_memory_manager.c ****  * the list of free memory blocks.  The block being freed will be merged with
+  45:application/src/micro-ros/custom_memory_manager.c ****  * the block in front it and/or the block behind it if the memory blocks are
+  46:application/src/micro-ros/custom_memory_manager.c ****  * adjacent to each other.
+  47:application/src/micro-ros/custom_memory_manager.c ****  */
+  48:application/src/micro-ros/custom_memory_manager.c **** static void prvInsertBlockIntoFreeList( BlockLink_t *pxBlockToInsert );
+  49:application/src/micro-ros/custom_memory_manager.c **** 
+  50:application/src/micro-ros/custom_memory_manager.c **** /*
+  51:application/src/micro-ros/custom_memory_manager.c ****  * Called automatically to setup the required heap structures the first time
+  52:application/src/micro-ros/custom_memory_manager.c ****  * pvPortMallocMicroROS() is called.
+  53:application/src/micro-ros/custom_memory_manager.c ****  */
+  54:application/src/micro-ros/custom_memory_manager.c **** static void prvHeapInit( void );
+  55:application/src/micro-ros/custom_memory_manager.c **** 
+  56:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+  57:application/src/micro-ros/custom_memory_manager.c **** 
+  58:application/src/micro-ros/custom_memory_manager.c **** /* The size of the structure placed at the beginning of each allocated memory
+  59:application/src/micro-ros/custom_memory_manager.c **** block must by correctly byte aligned. */
+  60:application/src/micro-ros/custom_memory_manager.c **** static const size_t xHeapStructSize	= ( sizeof( BlockLink_t ) + ( ( size_t ) ( portBYTE_ALIGNMENT -
+  61:application/src/micro-ros/custom_memory_manager.c **** 
+  62:application/src/micro-ros/custom_memory_manager.c **** /* Create a couple of list links to mark the start and end of the list. */
+  63:application/src/micro-ros/custom_memory_manager.c **** static BlockLink_t xStart, *pxEnd = NULL;
+  64:application/src/micro-ros/custom_memory_manager.c **** 
+  65:application/src/micro-ros/custom_memory_manager.c **** /* Keeps track of the number of free bytes remaining, but says nothing about
+  66:application/src/micro-ros/custom_memory_manager.c **** fragmentation. */
+  67:application/src/micro-ros/custom_memory_manager.c **** static size_t xFreeBytesRemaining = 0U;
+  68:application/src/micro-ros/custom_memory_manager.c **** static size_t xMinimumEverFreeBytesRemaining = 0U;
+  69:application/src/micro-ros/custom_memory_manager.c **** 
+  70:application/src/micro-ros/custom_memory_manager.c **** /* Gets set to the top bit of an size_t type.  When this bit in the xBlockSize
+  71:application/src/micro-ros/custom_memory_manager.c **** member of an BlockLink_t structure is set then the block belongs to the
+  72:application/src/micro-ros/custom_memory_manager.c **** application.  When the bit is free the block is still part of the free heap
+  73:application/src/micro-ros/custom_memory_manager.c **** space. */
+  74:application/src/micro-ros/custom_memory_manager.c **** static size_t xBlockAllocatedBit = 0;
+  75:application/src/micro-ros/custom_memory_manager.c **** 
+  76:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+  77:application/src/micro-ros/custom_memory_manager.c **** 
+  78:application/src/micro-ros/custom_memory_manager.c **** void *pvPortMallocMicroROS( size_t xWantedSize )
+  79:application/src/micro-ros/custom_memory_manager.c **** {
+  80:application/src/micro-ros/custom_memory_manager.c **** BlockLink_t *pxBlock, *pxPreviousBlock, *pxNewBlockLink;
+  81:application/src/micro-ros/custom_memory_manager.c **** void *pvReturn = NULL;
+  82:application/src/micro-ros/custom_memory_manager.c **** 
+  83:application/src/micro-ros/custom_memory_manager.c **** 	vTaskSuspendAll();
+  84:application/src/micro-ros/custom_memory_manager.c **** 	{
+  85:application/src/micro-ros/custom_memory_manager.c **** 		/* If this is the first call to malloc then the heap will require
+  86:application/src/micro-ros/custom_memory_manager.c **** 		initialisation to setup the list of free blocks. */
+ARM GAS  /tmp/cceAUFZ1.s 			page 3
+
+
+  87:application/src/micro-ros/custom_memory_manager.c **** 		if( pxEnd == NULL )
+  88:application/src/micro-ros/custom_memory_manager.c **** 		{
+  89:application/src/micro-ros/custom_memory_manager.c **** 			prvHeapInit();
+  90:application/src/micro-ros/custom_memory_manager.c **** 		}
+  91:application/src/micro-ros/custom_memory_manager.c **** 		else
+  92:application/src/micro-ros/custom_memory_manager.c **** 		{
+  93:application/src/micro-ros/custom_memory_manager.c **** 			mtCOVERAGE_TEST_MARKER();
+  94:application/src/micro-ros/custom_memory_manager.c **** 		}
+  95:application/src/micro-ros/custom_memory_manager.c **** 
+  96:application/src/micro-ros/custom_memory_manager.c **** 		/* Check the requested block size is not so large that the top bit is
+  97:application/src/micro-ros/custom_memory_manager.c **** 		set.  The top bit of the block size member of the BlockLink_t structure
+  98:application/src/micro-ros/custom_memory_manager.c **** 		is used to determine who owns the block - the application or the
+  99:application/src/micro-ros/custom_memory_manager.c **** 		kernel, so it must be free. */
+ 100:application/src/micro-ros/custom_memory_manager.c **** 		if( ( xWantedSize & xBlockAllocatedBit ) == 0 )
+ 101:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 102:application/src/micro-ros/custom_memory_manager.c **** 			/* The wanted size is increased so it can contain a BlockLink_t
+ 103:application/src/micro-ros/custom_memory_manager.c **** 			structure in addition to the requested amount of bytes. */
+ 104:application/src/micro-ros/custom_memory_manager.c **** 			if( xWantedSize > 0 )
+ 105:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 106:application/src/micro-ros/custom_memory_manager.c **** 				xWantedSize += xHeapStructSize;
+ 107:application/src/micro-ros/custom_memory_manager.c **** 
+ 108:application/src/micro-ros/custom_memory_manager.c **** 				/* Ensure that blocks are always aligned to the required number
+ 109:application/src/micro-ros/custom_memory_manager.c **** 				of bytes. */
+ 110:application/src/micro-ros/custom_memory_manager.c **** 				if( ( xWantedSize & portBYTE_ALIGNMENT_MASK ) != 0x00 )
+ 111:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 112:application/src/micro-ros/custom_memory_manager.c **** 					/* Byte alignment required. */
+ 113:application/src/micro-ros/custom_memory_manager.c **** 					xWantedSize += ( portBYTE_ALIGNMENT - ( xWantedSize & portBYTE_ALIGNMENT_MASK ) );
+ 114:application/src/micro-ros/custom_memory_manager.c **** 					configASSERT( ( xWantedSize & portBYTE_ALIGNMENT_MASK ) == 0 );
+ 115:application/src/micro-ros/custom_memory_manager.c **** 				}
+ 116:application/src/micro-ros/custom_memory_manager.c **** 				else
+ 117:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 118:application/src/micro-ros/custom_memory_manager.c **** 					mtCOVERAGE_TEST_MARKER();
+ 119:application/src/micro-ros/custom_memory_manager.c **** 				}
+ 120:application/src/micro-ros/custom_memory_manager.c **** 			}
+ 121:application/src/micro-ros/custom_memory_manager.c **** 			else
+ 122:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 123:application/src/micro-ros/custom_memory_manager.c **** 				mtCOVERAGE_TEST_MARKER();
+ 124:application/src/micro-ros/custom_memory_manager.c **** 			}
+ 125:application/src/micro-ros/custom_memory_manager.c **** 
+ 126:application/src/micro-ros/custom_memory_manager.c **** 			if( ( xWantedSize > 0 ) && ( xWantedSize <= xFreeBytesRemaining ) )
+ 127:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 128:application/src/micro-ros/custom_memory_manager.c **** 				/* Traverse the list from the start	(lowest address) block until
+ 129:application/src/micro-ros/custom_memory_manager.c **** 				one	of adequate size is found. */
+ 130:application/src/micro-ros/custom_memory_manager.c **** 				pxPreviousBlock = &xStart;
+ 131:application/src/micro-ros/custom_memory_manager.c **** 				pxBlock = xStart.pxNextFreeBlock;
+ 132:application/src/micro-ros/custom_memory_manager.c **** 				while( ( pxBlock->xBlockSize < xWantedSize ) && ( pxBlock->pxNextFreeBlock != NULL ) )
+ 133:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 134:application/src/micro-ros/custom_memory_manager.c **** 					pxPreviousBlock = pxBlock;
+ 135:application/src/micro-ros/custom_memory_manager.c **** 					pxBlock = pxBlock->pxNextFreeBlock;
+ 136:application/src/micro-ros/custom_memory_manager.c **** 				}
+ 137:application/src/micro-ros/custom_memory_manager.c **** 
+ 138:application/src/micro-ros/custom_memory_manager.c **** 				/* If the end marker was reached then a block of adequate size
+ 139:application/src/micro-ros/custom_memory_manager.c **** 				was	not found. */
+ 140:application/src/micro-ros/custom_memory_manager.c **** 				if( pxBlock != pxEnd )
+ 141:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 142:application/src/micro-ros/custom_memory_manager.c **** 					/* Return the memory space pointed to - jumping over the
+ 143:application/src/micro-ros/custom_memory_manager.c **** 					BlockLink_t structure at its start. */
+ARM GAS  /tmp/cceAUFZ1.s 			page 4
+
+
+ 144:application/src/micro-ros/custom_memory_manager.c **** 					pvReturn = ( void * ) ( ( ( uint8_t * ) pxPreviousBlock->pxNextFreeBlock ) + xHeapStructSize )
+ 145:application/src/micro-ros/custom_memory_manager.c **** 
+ 146:application/src/micro-ros/custom_memory_manager.c **** 					/* This block is being returned for use so must be taken out
+ 147:application/src/micro-ros/custom_memory_manager.c **** 					of the list of free blocks. */
+ 148:application/src/micro-ros/custom_memory_manager.c **** 					pxPreviousBlock->pxNextFreeBlock = pxBlock->pxNextFreeBlock;
+ 149:application/src/micro-ros/custom_memory_manager.c **** 
+ 150:application/src/micro-ros/custom_memory_manager.c **** 					/* If the block is larger than required it can be split into
+ 151:application/src/micro-ros/custom_memory_manager.c **** 					two. */
+ 152:application/src/micro-ros/custom_memory_manager.c **** 					if( ( pxBlock->xBlockSize - xWantedSize ) > heapMINIMUM_BLOCK_SIZE )
+ 153:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 154:application/src/micro-ros/custom_memory_manager.c **** 						/* This block is to be split into two.  Create a new
+ 155:application/src/micro-ros/custom_memory_manager.c **** 						block following the number of bytes requested. The void
+ 156:application/src/micro-ros/custom_memory_manager.c **** 						cast is used to prevent byte alignment warnings from the
+ 157:application/src/micro-ros/custom_memory_manager.c **** 						compiler. */
+ 158:application/src/micro-ros/custom_memory_manager.c **** 						pxNewBlockLink = ( void * ) ( ( ( uint8_t * ) pxBlock ) + xWantedSize );
+ 159:application/src/micro-ros/custom_memory_manager.c **** 						configASSERT( ( ( ( size_t ) pxNewBlockLink ) & portBYTE_ALIGNMENT_MASK ) == 0 );
+ 160:application/src/micro-ros/custom_memory_manager.c **** 
+ 161:application/src/micro-ros/custom_memory_manager.c **** 						/* Calculate the sizes of two blocks split from the
+ 162:application/src/micro-ros/custom_memory_manager.c **** 						single block. */
+ 163:application/src/micro-ros/custom_memory_manager.c **** 						pxNewBlockLink->xBlockSize = pxBlock->xBlockSize - xWantedSize;
+ 164:application/src/micro-ros/custom_memory_manager.c **** 						pxBlock->xBlockSize = xWantedSize;
+ 165:application/src/micro-ros/custom_memory_manager.c **** 
+ 166:application/src/micro-ros/custom_memory_manager.c **** 						/* Insert the new block into the list of free blocks. */
+ 167:application/src/micro-ros/custom_memory_manager.c **** 						prvInsertBlockIntoFreeList( pxNewBlockLink );
+ 168:application/src/micro-ros/custom_memory_manager.c **** 					}
+ 169:application/src/micro-ros/custom_memory_manager.c **** 					else
+ 170:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 171:application/src/micro-ros/custom_memory_manager.c **** 						mtCOVERAGE_TEST_MARKER();
+ 172:application/src/micro-ros/custom_memory_manager.c **** 					}
+ 173:application/src/micro-ros/custom_memory_manager.c **** 
+ 174:application/src/micro-ros/custom_memory_manager.c **** 					xFreeBytesRemaining -= pxBlock->xBlockSize;
+ 175:application/src/micro-ros/custom_memory_manager.c **** 
+ 176:application/src/micro-ros/custom_memory_manager.c **** 					if( xFreeBytesRemaining < xMinimumEverFreeBytesRemaining )
+ 177:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 178:application/src/micro-ros/custom_memory_manager.c **** 						xMinimumEverFreeBytesRemaining = xFreeBytesRemaining;
+ 179:application/src/micro-ros/custom_memory_manager.c **** 					}
+ 180:application/src/micro-ros/custom_memory_manager.c **** 					else
+ 181:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 182:application/src/micro-ros/custom_memory_manager.c **** 						mtCOVERAGE_TEST_MARKER();
+ 183:application/src/micro-ros/custom_memory_manager.c **** 					}
+ 184:application/src/micro-ros/custom_memory_manager.c **** 
+ 185:application/src/micro-ros/custom_memory_manager.c **** 					/* The block is being returned - it is allocated and owned
+ 186:application/src/micro-ros/custom_memory_manager.c **** 					by the application and has no "next" block. */
+ 187:application/src/micro-ros/custom_memory_manager.c **** 					pxBlock->xBlockSize |= xBlockAllocatedBit;
+ 188:application/src/micro-ros/custom_memory_manager.c **** 					pxBlock->pxNextFreeBlock = NULL;
+ 189:application/src/micro-ros/custom_memory_manager.c **** 				}
+ 190:application/src/micro-ros/custom_memory_manager.c **** 				else
+ 191:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 192:application/src/micro-ros/custom_memory_manager.c **** 					mtCOVERAGE_TEST_MARKER();
+ 193:application/src/micro-ros/custom_memory_manager.c **** 				}
+ 194:application/src/micro-ros/custom_memory_manager.c **** 			}
+ 195:application/src/micro-ros/custom_memory_manager.c **** 			else
+ 196:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 197:application/src/micro-ros/custom_memory_manager.c **** 				mtCOVERAGE_TEST_MARKER();
+ 198:application/src/micro-ros/custom_memory_manager.c **** 			}
+ 199:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 200:application/src/micro-ros/custom_memory_manager.c **** 		else
+ARM GAS  /tmp/cceAUFZ1.s 			page 5
+
+
+ 201:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 202:application/src/micro-ros/custom_memory_manager.c **** 			mtCOVERAGE_TEST_MARKER();
+ 203:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 204:application/src/micro-ros/custom_memory_manager.c **** 
+ 205:application/src/micro-ros/custom_memory_manager.c **** 		traceMALLOC( pvReturn, xWantedSize );
+ 206:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 207:application/src/micro-ros/custom_memory_manager.c **** 	( void ) xTaskResumeAll();
+ 208:application/src/micro-ros/custom_memory_manager.c **** 
+ 209:application/src/micro-ros/custom_memory_manager.c **** 	#if( configUSE_MALLOC_FAILED_HOOK == 1 )
+ 210:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 211:application/src/micro-ros/custom_memory_manager.c **** 		if( pvReturn == NULL )
+ 212:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 213:application/src/micro-ros/custom_memory_manager.c **** 			extern void vApplicationMallocFailedHook( void );
+ 214:application/src/micro-ros/custom_memory_manager.c **** 			vApplicationMallocFailedHook();
+ 215:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 216:application/src/micro-ros/custom_memory_manager.c **** 		else
+ 217:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 218:application/src/micro-ros/custom_memory_manager.c **** 			mtCOVERAGE_TEST_MARKER();
+ 219:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 220:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 221:application/src/micro-ros/custom_memory_manager.c **** 	#endif
+ 222:application/src/micro-ros/custom_memory_manager.c **** 
+ 223:application/src/micro-ros/custom_memory_manager.c **** 	configASSERT( ( ( ( size_t ) pvReturn ) & ( size_t ) portBYTE_ALIGNMENT_MASK ) == 0 );
+ 224:application/src/micro-ros/custom_memory_manager.c **** 	return pvReturn;
+ 225:application/src/micro-ros/custom_memory_manager.c **** }
+ 226:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 227:application/src/micro-ros/custom_memory_manager.c **** 
+ 228:application/src/micro-ros/custom_memory_manager.c **** void vPortFreeMicroROS( void *pv )
+ 229:application/src/micro-ros/custom_memory_manager.c **** {
+ 230:application/src/micro-ros/custom_memory_manager.c **** uint8_t *puc = ( uint8_t * ) pv;
+ 231:application/src/micro-ros/custom_memory_manager.c **** BlockLink_t *pxLink;
+ 232:application/src/micro-ros/custom_memory_manager.c **** 
+ 233:application/src/micro-ros/custom_memory_manager.c **** 	if( pv != NULL )
+ 234:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 235:application/src/micro-ros/custom_memory_manager.c **** 		/* The memory being freed will have an BlockLink_t structure immediately
+ 236:application/src/micro-ros/custom_memory_manager.c **** 		before it. */
+ 237:application/src/micro-ros/custom_memory_manager.c **** 		puc -= xHeapStructSize;
+ 238:application/src/micro-ros/custom_memory_manager.c **** 
+ 239:application/src/micro-ros/custom_memory_manager.c **** 		/* This casting is to keep the compiler from issuing warnings. */
+ 240:application/src/micro-ros/custom_memory_manager.c **** 		pxLink = ( void * ) puc;
+ 241:application/src/micro-ros/custom_memory_manager.c **** 
+ 242:application/src/micro-ros/custom_memory_manager.c **** 		/* Check the block is actually allocated. */
+ 243:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( ( pxLink->xBlockSize & xBlockAllocatedBit ) != 0 );
+ 244:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 245:application/src/micro-ros/custom_memory_manager.c **** 
+ 246:application/src/micro-ros/custom_memory_manager.c **** 		if( ( pxLink->xBlockSize & xBlockAllocatedBit ) != 0 )
+ 247:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 248:application/src/micro-ros/custom_memory_manager.c **** 			if( pxLink->pxNextFreeBlock == NULL )
+ 249:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 250:application/src/micro-ros/custom_memory_manager.c **** 				/* The block is being returned to the heap - it is no longer
+ 251:application/src/micro-ros/custom_memory_manager.c **** 				allocated. */
+ 252:application/src/micro-ros/custom_memory_manager.c **** 				pxLink->xBlockSize &= ~xBlockAllocatedBit;
+ 253:application/src/micro-ros/custom_memory_manager.c **** 
+ 254:application/src/micro-ros/custom_memory_manager.c **** 				vTaskSuspendAll();
+ 255:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 256:application/src/micro-ros/custom_memory_manager.c **** 					/* Add this block to the list of free blocks. */
+ 257:application/src/micro-ros/custom_memory_manager.c **** 					xFreeBytesRemaining += pxLink->xBlockSize;
+ARM GAS  /tmp/cceAUFZ1.s 			page 6
+
+
+ 258:application/src/micro-ros/custom_memory_manager.c **** 					traceFREE( pv, pxLink->xBlockSize );
+ 259:application/src/micro-ros/custom_memory_manager.c **** 					prvInsertBlockIntoFreeList( ( ( BlockLink_t * ) pxLink ) );
+ 260:application/src/micro-ros/custom_memory_manager.c **** 				}
+ 261:application/src/micro-ros/custom_memory_manager.c **** 				( void ) xTaskResumeAll();
+ 262:application/src/micro-ros/custom_memory_manager.c **** 			}
+ 263:application/src/micro-ros/custom_memory_manager.c **** 			else
+ 264:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 265:application/src/micro-ros/custom_memory_manager.c **** 				mtCOVERAGE_TEST_MARKER();
+ 266:application/src/micro-ros/custom_memory_manager.c **** 			}
+ 267:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 268:application/src/micro-ros/custom_memory_manager.c **** 		else
+ 269:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 270:application/src/micro-ros/custom_memory_manager.c **** 			mtCOVERAGE_TEST_MARKER();
+ 271:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 272:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 273:application/src/micro-ros/custom_memory_manager.c **** }
+ 274:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 275:application/src/micro-ros/custom_memory_manager.c **** 
+ 276:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 277:application/src/micro-ros/custom_memory_manager.c **** size_t getBlockSize( void *pv )
+ 278:application/src/micro-ros/custom_memory_manager.c **** {
+ 279:application/src/micro-ros/custom_memory_manager.c **** 
+ 280:application/src/micro-ros/custom_memory_manager.c **** 	uint8_t *puc = ( uint8_t * ) pv;
+ 281:application/src/micro-ros/custom_memory_manager.c **** 	BlockLink_t *pxLink;
+ 282:application/src/micro-ros/custom_memory_manager.c **** 
+ 283:application/src/micro-ros/custom_memory_manager.c **** 	puc -= xHeapStructSize;
+ 284:application/src/micro-ros/custom_memory_manager.c **** 	pxLink = ( void * ) puc;
+ 285:application/src/micro-ros/custom_memory_manager.c **** 
+ 286:application/src/micro-ros/custom_memory_manager.c **** 	size_t count = pxLink->xBlockSize & ~xBlockAllocatedBit;
+ 287:application/src/micro-ros/custom_memory_manager.c **** 
+ 288:application/src/micro-ros/custom_memory_manager.c **** 	return count;
+ 289:application/src/micro-ros/custom_memory_manager.c **** }
+ 290:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 291:application/src/micro-ros/custom_memory_manager.c **** 
+ 292:application/src/micro-ros/custom_memory_manager.c **** void *pvPortReallocMicroROS( void *pv, size_t xWantedSize )
+ 293:application/src/micro-ros/custom_memory_manager.c **** {
+ 294:application/src/micro-ros/custom_memory_manager.c **** 	vTaskSuspendAll();
+ 295:application/src/micro-ros/custom_memory_manager.c **** 
+ 296:application/src/micro-ros/custom_memory_manager.c **** 	void * newmem = pvPortMallocMicroROS(xWantedSize);
+ 297:application/src/micro-ros/custom_memory_manager.c **** 	if (newmem != NULL) {
+ 298:application/src/micro-ros/custom_memory_manager.c **** 		size_t count = getBlockSize(pv) - xHeapStructSize;
+ 299:application/src/micro-ros/custom_memory_manager.c **** 		if (xWantedSize < count){
+ 300:application/src/micro-ros/custom_memory_manager.c **** 			count = xWantedSize;
+ 301:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 302:application/src/micro-ros/custom_memory_manager.c **** 		memcpy(newmem, pv, count);
+ 303:application/src/micro-ros/custom_memory_manager.c **** 
+ 304:application/src/micro-ros/custom_memory_manager.c **** 		vPortFreeMicroROS(pv);
+ 305:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 306:application/src/micro-ros/custom_memory_manager.c **** 
+ 307:application/src/micro-ros/custom_memory_manager.c **** 	( void ) xTaskResumeAll();
+ 308:application/src/micro-ros/custom_memory_manager.c **** 
+ 309:application/src/micro-ros/custom_memory_manager.c **** 	return newmem;
+ 310:application/src/micro-ros/custom_memory_manager.c **** }
+ 311:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 312:application/src/micro-ros/custom_memory_manager.c **** 
+ 313:application/src/micro-ros/custom_memory_manager.c **** void *pvPortCallocMicroROS( size_t num, size_t xWantedSize )
+ 314:application/src/micro-ros/custom_memory_manager.c **** {
+ARM GAS  /tmp/cceAUFZ1.s 			page 7
+
+
+ 315:application/src/micro-ros/custom_memory_manager.c **** 	vTaskSuspendAll();
+ 316:application/src/micro-ros/custom_memory_manager.c **** 	size_t count = xWantedSize*num;
+ 317:application/src/micro-ros/custom_memory_manager.c **** 
+ 318:application/src/micro-ros/custom_memory_manager.c **** 	void * mem = pvPortMallocMicroROS(count);
+ 319:application/src/micro-ros/custom_memory_manager.c ****   	char *in_dest = (char*)mem;
+ 320:application/src/micro-ros/custom_memory_manager.c **** 
+ 321:application/src/micro-ros/custom_memory_manager.c ****   	while(count--)
+ 322:application/src/micro-ros/custom_memory_manager.c ****     	*in_dest++ = 0;
+ 323:application/src/micro-ros/custom_memory_manager.c **** 
+ 324:application/src/micro-ros/custom_memory_manager.c **** 	( void ) xTaskResumeAll();
+ 325:application/src/micro-ros/custom_memory_manager.c ****   	return mem;
+ 326:application/src/micro-ros/custom_memory_manager.c **** }
+ 327:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 328:application/src/micro-ros/custom_memory_manager.c **** 
+ 329:application/src/micro-ros/custom_memory_manager.c **** size_t xPortGetFreeHeapSizeMicroROS( void )
+ 330:application/src/micro-ros/custom_memory_manager.c **** {
+ 331:application/src/micro-ros/custom_memory_manager.c **** 	return xFreeBytesRemaining;
+ 332:application/src/micro-ros/custom_memory_manager.c **** }
+ 333:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 334:application/src/micro-ros/custom_memory_manager.c **** 
+ 335:application/src/micro-ros/custom_memory_manager.c **** size_t xPortGetMinimumEverFreeHeapSizeMicroROS( void )
+ 336:application/src/micro-ros/custom_memory_manager.c **** {
+ 337:application/src/micro-ros/custom_memory_manager.c **** 	return xMinimumEverFreeBytesRemaining;
+ 338:application/src/micro-ros/custom_memory_manager.c **** }
+ 339:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 340:application/src/micro-ros/custom_memory_manager.c **** 
+ 341:application/src/micro-ros/custom_memory_manager.c **** void vPortInitialiseBlocksMicroROS( void )
+ 342:application/src/micro-ros/custom_memory_manager.c **** {
+ 343:application/src/micro-ros/custom_memory_manager.c **** 	/* This just exists to keep the linker quiet. */
+ 344:application/src/micro-ros/custom_memory_manager.c **** }
+ 345:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 346:application/src/micro-ros/custom_memory_manager.c **** 
+ 347:application/src/micro-ros/custom_memory_manager.c **** static void prvHeapInit( void )
+ 348:application/src/micro-ros/custom_memory_manager.c **** {
+ 349:application/src/micro-ros/custom_memory_manager.c **** BlockLink_t *pxFirstFreeBlock;
+ 350:application/src/micro-ros/custom_memory_manager.c **** uint8_t *pucAlignedHeap;
+ 351:application/src/micro-ros/custom_memory_manager.c **** size_t uxAddress;
+ 352:application/src/micro-ros/custom_memory_manager.c **** size_t xTotalHeapSize = configTOTAL_HEAP_SIZE;
+ 353:application/src/micro-ros/custom_memory_manager.c **** 
+ 354:application/src/micro-ros/custom_memory_manager.c **** 	/* Ensure the heap starts on a correctly aligned boundary. */
+ 355:application/src/micro-ros/custom_memory_manager.c **** 	uxAddress = ( size_t ) ucHeap;
+ 356:application/src/micro-ros/custom_memory_manager.c **** 
+ 357:application/src/micro-ros/custom_memory_manager.c **** 	if( ( uxAddress & portBYTE_ALIGNMENT_MASK ) != 0 )
+ 358:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 359:application/src/micro-ros/custom_memory_manager.c **** 		uxAddress += ( portBYTE_ALIGNMENT - 1 );
+ 360:application/src/micro-ros/custom_memory_manager.c **** 		uxAddress &= ~( ( size_t ) portBYTE_ALIGNMENT_MASK );
+ 361:application/src/micro-ros/custom_memory_manager.c **** 		xTotalHeapSize -= uxAddress - ( size_t ) ucHeap;
+ 362:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 363:application/src/micro-ros/custom_memory_manager.c **** 
+ 364:application/src/micro-ros/custom_memory_manager.c **** 	pucAlignedHeap = ( uint8_t * ) uxAddress;
+ 365:application/src/micro-ros/custom_memory_manager.c **** 
+ 366:application/src/micro-ros/custom_memory_manager.c **** 	/* xStart is used to hold a pointer to the first item in the list of free
+ 367:application/src/micro-ros/custom_memory_manager.c **** 	blocks.  The void cast is used to prevent compiler warnings. */
+ 368:application/src/micro-ros/custom_memory_manager.c **** 	xStart.pxNextFreeBlock = ( void * ) pucAlignedHeap;
+ 369:application/src/micro-ros/custom_memory_manager.c **** 	xStart.xBlockSize = ( size_t ) 0;
+ 370:application/src/micro-ros/custom_memory_manager.c **** 
+ 371:application/src/micro-ros/custom_memory_manager.c **** 	/* pxEnd is used to mark the end of the list of free blocks and is inserted
+ARM GAS  /tmp/cceAUFZ1.s 			page 8
+
+
+ 372:application/src/micro-ros/custom_memory_manager.c **** 	at the end of the heap space. */
+ 373:application/src/micro-ros/custom_memory_manager.c **** 	uxAddress = ( ( size_t ) pucAlignedHeap ) + xTotalHeapSize;
+ 374:application/src/micro-ros/custom_memory_manager.c **** 	uxAddress -= xHeapStructSize;
+ 375:application/src/micro-ros/custom_memory_manager.c **** 	uxAddress &= ~( ( size_t ) portBYTE_ALIGNMENT_MASK );
+ 376:application/src/micro-ros/custom_memory_manager.c **** 	pxEnd = ( void * ) uxAddress;
+ 377:application/src/micro-ros/custom_memory_manager.c **** 	pxEnd->xBlockSize = 0;
+ 378:application/src/micro-ros/custom_memory_manager.c **** 	pxEnd->pxNextFreeBlock = NULL;
+ 379:application/src/micro-ros/custom_memory_manager.c **** 
+ 380:application/src/micro-ros/custom_memory_manager.c **** 	/* To start with there is a single free block that is sized to take up the
+ 381:application/src/micro-ros/custom_memory_manager.c **** 	entire heap space, minus the space taken by pxEnd. */
+ 382:application/src/micro-ros/custom_memory_manager.c **** 	pxFirstFreeBlock = ( void * ) pucAlignedHeap;
+ 383:application/src/micro-ros/custom_memory_manager.c **** 	pxFirstFreeBlock->xBlockSize = uxAddress - ( size_t ) pxFirstFreeBlock;
+ 384:application/src/micro-ros/custom_memory_manager.c **** 	pxFirstFreeBlock->pxNextFreeBlock = pxEnd;
+ 385:application/src/micro-ros/custom_memory_manager.c **** 
+ 386:application/src/micro-ros/custom_memory_manager.c **** 	/* Only one block exists - and it covers the entire usable heap space. */
+ 387:application/src/micro-ros/custom_memory_manager.c **** 	xMinimumEverFreeBytesRemaining = pxFirstFreeBlock->xBlockSize;
+ 388:application/src/micro-ros/custom_memory_manager.c **** 	xFreeBytesRemaining = pxFirstFreeBlock->xBlockSize;
+ 389:application/src/micro-ros/custom_memory_manager.c **** 
+ 390:application/src/micro-ros/custom_memory_manager.c **** 	/* Work out the position of the top bit in a size_t variable. */
+ 391:application/src/micro-ros/custom_memory_manager.c **** 	xBlockAllocatedBit = ( ( size_t ) 1 ) << ( ( sizeof( size_t ) * heapBITS_PER_BYTE ) - 1 );
+ 392:application/src/micro-ros/custom_memory_manager.c **** }
+ 393:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 394:application/src/micro-ros/custom_memory_manager.c **** 
+ 395:application/src/micro-ros/custom_memory_manager.c **** static void prvInsertBlockIntoFreeList( BlockLink_t *pxBlockToInsert )
+ 396:application/src/micro-ros/custom_memory_manager.c **** {
+  30              		.loc 1 396 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+ 397:application/src/micro-ros/custom_memory_manager.c **** BlockLink_t *pxIterator;
+  35              		.loc 1 397 1 view .LVU1
+ 398:application/src/micro-ros/custom_memory_manager.c **** uint8_t *puc;
+  36              		.loc 1 398 1 view .LVU2
+ 399:application/src/micro-ros/custom_memory_manager.c **** 
+ 400:application/src/micro-ros/custom_memory_manager.c **** 	/* Iterate through the list until a block is found that has a higher address
+ 401:application/src/micro-ros/custom_memory_manager.c **** 	than the block being inserted. */
+ 402:application/src/micro-ros/custom_memory_manager.c **** 	for( pxIterator = &xStart; pxIterator->pxNextFreeBlock < pxBlockToInsert; pxIterator = pxIterator-
+  37              		.loc 1 402 2 view .LVU3
+ 396:application/src/micro-ros/custom_memory_manager.c **** BlockLink_t *pxIterator;
+  38              		.loc 1 396 1 is_stmt 0 view .LVU4
+  39 0000 10B4     		push	{r4}
+  40              		.cfi_def_cfa_offset 4
+  41              		.cfi_offset 4, -4
+  42              		.loc 1 402 18 view .LVU5
+  43 0002 164B     		ldr	r3, .L13
+  44              	.LVL1:
+  45              	.L2:
+  46              		.loc 1 402 29 is_stmt 1 discriminator 1 view .LVU6
+  47 0004 1A46     		mov	r2, r3
+  48              		.loc 1 402 39 is_stmt 0 discriminator 1 view .LVU7
+  49 0006 1B68     		ldr	r3, [r3]
+  50              	.LVL2:
+  51              		.loc 1 402 2 discriminator 1 view .LVU8
+  52 0008 8342     		cmp	r3, r0
+  53 000a FBD3     		bcc	.L2
+ 403:application/src/micro-ros/custom_memory_manager.c **** 	{
+ARM GAS  /tmp/cceAUFZ1.s 			page 9
+
+
+ 404:application/src/micro-ros/custom_memory_manager.c **** 		/* Nothing to do here, just iterate to the right position. */
+ 405:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 406:application/src/micro-ros/custom_memory_manager.c **** 
+ 407:application/src/micro-ros/custom_memory_manager.c **** 	/* Do the block being inserted, and the block it is being inserted after
+ 408:application/src/micro-ros/custom_memory_manager.c **** 	make a contiguous block of memory? */
+ 409:application/src/micro-ros/custom_memory_manager.c **** 	puc = ( uint8_t * ) pxIterator;
+  54              		.loc 1 409 2 is_stmt 1 view .LVU9
+  55              	.LVL3:
+ 410:application/src/micro-ros/custom_memory_manager.c **** 	if( ( puc + pxIterator->xBlockSize ) == ( uint8_t * ) pxBlockToInsert )
+  56              		.loc 1 410 2 view .LVU10
+  57              		.loc 1 410 24 is_stmt 0 view .LVU11
+  58 000c 5168     		ldr	r1, [r2, #4]
+  59              		.loc 1 410 12 view .LVU12
+  60 000e 02EB010C 		add	ip, r2, r1
+  61              		.loc 1 410 4 view .LVU13
+  62 0012 6045     		cmp	r0, ip
+  63 0014 0BD0     		beq	.L3
+ 411:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 412:application/src/micro-ros/custom_memory_manager.c **** 		pxIterator->xBlockSize += pxBlockToInsert->xBlockSize;
+ 413:application/src/micro-ros/custom_memory_manager.c **** 		pxBlockToInsert = pxIterator;
+ 414:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 415:application/src/micro-ros/custom_memory_manager.c **** 	else
+ 416:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 417:application/src/micro-ros/custom_memory_manager.c **** 		mtCOVERAGE_TEST_MARKER();
+ 418:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 419:application/src/micro-ros/custom_memory_manager.c **** 
+ 420:application/src/micro-ros/custom_memory_manager.c **** 	/* Do the block being inserted, and the block it is being inserted before
+ 421:application/src/micro-ros/custom_memory_manager.c **** 	make a contiguous block of memory? */
+ 422:application/src/micro-ros/custom_memory_manager.c **** 	puc = ( uint8_t * ) pxBlockToInsert;
+ 423:application/src/micro-ros/custom_memory_manager.c **** 	if( ( puc + pxBlockToInsert->xBlockSize ) == ( uint8_t * ) pxIterator->pxNextFreeBlock )
+  64              		.loc 1 423 29 view .LVU14
+  65 0016 4168     		ldr	r1, [r0, #4]
+ 417:application/src/micro-ros/custom_memory_manager.c **** 	}
+  66              		.loc 1 417 27 is_stmt 1 view .LVU15
+ 422:application/src/micro-ros/custom_memory_manager.c **** 	if( ( puc + pxBlockToInsert->xBlockSize ) == ( uint8_t * ) pxIterator->pxNextFreeBlock )
+  67              		.loc 1 422 2 view .LVU16
+  68              	.LVL4:
+  69              		.loc 1 423 2 view .LVU17
+  70              		.loc 1 423 12 is_stmt 0 view .LVU18
+  71 0018 00EB010C 		add	ip, r0, r1
+  72              		.loc 1 423 4 view .LVU19
+  73 001c 6345     		cmp	r3, ip
+  74 001e 0ED0     		beq	.L12
+  75              	.L5:
+ 424:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 425:application/src/micro-ros/custom_memory_manager.c **** 		if( pxIterator->pxNextFreeBlock != pxEnd )
+ 426:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 427:application/src/micro-ros/custom_memory_manager.c **** 			/* Form one big block from the two blocks. */
+ 428:application/src/micro-ros/custom_memory_manager.c **** 			pxBlockToInsert->xBlockSize += pxIterator->pxNextFreeBlock->xBlockSize;
+ 429:application/src/micro-ros/custom_memory_manager.c **** 			pxBlockToInsert->pxNextFreeBlock = pxIterator->pxNextFreeBlock->pxNextFreeBlock;
+ 430:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 431:application/src/micro-ros/custom_memory_manager.c **** 		else
+ 432:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 433:application/src/micro-ros/custom_memory_manager.c **** 			pxBlockToInsert->pxNextFreeBlock = pxEnd;
+ 434:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 435:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 436:application/src/micro-ros/custom_memory_manager.c **** 	else
+ARM GAS  /tmp/cceAUFZ1.s 			page 10
+
+
+ 437:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 438:application/src/micro-ros/custom_memory_manager.c **** 		pxBlockToInsert->pxNextFreeBlock = pxIterator->pxNextFreeBlock;
+  76              		.loc 1 438 3 is_stmt 1 view .LVU20
+ 439:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 440:application/src/micro-ros/custom_memory_manager.c **** 
+ 441:application/src/micro-ros/custom_memory_manager.c **** 	/* If the block being inserted plugged a gab, so was merged with the block
+ 442:application/src/micro-ros/custom_memory_manager.c **** 	before and the block after, then it's pxNextFreeBlock pointer will have
+ 443:application/src/micro-ros/custom_memory_manager.c **** 	already been set, and should not be set here as that would make it point
+ 444:application/src/micro-ros/custom_memory_manager.c **** 	to itself. */
+ 445:application/src/micro-ros/custom_memory_manager.c **** 	if( pxIterator != pxBlockToInsert )
+  77              		.loc 1 445 4 is_stmt 0 view .LVU21
+  78 0020 9042     		cmp	r0, r2
+ 438:application/src/micro-ros/custom_memory_manager.c **** 	}
+  79              		.loc 1 438 36 view .LVU22
+  80 0022 0360     		str	r3, [r0]
+  81              		.loc 1 445 2 is_stmt 1 view .LVU23
+ 446:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 447:application/src/micro-ros/custom_memory_manager.c **** 		pxIterator->pxNextFreeBlock = pxBlockToInsert;
+  82              		.loc 1 447 3 view .LVU24
+ 448:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 449:application/src/micro-ros/custom_memory_manager.c **** 	else
+ 450:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 451:application/src/micro-ros/custom_memory_manager.c **** 		mtCOVERAGE_TEST_MARKER();
+ 452:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 453:application/src/micro-ros/custom_memory_manager.c **** }
+  83              		.loc 1 453 1 is_stmt 0 view .LVU25
+  84 0024 5DF8044B 		ldr	r4, [sp], #4
+  85              		.cfi_remember_state
+  86              		.cfi_restore 4
+  87              		.cfi_def_cfa_offset 0
+ 447:application/src/micro-ros/custom_memory_manager.c **** 	}
+  88              		.loc 1 447 31 view .LVU26
+  89 0028 18BF     		it	ne
+  90 002a 1060     		strne	r0, [r2]
+ 451:application/src/micro-ros/custom_memory_manager.c **** 	}
+  91              		.loc 1 451 27 is_stmt 1 view .LVU27
+  92              		.loc 1 453 1 is_stmt 0 view .LVU28
+  93 002c 7047     		bx	lr
+  94              	.LVL5:
+  95              	.L3:
+  96              		.cfi_restore_state
+ 412:application/src/micro-ros/custom_memory_manager.c **** 		pxBlockToInsert = pxIterator;
+  97              		.loc 1 412 3 is_stmt 1 view .LVU29
+ 412:application/src/micro-ros/custom_memory_manager.c **** 		pxBlockToInsert = pxIterator;
+  98              		.loc 1 412 26 is_stmt 0 view .LVU30
+  99 002e 4468     		ldr	r4, [r0, #4]
+ 100 0030 1046     		mov	r0, r2
+ 101              	.LVL6:
+ 412:application/src/micro-ros/custom_memory_manager.c **** 		pxBlockToInsert = pxIterator;
+ 102              		.loc 1 412 26 view .LVU31
+ 103 0032 2144     		add	r1, r1, r4
+ 423:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 104              		.loc 1 423 12 view .LVU32
+ 105 0034 00EB010C 		add	ip, r0, r1
+ 423:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 106              		.loc 1 423 4 view .LVU33
+ 107 0038 6345     		cmp	r3, ip
+ARM GAS  /tmp/cceAUFZ1.s 			page 11
+
+
+ 412:application/src/micro-ros/custom_memory_manager.c **** 		pxBlockToInsert = pxIterator;
+ 108              		.loc 1 412 26 view .LVU34
+ 109 003a 5160     		str	r1, [r2, #4]
+ 413:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 110              		.loc 1 413 3 is_stmt 1 view .LVU35
+ 111              	.LVL7:
+ 417:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 112              		.loc 1 417 27 view .LVU36
+ 422:application/src/micro-ros/custom_memory_manager.c **** 	if( ( puc + pxBlockToInsert->xBlockSize ) == ( uint8_t * ) pxIterator->pxNextFreeBlock )
+ 113              		.loc 1 422 2 view .LVU37
+ 423:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 114              		.loc 1 423 2 view .LVU38
+ 423:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 115              		.loc 1 423 4 is_stmt 0 view .LVU39
+ 116 003c F0D1     		bne	.L5
+ 117              	.L12:
+ 425:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 118              		.loc 1 425 3 is_stmt 1 view .LVU40
+ 425:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 119              		.loc 1 425 35 is_stmt 0 view .LVU41
+ 120 003e 084C     		ldr	r4, .L13+4
+ 121 0040 2468     		ldr	r4, [r4]
+ 425:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 122              		.loc 1 425 5 view .LVU42
+ 123 0042 A342     		cmp	r3, r4
+ 124 0044 ECD0     		beq	.L5
+ 428:application/src/micro-ros/custom_memory_manager.c **** 			pxBlockToInsert->pxNextFreeBlock = pxIterator->pxNextFreeBlock->pxNextFreeBlock;
+ 125              		.loc 1 428 4 is_stmt 1 view .LVU43
+ 429:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 126              		.loc 1 429 66 is_stmt 0 view .LVU44
+ 127 0046 D3E90034 		ldrd	r3, r4, [r3]
+ 445:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 128              		.loc 1 445 4 view .LVU45
+ 129 004a 9042     		cmp	r0, r2
+ 428:application/src/micro-ros/custom_memory_manager.c **** 			pxBlockToInsert->pxNextFreeBlock = pxIterator->pxNextFreeBlock->pxNextFreeBlock;
+ 130              		.loc 1 428 32 view .LVU46
+ 131 004c 2144     		add	r1, r1, r4
+ 429:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 132              		.loc 1 429 37 view .LVU47
+ 133 004e C0E90031 		strd	r3, r1, [r0]
+ 445:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 134              		.loc 1 445 2 is_stmt 1 view .LVU48
+ 447:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 135              		.loc 1 447 3 view .LVU49
+ 136              		.loc 1 453 1 is_stmt 0 view .LVU50
+ 137 0052 5DF8044B 		ldr	r4, [sp], #4
+ 138              		.cfi_restore 4
+ 139              		.cfi_def_cfa_offset 0
+ 447:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 140              		.loc 1 447 31 view .LVU51
+ 141 0056 18BF     		it	ne
+ 142 0058 1060     		strne	r0, [r2]
+ 451:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 143              		.loc 1 451 27 is_stmt 1 view .LVU52
+ 144              		.loc 1 453 1 is_stmt 0 view .LVU53
+ 145 005a 7047     		bx	lr
+ 146              	.L14:
+ARM GAS  /tmp/cceAUFZ1.s 			page 12
+
+
+ 147              		.align	2
+ 148              	.L13:
+ 149 005c 00000000 		.word	.LANCHOR0
+ 150 0060 00000000 		.word	.LANCHOR1
+ 151              		.cfi_endproc
+ 152              	.LFE14:
+ 154              		.section	.text.pvPortMallocMicroROS,"ax",%progbits
+ 155              		.align	1
+ 156              		.p2align 2,,3
+ 157              		.global	pvPortMallocMicroROS
+ 158              		.syntax unified
+ 159              		.thumb
+ 160              		.thumb_func
+ 162              	pvPortMallocMicroROS:
+ 163              	.LVL8:
+ 164              	.LFB5:
+  79:application/src/micro-ros/custom_memory_manager.c **** BlockLink_t *pxBlock, *pxPreviousBlock, *pxNewBlockLink;
+ 165              		.loc 1 79 1 is_stmt 1 view -0
+ 166              		.cfi_startproc
+ 167              		@ args = 0, pretend = 0, frame = 0
+ 168              		@ frame_needed = 0, uses_anonymous_args = 0
+  80:application/src/micro-ros/custom_memory_manager.c **** void *pvReturn = NULL;
+ 169              		.loc 1 80 1 view .LVU55
+  81:application/src/micro-ros/custom_memory_manager.c **** 
+ 170              		.loc 1 81 1 view .LVU56
+  83:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 171              		.loc 1 83 2 view .LVU57
+  79:application/src/micro-ros/custom_memory_manager.c **** BlockLink_t *pxBlock, *pxPreviousBlock, *pxNewBlockLink;
+ 172              		.loc 1 79 1 is_stmt 0 view .LVU58
+ 173 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 174              		.cfi_def_cfa_offset 24
+ 175              		.cfi_offset 4, -24
+ 176              		.cfi_offset 5, -20
+ 177              		.cfi_offset 6, -16
+ 178              		.cfi_offset 7, -12
+ 179              		.cfi_offset 8, -8
+ 180              		.cfi_offset 14, -4
+  87:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 181              		.loc 1 87 13 view .LVU59
+ 182 0004 404E     		ldr	r6, .L45
+  79:application/src/micro-ros/custom_memory_manager.c **** BlockLink_t *pxBlock, *pxPreviousBlock, *pxNewBlockLink;
+ 183              		.loc 1 79 1 view .LVU60
+ 184 0006 0446     		mov	r4, r0
+  83:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 185              		.loc 1 83 2 view .LVU61
+ 186 0008 FFF7FEFF 		bl	vTaskSuspendAll
+ 187              	.LVL9:
+  87:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 188              		.loc 1 87 3 is_stmt 1 view .LVU62
+  87:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 189              		.loc 1 87 5 is_stmt 0 view .LVU63
+ 190 000c 3368     		ldr	r3, [r6]
+ 191 000e 002B     		cmp	r3, #0
+ 192 0010 57D0     		beq	.L16
+ 100:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 193              		.loc 1 100 21 view .LVU64
+ 194 0012 3E4B     		ldr	r3, .L45+4
+ARM GAS  /tmp/cceAUFZ1.s 			page 13
+
+
+ 195 0014 1D68     		ldr	r5, [r3]
+ 196              	.L17:
+  93:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 197              		.loc 1 93 28 is_stmt 1 view .LVU65
+ 100:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 198              		.loc 1 100 3 view .LVU66
+ 100:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 199              		.loc 1 100 5 is_stmt 0 view .LVU67
+ 200 0016 2C42     		tst	r4, r5
+ 201 0018 2FD1     		bne	.L20
+ 104:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 202              		.loc 1 104 4 is_stmt 1 view .LVU68
+ 104:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 203              		.loc 1 104 6 is_stmt 0 view .LVU69
+ 204 001a 74B3     		cbz	r4, .L20
+ 106:application/src/micro-ros/custom_memory_manager.c **** 
+ 205              		.loc 1 106 5 is_stmt 1 view .LVU70
+ 106:application/src/micro-ros/custom_memory_manager.c **** 
+ 206              		.loc 1 106 17 is_stmt 0 view .LVU71
+ 207 001c 04F10801 		add	r1, r4, #8
+ 208              	.LVL10:
+ 110:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 209              		.loc 1 110 5 is_stmt 1 view .LVU72
+ 110:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 210              		.loc 1 110 7 is_stmt 0 view .LVU73
+ 211 0020 6007     		lsls	r0, r4, #29
+ 113:application/src/micro-ros/custom_memory_manager.c **** 					configASSERT( ( xWantedSize & portBYTE_ALIGNMENT_MASK ) == 0 );
+ 212              		.loc 1 113 6 is_stmt 1 view .LVU74
+ 113:application/src/micro-ros/custom_memory_manager.c **** 					configASSERT( ( xWantedSize & portBYTE_ALIGNMENT_MASK ) == 0 );
+ 213              		.loc 1 113 18 is_stmt 0 view .LVU75
+ 214 0022 1CBF     		itt	ne
+ 215 0024 21F00701 		bicne	r1, r1, #7
+ 216              	.LVL11:
+ 113:application/src/micro-ros/custom_memory_manager.c **** 					configASSERT( ( xWantedSize & portBYTE_ALIGNMENT_MASK ) == 0 );
+ 217              		.loc 1 113 18 view .LVU76
+ 218 0028 0831     		addne	r1, r1, #8
+ 219              	.LVL12:
+ 114:application/src/micro-ros/custom_memory_manager.c **** 				}
+ 220              		.loc 1 114 6 is_stmt 1 view .LVU77
+ 123:application/src/micro-ros/custom_memory_manager.c **** 			}
+ 221              		.loc 1 123 29 view .LVU78
+ 126:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 222              		.loc 1 126 4 view .LVU79
+ 126:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 223              		.loc 1 126 6 is_stmt 0 view .LVU80
+ 224 002a 31B3     		cbz	r1, .L20
+ 126:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 225              		.loc 1 126 45 discriminator 1 view .LVU81
+ 226 002c DFF8EC80 		ldr	r8, .L45+20
+ 227 0030 D8F80070 		ldr	r7, [r8]
+ 126:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 228              		.loc 1 126 28 discriminator 1 view .LVU82
+ 229 0034 8F42     		cmp	r7, r1
+ 230 0036 20D3     		bcc	.L20
+ 130:application/src/micro-ros/custom_memory_manager.c **** 				pxBlock = xStart.pxNextFreeBlock;
+ 231              		.loc 1 130 5 is_stmt 1 view .LVU83
+ 232              	.LVL13:
+ARM GAS  /tmp/cceAUFZ1.s 			page 14
+
+
+ 131:application/src/micro-ros/custom_memory_manager.c **** 				while( ( pxBlock->xBlockSize < xWantedSize ) && ( pxBlock->pxNextFreeBlock != NULL ) )
+ 233              		.loc 1 131 5 view .LVU84
+ 131:application/src/micro-ros/custom_memory_manager.c **** 				while( ( pxBlock->xBlockSize < xWantedSize ) && ( pxBlock->pxNextFreeBlock != NULL ) )
+ 234              		.loc 1 131 13 is_stmt 0 view .LVU85
+ 235 0038 3548     		ldr	r0, .L45+8
+ 236 003a 0468     		ldr	r4, [r0]
+ 237              	.LVL14:
+ 132:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 238              		.loc 1 132 5 is_stmt 1 view .LVU86
+ 132:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 239              		.loc 1 132 10 is_stmt 0 view .LVU87
+ 240 003c 03E0     		b	.L23
+ 241              	.LVL15:
+ 242              	.L44:
+ 132:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 243              		.loc 1 132 62 discriminator 1 view .LVU88
+ 244 003e 2368     		ldr	r3, [r4]
+ 132:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 245              		.loc 1 132 50 discriminator 1 view .LVU89
+ 246 0040 23B1     		cbz	r3, .L22
+ 132:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 247              		.loc 1 132 50 discriminator 1 view .LVU90
+ 248 0042 2046     		mov	r0, r4
+ 249 0044 1C46     		mov	r4, r3
+ 250              	.LVL16:
+ 251              	.L23:
+ 132:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 252              		.loc 1 132 10 is_stmt 1 view .LVU91
+ 132:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 253              		.loc 1 132 21 is_stmt 0 view .LVU92
+ 254 0046 6268     		ldr	r2, [r4, #4]
+ 132:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 255              		.loc 1 132 10 view .LVU93
+ 256 0048 8A42     		cmp	r2, r1
+ 257 004a F8D3     		bcc	.L44
+ 258              	.L22:
+ 140:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 259              		.loc 1 140 5 is_stmt 1 view .LVU94
+ 140:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 260              		.loc 1 140 7 is_stmt 0 view .LVU95
+ 261 004c 3368     		ldr	r3, [r6]
+ 262 004e A342     		cmp	r3, r4
+ 263 0050 13D0     		beq	.L20
+ 144:application/src/micro-ros/custom_memory_manager.c **** 
+ 264              		.loc 1 144 6 is_stmt 1 view .LVU96
+ 148:application/src/micro-ros/custom_memory_manager.c **** 
+ 265              		.loc 1 148 48 is_stmt 0 view .LVU97
+ 266 0052 2368     		ldr	r3, [r4]
+ 144:application/src/micro-ros/custom_memory_manager.c **** 
+ 267              		.loc 1 144 15 view .LVU98
+ 268 0054 0668     		ldr	r6, [r0]
+ 148:application/src/micro-ros/custom_memory_manager.c **** 
+ 269              		.loc 1 148 39 view .LVU99
+ 270 0056 0360     		str	r3, [r0]
+ 152:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 271              		.loc 1 152 32 view .LVU100
+ 272 0058 531A     		subs	r3, r2, r1
+ARM GAS  /tmp/cceAUFZ1.s 			page 15
+
+
+ 152:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 273              		.loc 1 152 8 view .LVU101
+ 274 005a 102B     		cmp	r3, #16
+ 144:application/src/micro-ros/custom_memory_manager.c **** 
+ 275              		.loc 1 144 15 view .LVU102
+ 276 005c 06F10806 		add	r6, r6, #8
+ 277              	.LVL17:
+ 148:application/src/micro-ros/custom_memory_manager.c **** 
+ 278              		.loc 1 148 6 is_stmt 1 view .LVU103
+ 152:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 279              		.loc 1 152 6 view .LVU104
+ 152:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 280              		.loc 1 152 8 is_stmt 0 view .LVU105
+ 281 0060 16D9     		bls	.L24
+ 158:application/src/micro-ros/custom_memory_manager.c **** 						configASSERT( ( ( ( size_t ) pxNewBlockLink ) & portBYTE_ALIGNMENT_MASK ) == 0 );
+ 282              		.loc 1 158 7 is_stmt 1 view .LVU106
+ 158:application/src/micro-ros/custom_memory_manager.c **** 						configASSERT( ( ( ( size_t ) pxNewBlockLink ) & portBYTE_ALIGNMENT_MASK ) == 0 );
+ 283              		.loc 1 158 22 is_stmt 0 view .LVU107
+ 284 0062 6018     		adds	r0, r4, r1
+ 285              	.LVL18:
+ 159:application/src/micro-ros/custom_memory_manager.c **** 
+ 286              		.loc 1 159 7 is_stmt 1 view .LVU108
+ 287 0064 4207     		lsls	r2, r0, #29
+ 288 0066 0ED0     		beq	.L25
+ 159:application/src/micro-ros/custom_memory_manager.c **** 
+ 289              		.loc 1 159 7 view .LVU109
+ 290              	.LBB21:
+ 291              	.LBI21:
+ 292              		.file 2 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h"
+   1:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*
+   2:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * FreeRTOS Kernel V10.3.1
+   3:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+   4:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+   5:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * Permission is hereby granted, free of charge, to any person obtaining a copy of
+   6:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * this software and associated documentation files (the "Software"), to deal in
+   7:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * the Software without restriction, including without limitation the rights to
+   8:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+   9:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * the Software, and to permit persons to whom the Software is furnished to do so,
+  10:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * subject to the following conditions:
+  11:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  12:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * The above copyright notice and this permission notice shall be included in all
+  13:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * copies or substantial portions of the Software.
+  14:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  15:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  16:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+  17:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+  18:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+  19:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  20:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  21:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  22:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * http://www.FreeRTOS.org
+  23:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * http://aws.amazon.com/freertos
+  24:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  25:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * 1 tab == 4 spaces!
+  26:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  */
+  27:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  28:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ARM GAS  /tmp/cceAUFZ1.s 			page 16
+
+
+  29:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifndef PORTMACRO_H
+  30:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define PORTMACRO_H
+  31:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  32:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifdef __cplusplus
+  33:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** extern "C" {
+  34:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+  35:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  36:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------
+  37:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * Port specific definitions.
+  38:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  39:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * The settings in this file configure FreeRTOS correctly for the
+  40:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * given hardware and compiler.
+  41:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *
+  42:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  * These settings should not be altered.
+  43:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  *-----------------------------------------------------------
+  44:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h ****  */
+  45:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  46:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Type definitions. */
+  47:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portCHAR		char
+  48:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portFLOAT		float
+  49:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portDOUBLE		double
+  50:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portLONG		long
+  51:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portSHORT		short
+  52:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portSTACK_TYPE	uint32_t
+  53:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portBASE_TYPE	long
+  54:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  55:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** typedef portSTACK_TYPE StackType_t;
+  56:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** typedef long BaseType_t;
+  57:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** typedef unsigned long UBaseType_t;
+  58:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  59:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #if( configUSE_16_BIT_TICKS == 1 )
+  60:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	typedef uint16_t TickType_t;
+  61:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portMAX_DELAY ( TickType_t ) 0xffff
+  62:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #else
+  63:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	typedef uint32_t TickType_t;
+  64:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portMAX_DELAY ( TickType_t ) 0xffffffffUL
+  65:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  66:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* 32-bit tick type on a 32-bit architecture, so reads of the tick count do
+  67:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	not need to be guarded with a critical section. */
+  68:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portTICK_TYPE_IS_ATOMIC 1
+  69:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+  70:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+  71:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  72:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Architecture specifics. */
+  73:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portSTACK_GROWTH			( -1 )
+  74:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portTICK_PERIOD_MS			( ( TickType_t ) 1000 / configTICK_RATE_HZ )
+  75:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portBYTE_ALIGNMENT			8
+  76:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+  77:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  78:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Scheduler utilities. */
+  79:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portYIELD() 															\
+  80:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {																				\
+  81:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Set a PendSV to request a context switch. */								\
+  82:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;								\
+  83:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 																				\
+  84:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Barriers are normally not required but do ensure the code is completely	\
+  85:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	within the specified behaviour for the architecture. */						\
+ARM GAS  /tmp/cceAUFZ1.s 			page 17
+
+
+  86:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__asm volatile( "dsb" ::: "memory" );										\
+  87:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__asm volatile( "isb" );													\
+  88:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+  89:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  90:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portNVIC_INT_CTRL_REG		( * ( ( volatile uint32_t * ) 0xe000ed04 ) )
+  91:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portNVIC_PENDSVSET_BIT		( 1UL << 28UL )
+  92:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portEND_SWITCHING_ISR( xSwitchRequired ) if( xSwitchRequired != pdFALSE ) portYIELD()
+  93:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portYIELD_FROM_ISR( x ) portEND_SWITCHING_ISR( x )
+  94:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+  95:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+  96:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Critical section management. */
+  97:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** extern void vPortEnterCritical( void );
+  98:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** extern void vPortExitCritical( void );
+  99:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portSET_INTERRUPT_MASK_FROM_ISR()		ulPortRaiseBASEPRI()
+ 100:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	vPortSetBASEPRI(x)
+ 101:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portDISABLE_INTERRUPTS()				vPortRaiseBASEPRI()
+ 102:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portENABLE_INTERRUPTS()					vPortSetBASEPRI(0)
+ 103:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portENTER_CRITICAL()					vPortEnterCritical()
+ 104:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portEXIT_CRITICAL()						vPortExitCritical()
+ 105:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 106:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ 107:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 108:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Task function macros as described on the FreeRTOS.org WEB site.  These are
+ 109:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** not necessary for to use this port.  They are defined so the common demo files
+ 110:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** (which build with all the ports) will build. */
+ 111:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portTASK_FUNCTION_PROTO( vFunction, pvParameters ) void vFunction( void *pvParameters )
+ 112:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portTASK_FUNCTION( vFunction, pvParameters ) void vFunction( void *pvParameters )
+ 113:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ 114:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 115:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Tickless idle/low power functionality. */
+ 116:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifndef portSUPPRESS_TICKS_AND_SLEEP
+ 117:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	extern void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime );
+ 118:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portSUPPRESS_TICKS_AND_SLEEP( xExpectedIdleTime ) vPortSuppressTicksAndSleep( xExpectedIdl
+ 119:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+ 120:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ 121:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 122:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* Architecture specific optimisations. */
+ 123:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifndef configUSE_PORT_OPTIMISED_TASK_SELECTION
+ 124:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
+ 125:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+ 126:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 127:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #if configUSE_PORT_OPTIMISED_TASK_SELECTION == 1
+ 128:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 129:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Generic helper function. */
+ 130:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__attribute__( ( always_inline ) ) static inline uint8_t ucPortCountLeadingZeros( uint32_t ulBitma
+ 131:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	{
+ 132:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	uint8_t ucReturn;
+ 133:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 134:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		__asm volatile ( "clz %0, %1" : "=r" ( ucReturn ) : "r" ( ulBitmap ) : "memory" );
+ 135:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		return ucReturn;
+ 136:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	}
+ 137:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 138:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Check the configuration. */
+ 139:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#if( configMAX_PRIORITIES > 32 )
+ 140:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		#error configUSE_PORT_OPTIMISED_TASK_SELECTION can only be set to 1 when configMAX_PRIORITIES is 
+ 141:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#endif
+ 142:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ARM GAS  /tmp/cceAUFZ1.s 			page 18
+
+
+ 143:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Store/clear the ready priorities in a bit map. */
+ 144:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portRECORD_READY_PRIORITY( uxPriority, uxReadyPriorities ) ( uxReadyPriorities ) |= ( 1UL 
+ 145:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portRESET_READY_PRIORITY( uxPriority, uxReadyPriorities ) ( uxReadyPriorities ) &= ~( 1UL 
+ 146:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 147:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/*-----------------------------------------------------------*/
+ 148:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 149:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31UL - ( ui
+ 150:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 151:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif /* configUSE_PORT_OPTIMISED_TASK_SELECTION */
+ 152:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 153:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ 154:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 155:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifdef configASSERT
+ 156:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	void vPortValidateInterruptPriority( void );
+ 157:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portASSERT_IF_INTERRUPT_PRIORITY_INVALID() 	vPortValidateInterruptPriority()
+ 158:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+ 159:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 160:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /* portNOP() is not required by this port. */
+ 161:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portNOP()
+ 162:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 163:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #define portINLINE	__inline
+ 164:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 165:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #ifndef portFORCE_INLINE
+ 166:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	#define portFORCE_INLINE inline __attribute__(( always_inline))
+ 167:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** #endif
+ 168:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 169:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** portFORCE_INLINE static BaseType_t xPortIsInsideInterrupt( void )
+ 170:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 171:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** uint32_t ulCurrentInterrupt;
+ 172:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** BaseType_t xReturn;
+ 173:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 174:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	/* Obtain the number of the currently executing interrupt. */
+ 175:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__asm volatile( "mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) :: "memory" );
+ 176:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 177:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	if( ulCurrentInterrupt == 0 )
+ 178:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	{
+ 179:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		xReturn = pdFALSE;
+ 180:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	}
+ 181:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	else
+ 182:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	{
+ 183:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 		xReturn = pdTRUE;
+ 184:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	}
+ 185:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 186:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	return xReturn;
+ 187:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** }
+ 188:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 189:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** /*-----------------------------------------------------------*/
+ 190:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 191:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** portFORCE_INLINE static void vPortRaiseBASEPRI( void )
+ 293              		.loc 2 191 30 view .LVU110
+ 294              	.LBB22:
+ 192:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 193:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** uint32_t ulNewBASEPRI;
+ 295              		.loc 2 193 1 view .LVU111
+ 194:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 195:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 	__asm volatile
+ 296              		.loc 2 195 2 view .LVU112
+ARM GAS  /tmp/cceAUFZ1.s 			page 19
+
+
+ 297              		.syntax unified
+ 298              	@ 195 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 299 0068 4FF05003 			mov r3, #80												
+ 300 006c 83F31188 		msr basepri, r3											
+ 301 0070 BFF36F8F 		isb														
+ 302 0074 BFF34F8F 		dsb														
+ 303              	
+ 304              	@ 0 "" 2
+ 305              	.LVL19:
+ 306              		.thumb
+ 307              		.syntax unified
+ 308              	.L26:
+ 309              		.loc 2 195 2 is_stmt 0 view .LVU113
+ 310              	.LBE22:
+ 311              	.LBE21:
+ 159:application/src/micro-ros/custom_memory_manager.c **** 
+ 312              		.loc 1 159 7 is_stmt 1 discriminator 3 view .LVU114
+ 159:application/src/micro-ros/custom_memory_manager.c **** 
+ 313              		.loc 1 159 7 discriminator 3 view .LVU115
+ 159:application/src/micro-ros/custom_memory_manager.c **** 
+ 314              		.loc 1 159 7 discriminator 3 view .LVU116
+ 159:application/src/micro-ros/custom_memory_manager.c **** 
+ 315              		.loc 1 159 7 discriminator 3 view .LVU117
+ 159:application/src/micro-ros/custom_memory_manager.c **** 
+ 316              		.loc 1 159 7 discriminator 3 view .LVU118
+ 159:application/src/micro-ros/custom_memory_manager.c **** 
+ 317              		.loc 1 159 7 discriminator 3 view .LVU119
+ 318 0078 FEE7     		b	.L26
+ 319              	.LVL20:
+ 320              	.L20:
+ 202:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 321              		.loc 1 202 28 view .LVU120
+ 205:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 322              		.loc 1 205 39 view .LVU121
+ 207:application/src/micro-ros/custom_memory_manager.c **** 
+ 323              		.loc 1 207 2 view .LVU122
+ 207:application/src/micro-ros/custom_memory_manager.c **** 
+ 324              		.loc 1 207 11 is_stmt 0 view .LVU123
+ 325 007a FFF7FEFF 		bl	xTaskResumeAll
+ 326              	.LVL21:
+ 223:application/src/micro-ros/custom_memory_manager.c **** 	return pvReturn;
+ 327              		.loc 1 223 2 is_stmt 1 view .LVU124
+ 207:application/src/micro-ros/custom_memory_manager.c **** 
+ 328              		.loc 1 207 11 is_stmt 0 view .LVU125
+ 329 007e 0026     		movs	r6, #0
+ 330              	.LVL22:
+ 331              	.L15:
+ 225:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 332              		.loc 1 225 1 view .LVU126
+ 333 0080 3046     		mov	r0, r6
+ 334 0082 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 335              	.LVL23:
+ 336              	.L25:
+ 159:application/src/micro-ros/custom_memory_manager.c **** 
+ 337              		.loc 1 159 87 is_stmt 1 discriminator 2 view .LVU127
+ 163:application/src/micro-ros/custom_memory_manager.c **** 						pxBlock->xBlockSize = xWantedSize;
+ 338              		.loc 1 163 7 discriminator 2 view .LVU128
+ARM GAS  /tmp/cceAUFZ1.s 			page 20
+
+
+ 163:application/src/micro-ros/custom_memory_manager.c **** 						pxBlock->xBlockSize = xWantedSize;
+ 339              		.loc 1 163 34 is_stmt 0 discriminator 2 view .LVU129
+ 340 0086 4360     		str	r3, [r0, #4]
+ 164:application/src/micro-ros/custom_memory_manager.c **** 
+ 341              		.loc 1 164 7 is_stmt 1 discriminator 2 view .LVU130
+ 164:application/src/micro-ros/custom_memory_manager.c **** 
+ 342              		.loc 1 164 27 is_stmt 0 discriminator 2 view .LVU131
+ 343 0088 6160     		str	r1, [r4, #4]
+ 167:application/src/micro-ros/custom_memory_manager.c **** 					}
+ 344              		.loc 1 167 7 is_stmt 1 discriminator 2 view .LVU132
+ 345 008a FFF7FEFF 		bl	prvInsertBlockIntoFreeList
+ 346              	.LVL24:
+ 174:application/src/micro-ros/custom_memory_manager.c **** 
+ 347              		.loc 1 174 36 is_stmt 0 discriminator 2 view .LVU133
+ 348 008e 6268     		ldr	r2, [r4, #4]
+ 349              	.LVL25:
+ 350              	.L24:
+ 171:application/src/micro-ros/custom_memory_manager.c **** 					}
+ 351              		.loc 1 171 31 is_stmt 1 view .LVU134
+ 174:application/src/micro-ros/custom_memory_manager.c **** 
+ 352              		.loc 1 174 6 view .LVU135
+ 176:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 353              		.loc 1 176 30 is_stmt 0 view .LVU136
+ 354 0090 204B     		ldr	r3, .L45+12
+ 176:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 355              		.loc 1 176 8 view .LVU137
+ 356 0092 1968     		ldr	r1, [r3]
+ 174:application/src/micro-ros/custom_memory_manager.c **** 
+ 357              		.loc 1 174 26 view .LVU138
+ 358 0094 BF1A     		subs	r7, r7, r2
+ 176:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 359              		.loc 1 176 8 view .LVU139
+ 360 0096 8F42     		cmp	r7, r1
+ 178:application/src/micro-ros/custom_memory_manager.c **** 					}
+ 361              		.loc 1 178 38 view .LVU140
+ 362 0098 38BF     		it	cc
+ 363 009a 1F60     		strcc	r7, [r3]
+ 187:application/src/micro-ros/custom_memory_manager.c **** 					pxBlock->pxNextFreeBlock = NULL;
+ 364              		.loc 1 187 26 view .LVU141
+ 365 009c 2A43     		orrs	r2, r2, r5
+ 188:application/src/micro-ros/custom_memory_manager.c **** 				}
+ 366              		.loc 1 188 31 view .LVU142
+ 367 009e 0023     		movs	r3, #0
+ 368 00a0 C4E90032 		strd	r3, r2, [r4]
+ 174:application/src/micro-ros/custom_memory_manager.c **** 
+ 369              		.loc 1 174 26 view .LVU143
+ 370 00a4 C8F80070 		str	r7, [r8]
+ 176:application/src/micro-ros/custom_memory_manager.c **** 					{
+ 371              		.loc 1 176 6 is_stmt 1 view .LVU144
+ 178:application/src/micro-ros/custom_memory_manager.c **** 					}
+ 372              		.loc 1 178 7 view .LVU145
+ 182:application/src/micro-ros/custom_memory_manager.c **** 					}
+ 373              		.loc 1 182 31 view .LVU146
+ 187:application/src/micro-ros/custom_memory_manager.c **** 					pxBlock->pxNextFreeBlock = NULL;
+ 374              		.loc 1 187 6 view .LVU147
+ 202:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 375              		.loc 1 202 28 view .LVU148
+ARM GAS  /tmp/cceAUFZ1.s 			page 21
+
+
+ 205:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 376              		.loc 1 205 39 view .LVU149
+ 207:application/src/micro-ros/custom_memory_manager.c **** 
+ 377              		.loc 1 207 2 view .LVU150
+ 207:application/src/micro-ros/custom_memory_manager.c **** 
+ 378              		.loc 1 207 11 is_stmt 0 view .LVU151
+ 379 00a8 FFF7FEFF 		bl	xTaskResumeAll
+ 380              	.LVL26:
+ 223:application/src/micro-ros/custom_memory_manager.c **** 	return pvReturn;
+ 381              		.loc 1 223 2 is_stmt 1 view .LVU152
+ 382 00ac 7307     		lsls	r3, r6, #29
+ 383 00ae E7D0     		beq	.L15
+ 223:application/src/micro-ros/custom_memory_manager.c **** 	return pvReturn;
+ 384              		.loc 1 223 2 view .LVU153
+ 385              	.LBB23:
+ 386              	.LBI23:
+ 191:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 387              		.loc 2 191 30 view .LVU154
+ 388              	.LBB24:
+ 193:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 389              		.loc 2 193 1 view .LVU155
+ 390              		.loc 2 195 2 view .LVU156
+ 391              		.syntax unified
+ 392              	@ 195 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 393 00b0 4FF05003 			mov r3, #80												
+ 394 00b4 83F31188 		msr basepri, r3											
+ 395 00b8 BFF36F8F 		isb														
+ 396 00bc BFF34F8F 		dsb														
+ 397              	
+ 398              	@ 0 "" 2
+ 399              	.LVL27:
+ 400              		.thumb
+ 401              		.syntax unified
+ 402              	.L29:
+ 403              		.loc 2 195 2 is_stmt 0 view .LVU157
+ 404              	.LBE24:
+ 405              	.LBE23:
+ 223:application/src/micro-ros/custom_memory_manager.c **** 	return pvReturn;
+ 406              		.loc 1 223 2 is_stmt 1 discriminator 5 view .LVU158
+ 223:application/src/micro-ros/custom_memory_manager.c **** 	return pvReturn;
+ 407              		.loc 1 223 2 discriminator 5 view .LVU159
+ 223:application/src/micro-ros/custom_memory_manager.c **** 	return pvReturn;
+ 408              		.loc 1 223 2 discriminator 5 view .LVU160
+ 223:application/src/micro-ros/custom_memory_manager.c **** 	return pvReturn;
+ 409              		.loc 1 223 2 discriminator 5 view .LVU161
+ 223:application/src/micro-ros/custom_memory_manager.c **** 	return pvReturn;
+ 410              		.loc 1 223 2 discriminator 5 view .LVU162
+ 223:application/src/micro-ros/custom_memory_manager.c **** 	return pvReturn;
+ 411              		.loc 1 223 2 discriminator 5 view .LVU163
+ 412 00c0 FEE7     		b	.L29
+ 413              	.LVL28:
+ 414              	.L16:
+  89:application/src/micro-ros/custom_memory_manager.c **** 		}
+ 415              		.loc 1 89 4 view .LVU164
+ 416              	.LBB25:
+ 417              	.LBI25:
+ 347:application/src/micro-ros/custom_memory_manager.c **** {
+ARM GAS  /tmp/cceAUFZ1.s 			page 22
+
+
+ 418              		.loc 1 347 13 view .LVU165
+ 419              	.LBB26:
+ 349:application/src/micro-ros/custom_memory_manager.c **** uint8_t *pucAlignedHeap;
+ 420              		.loc 1 349 1 view .LVU166
+ 350:application/src/micro-ros/custom_memory_manager.c **** size_t uxAddress;
+ 421              		.loc 1 350 1 view .LVU167
+ 351:application/src/micro-ros/custom_memory_manager.c **** size_t xTotalHeapSize = configTOTAL_HEAP_SIZE;
+ 422              		.loc 1 351 1 view .LVU168
+ 352:application/src/micro-ros/custom_memory_manager.c **** 
+ 423              		.loc 1 352 1 view .LVU169
+ 355:application/src/micro-ros/custom_memory_manager.c **** 
+ 424              		.loc 1 355 2 view .LVU170
+ 355:application/src/micro-ros/custom_memory_manager.c **** 
+ 425              		.loc 1 355 12 is_stmt 0 view .LVU171
+ 426 00c2 154B     		ldr	r3, .L45+16
+ 427              	.LVL29:
+ 357:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 428              		.loc 1 357 2 is_stmt 1 view .LVU172
+ 387:application/src/micro-ros/custom_memory_manager.c **** 	xFreeBytesRemaining = pxFirstFreeBlock->xBlockSize;
+ 429              		.loc 1 387 33 is_stmt 0 view .LVU173
+ 430 00c4 1348     		ldr	r0, .L45+12
+ 391:application/src/micro-ros/custom_memory_manager.c **** }
+ 431              		.loc 1 391 21 view .LVU174
+ 432 00c6 114F     		ldr	r7, .L45+4
+ 357:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 433              		.loc 1 357 4 view .LVU175
+ 434 00c8 5D07     		lsls	r5, r3, #29
+ 359:application/src/micro-ros/custom_memory_manager.c **** 		uxAddress &= ~( ( size_t ) portBYTE_ALIGNMENT_MASK );
+ 435              		.loc 1 359 13 view .LVU176
+ 436 00ca 14BF     		ite	ne
+ 437 00cc DA1D     		addne	r2, r3, #7
+ 373:application/src/micro-ros/custom_memory_manager.c **** 	uxAddress -= xHeapStructSize;
+ 438              		.loc 1 373 12 view .LVU177
+ 439 00ce 1A46     		moveq	r2, r3
+ 359:application/src/micro-ros/custom_memory_manager.c **** 		uxAddress &= ~( ( size_t ) portBYTE_ALIGNMENT_MASK );
+ 440              		.loc 1 359 3 is_stmt 1 view .LVU178
+ 441              	.LVL30:
+ 360:application/src/micro-ros/custom_memory_manager.c **** 		xTotalHeapSize -= uxAddress - ( size_t ) ucHeap;
+ 442              		.loc 1 360 3 view .LVU179
+ 443 00d0 03F58043 		add	r3, r3, #16384
+ 374:application/src/micro-ros/custom_memory_manager.c **** 	uxAddress &= ~( ( size_t ) portBYTE_ALIGNMENT_MASK );
+ 444              		.loc 1 374 12 is_stmt 0 view .LVU180
+ 445 00d4 A3F10803 		sub	r3, r3, #8
+ 375:application/src/micro-ros/custom_memory_manager.c **** 	pxEnd = ( void * ) uxAddress;
+ 446              		.loc 1 375 12 view .LVU181
+ 447 00d8 23F00703 		bic	r3, r3, #7
+ 360:application/src/micro-ros/custom_memory_manager.c **** 		xTotalHeapSize -= uxAddress - ( size_t ) ucHeap;
+ 448              		.loc 1 360 13 view .LVU182
+ 449 00dc 18BF     		it	ne
+ 450 00de 22F00702 		bicne	r2, r2, #7
+ 451              	.LVL31:
+ 361:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 452              		.loc 1 361 3 is_stmt 1 view .LVU183
+ 364:application/src/micro-ros/custom_memory_manager.c **** 
+ 453              		.loc 1 364 17 is_stmt 0 view .LVU184
+ 454 00e2 1146     		mov	r1, r2
+ 364:application/src/micro-ros/custom_memory_manager.c **** 
+ARM GAS  /tmp/cceAUFZ1.s 			page 23
+
+
+ 455              		.loc 1 364 2 is_stmt 1 view .LVU185
+ 456              	.LVL32:
+ 368:application/src/micro-ros/custom_memory_manager.c **** 	xStart.xBlockSize = ( size_t ) 0;
+ 457              		.loc 1 368 2 view .LVU186
+ 383:application/src/micro-ros/custom_memory_manager.c **** 	pxFirstFreeBlock->pxNextFreeBlock = pxEnd;
+ 458              		.loc 1 383 43 is_stmt 0 view .LVU187
+ 459 00e4 9A1A     		subs	r2, r3, r2
+ 460              	.LVL33:
+ 387:application/src/micro-ros/custom_memory_manager.c **** 	xFreeBytesRemaining = pxFirstFreeBlock->xBlockSize;
+ 461              		.loc 1 387 33 view .LVU188
+ 462 00e6 0260     		str	r2, [r0]
+ 388:application/src/micro-ros/custom_memory_manager.c **** 
+ 463              		.loc 1 388 22 view .LVU189
+ 464 00e8 0C48     		ldr	r0, .L45+20
+ 368:application/src/micro-ros/custom_memory_manager.c **** 	xStart.xBlockSize = ( size_t ) 0;
+ 465              		.loc 1 368 25 view .LVU190
+ 466 00ea 094D     		ldr	r5, .L45+8
+ 388:application/src/micro-ros/custom_memory_manager.c **** 
+ 467              		.loc 1 388 22 view .LVU191
+ 468 00ec 0260     		str	r2, [r0]
+ 369:application/src/micro-ros/custom_memory_manager.c **** 
+ 469              		.loc 1 369 20 view .LVU192
+ 470 00ee 0020     		movs	r0, #0
+ 368:application/src/micro-ros/custom_memory_manager.c **** 	xStart.xBlockSize = ( size_t ) 0;
+ 471              		.loc 1 368 25 view .LVU193
+ 472 00f0 2960     		str	r1, [r5]
+ 369:application/src/micro-ros/custom_memory_manager.c **** 
+ 473              		.loc 1 369 2 is_stmt 1 view .LVU194
+ 369:application/src/micro-ros/custom_memory_manager.c **** 
+ 474              		.loc 1 369 20 is_stmt 0 view .LVU195
+ 475 00f2 6860     		str	r0, [r5, #4]
+ 373:application/src/micro-ros/custom_memory_manager.c **** 	uxAddress -= xHeapStructSize;
+ 476              		.loc 1 373 2 is_stmt 1 view .LVU196
+ 477              	.LVL34:
+ 374:application/src/micro-ros/custom_memory_manager.c **** 	uxAddress &= ~( ( size_t ) portBYTE_ALIGNMENT_MASK );
+ 478              		.loc 1 374 2 view .LVU197
+ 375:application/src/micro-ros/custom_memory_manager.c **** 	pxEnd = ( void * ) uxAddress;
+ 479              		.loc 1 375 2 view .LVU198
+ 376:application/src/micro-ros/custom_memory_manager.c **** 	pxEnd->xBlockSize = 0;
+ 480              		.loc 1 376 2 view .LVU199
+ 377:application/src/micro-ros/custom_memory_manager.c **** 	pxEnd->pxNextFreeBlock = NULL;
+ 481              		.loc 1 377 2 view .LVU200
+ 391:application/src/micro-ros/custom_memory_manager.c **** }
+ 482              		.loc 1 391 21 is_stmt 0 view .LVU201
+ 483 00f4 4FF00045 		mov	r5, #-2147483648
+ 378:application/src/micro-ros/custom_memory_manager.c **** 
+ 484              		.loc 1 378 25 view .LVU202
+ 485 00f8 C3E90000 		strd	r0, r0, [r3]
+ 382:application/src/micro-ros/custom_memory_manager.c **** 	pxFirstFreeBlock->xBlockSize = uxAddress - ( size_t ) pxFirstFreeBlock;
+ 486              		.loc 1 382 2 is_stmt 1 view .LVU203
+ 487              	.LVL35:
+ 383:application/src/micro-ros/custom_memory_manager.c **** 	pxFirstFreeBlock->pxNextFreeBlock = pxEnd;
+ 488              		.loc 1 383 2 view .LVU204
+ 376:application/src/micro-ros/custom_memory_manager.c **** 	pxEnd->xBlockSize = 0;
+ 489              		.loc 1 376 8 is_stmt 0 view .LVU205
+ 490 00fc 3360     		str	r3, [r6]
+ 384:application/src/micro-ros/custom_memory_manager.c **** 
+ARM GAS  /tmp/cceAUFZ1.s 			page 24
+
+
+ 491              		.loc 1 384 36 view .LVU206
+ 492 00fe C1E90032 		strd	r3, r2, [r1]
+ 387:application/src/micro-ros/custom_memory_manager.c **** 	xFreeBytesRemaining = pxFirstFreeBlock->xBlockSize;
+ 493              		.loc 1 387 2 is_stmt 1 view .LVU207
+ 388:application/src/micro-ros/custom_memory_manager.c **** 
+ 494              		.loc 1 388 2 view .LVU208
+ 391:application/src/micro-ros/custom_memory_manager.c **** }
+ 495              		.loc 1 391 2 view .LVU209
+ 391:application/src/micro-ros/custom_memory_manager.c **** }
+ 496              		.loc 1 391 21 is_stmt 0 view .LVU210
+ 497 0102 3D60     		str	r5, [r7]
+ 392:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 498              		.loc 1 392 1 view .LVU211
+ 499 0104 87E7     		b	.L17
+ 500              	.L46:
+ 501 0106 00BF     		.align	2
+ 502              	.L45:
+ 503 0108 00000000 		.word	.LANCHOR1
+ 504 010c 00000000 		.word	.LANCHOR2
+ 505 0110 00000000 		.word	.LANCHOR0
+ 506 0114 00000000 		.word	.LANCHOR3
+ 507 0118 00000000 		.word	ucHeap
+ 508 011c 00000000 		.word	.LANCHOR4
+ 509              	.LBE26:
+ 510              	.LBE25:
+ 511              		.cfi_endproc
+ 512              	.LFE5:
+ 514              		.section	.text.vPortFreeMicroROS,"ax",%progbits
+ 515              		.align	1
+ 516              		.p2align 2,,3
+ 517              		.global	vPortFreeMicroROS
+ 518              		.syntax unified
+ 519              		.thumb
+ 520              		.thumb_func
+ 522              	vPortFreeMicroROS:
+ 523              	.LVL36:
+ 524              	.LFB6:
+ 229:application/src/micro-ros/custom_memory_manager.c **** uint8_t *puc = ( uint8_t * ) pv;
+ 525              		.loc 1 229 1 is_stmt 1 view -0
+ 526              		.cfi_startproc
+ 527              		@ args = 0, pretend = 0, frame = 8
+ 528              		@ frame_needed = 0, uses_anonymous_args = 0
+ 230:application/src/micro-ros/custom_memory_manager.c **** BlockLink_t *pxLink;
+ 529              		.loc 1 230 1 view .LVU213
+ 231:application/src/micro-ros/custom_memory_manager.c **** 
+ 530              		.loc 1 231 1 view .LVU214
+ 233:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 531              		.loc 1 233 2 view .LVU215
+ 233:application/src/micro-ros/custom_memory_manager.c **** 	{
+ 532              		.loc 1 233 4 is_stmt 0 view .LVU216
+ 533 0000 D0B1     		cbz	r0, .L47
+ 237:application/src/micro-ros/custom_memory_manager.c **** 
+ 534              		.loc 1 237 3 is_stmt 1 view .LVU217
+ 535              	.LVL37:
+ 240:application/src/micro-ros/custom_memory_manager.c **** 
+ 536              		.loc 1 240 3 view .LVU218
+ 243:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ARM GAS  /tmp/cceAUFZ1.s 			page 25
+
+
+ 537              		.loc 1 243 3 view .LVU219
+ 538 0002 1A4A     		ldr	r2, .L56
+ 539 0004 50F8043C 		ldr	r3, [r0, #-4]
+ 540 0008 1268     		ldr	r2, [r2]
+ 541 000a 1342     		tst	r3, r2
+ 542 000c 0BD0     		beq	.L55
+ 243:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 543              		.loc 1 243 67 discriminator 2 view .LVU220
+ 244:application/src/micro-ros/custom_memory_manager.c **** 
+ 544              		.loc 1 244 3 discriminator 2 view .LVU221
+ 545 000e 50F8081C 		ldr	r1, [r0, #-8]
+ 546 0012 91B1     		cbz	r1, .L51
+ 244:application/src/micro-ros/custom_memory_manager.c **** 
+ 547              		.loc 1 244 3 view .LVU222
+ 548              	.LBB27:
+ 549              	.LBI27:
+ 191:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 550              		.loc 2 191 30 view .LVU223
+ 551              	.LBB28:
+ 193:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 552              		.loc 2 193 1 view .LVU224
+ 553              		.loc 2 195 2 view .LVU225
+ 554              		.syntax unified
+ 555              	@ 195 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 556 0014 4FF05003 			mov r3, #80												
+ 557 0018 83F31188 		msr basepri, r3											
+ 558 001c BFF36F8F 		isb														
+ 559 0020 BFF34F8F 		dsb														
+ 560              	
+ 561              	@ 0 "" 2
+ 562              	.LVL38:
+ 563              		.thumb
+ 564              		.syntax unified
+ 565              	.L52:
+ 566              		.loc 2 195 2 is_stmt 0 view .LVU226
+ 567              	.LBE28:
+ 568              	.LBE27:
+ 244:application/src/micro-ros/custom_memory_manager.c **** 
+ 569              		.loc 1 244 3 is_stmt 1 discriminator 2 view .LVU227
+ 244:application/src/micro-ros/custom_memory_manager.c **** 
+ 570              		.loc 1 244 3 discriminator 2 view .LVU228
+ 244:application/src/micro-ros/custom_memory_manager.c **** 
+ 571              		.loc 1 244 3 discriminator 2 view .LVU229
+ 244:application/src/micro-ros/custom_memory_manager.c **** 
+ 572              		.loc 1 244 3 discriminator 2 view .LVU230
+ 244:application/src/micro-ros/custom_memory_manager.c **** 
+ 573              		.loc 1 244 3 discriminator 2 view .LVU231
+ 244:application/src/micro-ros/custom_memory_manager.c **** 
+ 574              		.loc 1 244 3 discriminator 2 view .LVU232
+ 575 0024 FEE7     		b	.L52
+ 576              	.L55:
+ 243:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 577              		.loc 1 243 3 view .LVU233
+ 578              	.LBB29:
+ 579              	.LBI29:
+ 191:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** {
+ 580              		.loc 2 191 30 view .LVU234
+ARM GAS  /tmp/cceAUFZ1.s 			page 26
+
+
+ 581              	.LBB30:
+ 193:Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h **** 
+ 582              		.loc 2 193 1 view .LVU235
+ 583              		.loc 2 195 2 view .LVU236
+ 584              		.syntax unified
+ 585              	@ 195 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h" 1
+ 586 0026 4FF05003 			mov r3, #80												
+ 587 002a 83F31188 		msr basepri, r3											
+ 588 002e BFF36F8F 		isb														
+ 589 0032 BFF34F8F 		dsb														
+ 590              	
+ 591              	@ 0 "" 2
+ 592              	.LVL39:
+ 593              		.thumb
+ 594              		.syntax unified
+ 595              	.L50:
+ 596              		.loc 2 195 2 is_stmt 0 view .LVU237
+ 597              	.LBE30:
+ 598              	.LBE29:
+ 243:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 599              		.loc 1 243 3 is_stmt 1 discriminator 1 view .LVU238
+ 243:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 600              		.loc 1 243 3 discriminator 1 view .LVU239
+ 243:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 601              		.loc 1 243 3 discriminator 1 view .LVU240
+ 243:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 602              		.loc 1 243 3 discriminator 1 view .LVU241
+ 243:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 603              		.loc 1 243 3 discriminator 1 view .LVU242
+ 243:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 604              		.loc 1 243 3 discriminator 1 view .LVU243
+ 605 0036 FEE7     		b	.L50
+ 606              	.LVL40:
+ 607              	.L47:
+ 243:application/src/micro-ros/custom_memory_manager.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 608              		.loc 1 243 3 is_stmt 0 discriminator 1 view .LVU244
+ 609 0038 7047     		bx	lr
+ 610              	.LVL41:
+ 611              	.L51:
+ 244:application/src/micro-ros/custom_memory_manager.c **** 
+ 612              		.loc 1 244 50 is_stmt 1 view .LVU245
+ 246:application/src/micro-ros/custom_memory_manager.c **** 		{
+ 613              		.loc 1 246 3 view .LVU246
+ 248:application/src/micro-ros/custom_memory_manager.c **** 			{
+ 614              		.loc 1 248 4 view .LVU247
+ 252:application/src/micro-ros/custom_memory_manager.c **** 
+ 615              		.loc 1 252 5 view .LVU248
+ 229:application/src/micro-ros/custom_memory_manager.c **** uint8_t *puc = ( uint8_t * ) pv;
+ 616              		.loc 1 229 1 is_stmt 0 view .LVU249
+ 617 003a 00B5     		push	{lr}
+ 618              		.cfi_def_cfa_offset 4
+ 619              		.cfi_offset 14, -4
+ 252:application/src/micro-ros/custom_memory_manager.c **** 
+ 620              		.loc 1 252 24 view .LVU250
+ 621 003c 23EA0203 		bic	r3, r3, r2
+ 229:application/src/micro-ros/custom_memory_manager.c **** uint8_t *puc = ( uint8_t * ) pv;
+ 622              		.loc 1 229 1 view .LVU251
+ARM GAS  /tmp/cceAUFZ1.s 			page 27
+
+
+ 623 0040 83B0     		sub	sp, sp, #12
+ 624              		.cfi_def_cfa_offset 16
+ 252:application/src/micro-ros/custom_memory_manager.c **** 
+ 625              		.loc 1 252 24 view .LVU252
+ 626 0042 40F8043C 		str	r3, [r0, #-4]
+ 627 0046 0190     		str	r0, [sp, #4]
+ 254:application/src/micro-ros/custom_memory_manager.c **** 				{
+ 628              		.loc 1 254 5 is_stmt 1 view .LVU253
+ 629 0048 FFF7FEFF 		bl	vTaskSuspendAll
+ 630              	.LVL42:
+ 257:application/src/micro-ros/custom_memory_manager.c **** 					traceFREE( pv, pxLink->xBlockSize );
+ 631              		.loc 1 257 6 view .LVU254
+ 257:application/src/micro-ros/custom_memory_manager.c **** 					traceFREE( pv, pxLink->xBlockSize );
+ 632              		.loc 1 257 26 is_stmt 0 view .LVU255
+ 633 004c 084A     		ldr	r2, .L56+4
+ 634 004e 0198     		ldr	r0, [sp, #4]
+ 635 0050 1168     		ldr	r1, [r2]
+ 636 0052 50F8043C 		ldr	r3, [r0, #-4]
+ 259:application/src/micro-ros/custom_memory_manager.c **** 				}
+ 637              		.loc 1 259 6 view .LVU256
+ 638 0056 0838     		subs	r0, r0, #8
+ 257:application/src/micro-ros/custom_memory_manager.c **** 					traceFREE( pv, pxLink->xBlockSize );
+ 639              		.loc 1 257 26 view .LVU257
+ 640 0058 0B44     		add	r3, r3, r1
+ 641 005a 1360     		str	r3, [r2]
+ 258:application/src/micro-ros/custom_memory_manager.c **** 					prvInsertBlockIntoFreeList( ( ( BlockLink_t * ) pxLink ) );
+ 642              		.loc 1 258 41 is_stmt 1 view .LVU258
+ 259:application/src/micro-ros/custom_memory_manager.c **** 				}
+ 643              		.loc 1 259 6 view .LVU259
+ 644 005c FFF7FEFF 		bl	prvInsertBlockIntoFreeList
+ 645              	.LVL43:
+ 261:application/src/micro-ros/custom_memory_manager.c **** 			}
+ 646              		.loc 1 261 5 view .LVU260
+ 273:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 647              		.loc 1 273 1 is_stmt 0 view .LVU261
+ 648 0060 03B0     		add	sp, sp, #12
+ 649              		.cfi_def_cfa_offset 4
+ 650              		@ sp needed
+ 651 0062 5DF804EB 		ldr	lr, [sp], #4
+ 652              		.cfi_restore 14
+ 653              		.cfi_def_cfa_offset 0
+ 654              	.LVL44:
+ 261:application/src/micro-ros/custom_memory_manager.c **** 			}
+ 655              		.loc 1 261 14 view .LVU262
+ 656 0066 FFF7FEBF 		b	xTaskResumeAll
+ 657              	.LVL45:
+ 658              	.L57:
+ 659 006a 00BF     		.align	2
+ 660              	.L56:
+ 661 006c 00000000 		.word	.LANCHOR2
+ 662 0070 00000000 		.word	.LANCHOR4
+ 663              		.cfi_endproc
+ 664              	.LFE6:
+ 666              		.section	.text.getBlockSize,"ax",%progbits
+ 667              		.align	1
+ 668              		.p2align 2,,3
+ 669              		.global	getBlockSize
+ARM GAS  /tmp/cceAUFZ1.s 			page 28
+
+
+ 670              		.syntax unified
+ 671              		.thumb
+ 672              		.thumb_func
+ 674              	getBlockSize:
+ 675              	.LVL46:
+ 676              	.LFB7:
+ 278:application/src/micro-ros/custom_memory_manager.c **** 
+ 677              		.loc 1 278 1 is_stmt 1 view -0
+ 678              		.cfi_startproc
+ 679              		@ args = 0, pretend = 0, frame = 0
+ 680              		@ frame_needed = 0, uses_anonymous_args = 0
+ 681              		@ link register save eliminated.
+ 280:application/src/micro-ros/custom_memory_manager.c **** 	BlockLink_t *pxLink;
+ 682              		.loc 1 280 2 view .LVU264
+ 281:application/src/micro-ros/custom_memory_manager.c **** 
+ 683              		.loc 1 281 2 view .LVU265
+ 283:application/src/micro-ros/custom_memory_manager.c **** 	pxLink = ( void * ) puc;
+ 684              		.loc 1 283 2 view .LVU266
+ 284:application/src/micro-ros/custom_memory_manager.c **** 
+ 685              		.loc 1 284 2 view .LVU267
+ 286:application/src/micro-ros/custom_memory_manager.c **** 
+ 686              		.loc 1 286 2 view .LVU268
+ 288:application/src/micro-ros/custom_memory_manager.c **** }
+ 687              		.loc 1 288 2 view .LVU269
+ 286:application/src/micro-ros/custom_memory_manager.c **** 
+ 688              		.loc 1 286 38 is_stmt 0 view .LVU270
+ 689 0000 034A     		ldr	r2, .L59
+ 286:application/src/micro-ros/custom_memory_manager.c **** 
+ 690              		.loc 1 286 9 view .LVU271
+ 691 0002 50F8043C 		ldr	r3, [r0, #-4]
+ 286:application/src/micro-ros/custom_memory_manager.c **** 
+ 692              		.loc 1 286 38 view .LVU272
+ 693 0006 1068     		ldr	r0, [r2]
+ 694              	.LVL47:
+ 289:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 695              		.loc 1 289 1 view .LVU273
+ 696 0008 23EA0000 		bic	r0, r3, r0
+ 697              	.LVL48:
+ 289:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 698              		.loc 1 289 1 view .LVU274
+ 699 000c 7047     		bx	lr
+ 700              	.L60:
+ 701 000e 00BF     		.align	2
+ 702              	.L59:
+ 703 0010 00000000 		.word	.LANCHOR2
+ 704              		.cfi_endproc
+ 705              	.LFE7:
+ 707              		.section	.text.pvPortReallocMicroROS,"ax",%progbits
+ 708              		.align	1
+ 709              		.p2align 2,,3
+ 710              		.global	pvPortReallocMicroROS
+ 711              		.syntax unified
+ 712              		.thumb
+ 713              		.thumb_func
+ 715              	pvPortReallocMicroROS:
+ 716              	.LVL49:
+ 717              	.LFB8:
+ARM GAS  /tmp/cceAUFZ1.s 			page 29
+
+
+ 293:application/src/micro-ros/custom_memory_manager.c **** 	vTaskSuspendAll();
+ 718              		.loc 1 293 1 is_stmt 1 view -0
+ 719              		.cfi_startproc
+ 720              		@ args = 0, pretend = 0, frame = 0
+ 721              		@ frame_needed = 0, uses_anonymous_args = 0
+ 294:application/src/micro-ros/custom_memory_manager.c **** 
+ 722              		.loc 1 294 2 view .LVU276
+ 293:application/src/micro-ros/custom_memory_manager.c **** 	vTaskSuspendAll();
+ 723              		.loc 1 293 1 is_stmt 0 view .LVU277
+ 724 0000 70B5     		push	{r4, r5, r6, lr}
+ 725              		.cfi_def_cfa_offset 16
+ 726              		.cfi_offset 4, -16
+ 727              		.cfi_offset 5, -12
+ 728              		.cfi_offset 6, -8
+ 729              		.cfi_offset 14, -4
+ 293:application/src/micro-ros/custom_memory_manager.c **** 	vTaskSuspendAll();
+ 730              		.loc 1 293 1 view .LVU278
+ 731 0002 0E46     		mov	r6, r1
+ 732 0004 0546     		mov	r5, r0
+ 294:application/src/micro-ros/custom_memory_manager.c **** 
+ 733              		.loc 1 294 2 view .LVU279
+ 734 0006 FFF7FEFF 		bl	vTaskSuspendAll
+ 735              	.LVL50:
+ 296:application/src/micro-ros/custom_memory_manager.c **** 	if (newmem != NULL) {
+ 736              		.loc 1 296 2 is_stmt 1 view .LVU280
+ 296:application/src/micro-ros/custom_memory_manager.c **** 	if (newmem != NULL) {
+ 737              		.loc 1 296 18 is_stmt 0 view .LVU281
+ 738 000a 3046     		mov	r0, r6
+ 739 000c FFF7FEFF 		bl	pvPortMallocMicroROS
+ 740              	.LVL51:
+ 297:application/src/micro-ros/custom_memory_manager.c **** 		size_t count = getBlockSize(pv) - xHeapStructSize;
+ 741              		.loc 1 297 2 is_stmt 1 view .LVU282
+ 297:application/src/micro-ros/custom_memory_manager.c **** 		size_t count = getBlockSize(pv) - xHeapStructSize;
+ 742              		.loc 1 297 5 is_stmt 0 view .LVU283
+ 743 0010 0446     		mov	r4, r0
+ 744 0012 78B1     		cbz	r0, .L62
+ 745              	.LBB31:
+ 298:application/src/micro-ros/custom_memory_manager.c **** 		if (xWantedSize < count){
+ 746              		.loc 1 298 3 is_stmt 1 view .LVU284
+ 747              	.LVL52:
+ 748              	.LBB32:
+ 749              	.LBI32:
+ 277:application/src/micro-ros/custom_memory_manager.c **** {
+ 750              		.loc 1 277 8 view .LVU285
+ 751              	.LBB33:
+ 280:application/src/micro-ros/custom_memory_manager.c **** 	BlockLink_t *pxLink;
+ 752              		.loc 1 280 2 view .LVU286
+ 281:application/src/micro-ros/custom_memory_manager.c **** 
+ 753              		.loc 1 281 2 view .LVU287
+ 283:application/src/micro-ros/custom_memory_manager.c **** 	pxLink = ( void * ) puc;
+ 754              		.loc 1 283 2 view .LVU288
+ 284:application/src/micro-ros/custom_memory_manager.c **** 
+ 755              		.loc 1 284 2 view .LVU289
+ 286:application/src/micro-ros/custom_memory_manager.c **** 
+ 756              		.loc 1 286 2 view .LVU290
+ 288:application/src/micro-ros/custom_memory_manager.c **** }
+ 757              		.loc 1 288 2 view .LVU291
+ARM GAS  /tmp/cceAUFZ1.s 			page 30
+
+
+ 286:application/src/micro-ros/custom_memory_manager.c **** 
+ 758              		.loc 1 286 38 is_stmt 0 view .LVU292
+ 759 0014 094B     		ldr	r3, .L67
+ 286:application/src/micro-ros/custom_memory_manager.c **** 
+ 760              		.loc 1 286 9 view .LVU293
+ 761 0016 55F8042C 		ldr	r2, [r5, #-4]
+ 286:application/src/micro-ros/custom_memory_manager.c **** 
+ 762              		.loc 1 286 38 view .LVU294
+ 763 001a 1B68     		ldr	r3, [r3]
+ 286:application/src/micro-ros/custom_memory_manager.c **** 
+ 764              		.loc 1 286 9 view .LVU295
+ 765 001c 22EA0302 		bic	r2, r2, r3
+ 766              	.LBE33:
+ 767              	.LBE32:
+ 298:application/src/micro-ros/custom_memory_manager.c **** 		if (xWantedSize < count){
+ 768              		.loc 1 298 10 view .LVU296
+ 769 0020 083A     		subs	r2, r2, #8
+ 770              	.LVL53:
+ 299:application/src/micro-ros/custom_memory_manager.c **** 			count = xWantedSize;
+ 771              		.loc 1 299 3 is_stmt 1 view .LVU297
+ 302:application/src/micro-ros/custom_memory_manager.c **** 
+ 772              		.loc 1 302 3 view .LVU298
+ 773 0022 B242     		cmp	r2, r6
+ 774 0024 28BF     		it	cs
+ 775 0026 3246     		movcs	r2, r6
+ 776              	.LVL54:
+ 302:application/src/micro-ros/custom_memory_manager.c **** 
+ 777              		.loc 1 302 3 is_stmt 0 view .LVU299
+ 778 0028 2946     		mov	r1, r5
+ 779 002a FFF7FEFF 		bl	memcpy
+ 780              	.LVL55:
+ 304:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 781              		.loc 1 304 3 is_stmt 1 view .LVU300
+ 782 002e 2846     		mov	r0, r5
+ 783 0030 FFF7FEFF 		bl	vPortFreeMicroROS
+ 784              	.LVL56:
+ 785              	.L62:
+ 304:application/src/micro-ros/custom_memory_manager.c **** 	}
+ 786              		.loc 1 304 3 is_stmt 0 view .LVU301
+ 787              	.LBE31:
+ 307:application/src/micro-ros/custom_memory_manager.c **** 
+ 788              		.loc 1 307 2 is_stmt 1 view .LVU302
+ 307:application/src/micro-ros/custom_memory_manager.c **** 
+ 789              		.loc 1 307 11 is_stmt 0 view .LVU303
+ 790 0034 FFF7FEFF 		bl	xTaskResumeAll
+ 791              	.LVL57:
+ 309:application/src/micro-ros/custom_memory_manager.c **** }
+ 792              		.loc 1 309 2 is_stmt 1 view .LVU304
+ 310:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 793              		.loc 1 310 1 is_stmt 0 view .LVU305
+ 794 0038 2046     		mov	r0, r4
+ 795 003a 70BD     		pop	{r4, r5, r6, pc}
+ 796              	.LVL58:
+ 797              	.L68:
+ 310:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 798              		.loc 1 310 1 view .LVU306
+ 799              		.align	2
+ARM GAS  /tmp/cceAUFZ1.s 			page 31
+
+
+ 800              	.L67:
+ 801 003c 00000000 		.word	.LANCHOR2
+ 802              		.cfi_endproc
+ 803              	.LFE8:
+ 805              		.section	.text.pvPortCallocMicroROS,"ax",%progbits
+ 806              		.align	1
+ 807              		.p2align 2,,3
+ 808              		.global	pvPortCallocMicroROS
+ 809              		.syntax unified
+ 810              		.thumb
+ 811              		.thumb_func
+ 813              	pvPortCallocMicroROS:
+ 814              	.LVL59:
+ 815              	.LFB9:
+ 314:application/src/micro-ros/custom_memory_manager.c **** 	vTaskSuspendAll();
+ 816              		.loc 1 314 1 is_stmt 1 view -0
+ 817              		.cfi_startproc
+ 818              		@ args = 0, pretend = 0, frame = 0
+ 819              		@ frame_needed = 0, uses_anonymous_args = 0
+ 315:application/src/micro-ros/custom_memory_manager.c **** 	size_t count = xWantedSize*num;
+ 820              		.loc 1 315 2 view .LVU308
+ 314:application/src/micro-ros/custom_memory_manager.c **** 	vTaskSuspendAll();
+ 821              		.loc 1 314 1 is_stmt 0 view .LVU309
+ 822 0000 38B5     		push	{r3, r4, r5, lr}
+ 823              		.cfi_def_cfa_offset 16
+ 824              		.cfi_offset 3, -16
+ 825              		.cfi_offset 4, -12
+ 826              		.cfi_offset 5, -8
+ 827              		.cfi_offset 14, -4
+ 316:application/src/micro-ros/custom_memory_manager.c **** 
+ 828              		.loc 1 316 9 view .LVU310
+ 829 0002 00FB01F4 		mul	r4, r0, r1
+ 315:application/src/micro-ros/custom_memory_manager.c **** 	size_t count = xWantedSize*num;
+ 830              		.loc 1 315 2 view .LVU311
+ 831 0006 FFF7FEFF 		bl	vTaskSuspendAll
+ 832              	.LVL60:
+ 316:application/src/micro-ros/custom_memory_manager.c **** 
+ 833              		.loc 1 316 2 is_stmt 1 view .LVU312
+ 318:application/src/micro-ros/custom_memory_manager.c ****   	char *in_dest = (char*)mem;
+ 834              		.loc 1 318 2 view .LVU313
+ 318:application/src/micro-ros/custom_memory_manager.c ****   	char *in_dest = (char*)mem;
+ 835              		.loc 1 318 15 is_stmt 0 view .LVU314
+ 836 000a 2046     		mov	r0, r4
+ 837 000c FFF7FEFF 		bl	pvPortMallocMicroROS
+ 838              	.LVL61:
+ 839 0010 0546     		mov	r5, r0
+ 840              	.LVL62:
+ 319:application/src/micro-ros/custom_memory_manager.c **** 
+ 841              		.loc 1 319 4 is_stmt 1 view .LVU315
+ 321:application/src/micro-ros/custom_memory_manager.c ****     	*in_dest++ = 0;
+ 842              		.loc 1 321 4 view .LVU316
+ 321:application/src/micro-ros/custom_memory_manager.c ****     	*in_dest++ = 0;
+ 843              		.loc 1 321 9 view .LVU317
+ 321:application/src/micro-ros/custom_memory_manager.c ****     	*in_dest++ = 0;
+ 844              		.loc 1 321 9 is_stmt 0 view .LVU318
+ 845 0012 1CB1     		cbz	r4, .L70
+ 322:application/src/micro-ros/custom_memory_manager.c **** 
+ARM GAS  /tmp/cceAUFZ1.s 			page 32
+
+
+ 846              		.loc 1 322 17 view .LVU319
+ 847 0014 2246     		mov	r2, r4
+ 848 0016 0021     		movs	r1, #0
+ 849 0018 FFF7FEFF 		bl	memset
+ 850              	.LVL63:
+ 851              	.L70:
+ 324:application/src/micro-ros/custom_memory_manager.c ****   	return mem;
+ 852              		.loc 1 324 2 is_stmt 1 view .LVU320
+ 324:application/src/micro-ros/custom_memory_manager.c ****   	return mem;
+ 853              		.loc 1 324 11 is_stmt 0 view .LVU321
+ 854 001c FFF7FEFF 		bl	xTaskResumeAll
+ 855              	.LVL64:
+ 325:application/src/micro-ros/custom_memory_manager.c **** }
+ 856              		.loc 1 325 4 is_stmt 1 view .LVU322
+ 326:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 857              		.loc 1 326 1 is_stmt 0 view .LVU323
+ 858 0020 2846     		mov	r0, r5
+ 859 0022 38BD     		pop	{r3, r4, r5, pc}
+ 326:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 860              		.loc 1 326 1 view .LVU324
+ 861              		.cfi_endproc
+ 862              	.LFE9:
+ 864              		.section	.text.xPortGetFreeHeapSizeMicroROS,"ax",%progbits
+ 865              		.align	1
+ 866              		.p2align 2,,3
+ 867              		.global	xPortGetFreeHeapSizeMicroROS
+ 868              		.syntax unified
+ 869              		.thumb
+ 870              		.thumb_func
+ 872              	xPortGetFreeHeapSizeMicroROS:
+ 873              	.LFB10:
+ 330:application/src/micro-ros/custom_memory_manager.c **** 	return xFreeBytesRemaining;
+ 874              		.loc 1 330 1 is_stmt 1 view -0
+ 875              		.cfi_startproc
+ 876              		@ args = 0, pretend = 0, frame = 0
+ 877              		@ frame_needed = 0, uses_anonymous_args = 0
+ 878              		@ link register save eliminated.
+ 331:application/src/micro-ros/custom_memory_manager.c **** }
+ 879              		.loc 1 331 2 view .LVU326
+ 331:application/src/micro-ros/custom_memory_manager.c **** }
+ 880              		.loc 1 331 9 is_stmt 0 view .LVU327
+ 881 0000 014B     		ldr	r3, .L76
+ 332:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 882              		.loc 1 332 1 view .LVU328
+ 883 0002 1868     		ldr	r0, [r3]
+ 884 0004 7047     		bx	lr
+ 885              	.L77:
+ 886 0006 00BF     		.align	2
+ 887              	.L76:
+ 888 0008 00000000 		.word	.LANCHOR4
+ 889              		.cfi_endproc
+ 890              	.LFE10:
+ 892              		.section	.text.xPortGetMinimumEverFreeHeapSizeMicroROS,"ax",%progbits
+ 893              		.align	1
+ 894              		.p2align 2,,3
+ 895              		.global	xPortGetMinimumEverFreeHeapSizeMicroROS
+ 896              		.syntax unified
+ARM GAS  /tmp/cceAUFZ1.s 			page 33
+
+
+ 897              		.thumb
+ 898              		.thumb_func
+ 900              	xPortGetMinimumEverFreeHeapSizeMicroROS:
+ 901              	.LFB11:
+ 336:application/src/micro-ros/custom_memory_manager.c **** 	return xMinimumEverFreeBytesRemaining;
+ 902              		.loc 1 336 1 is_stmt 1 view -0
+ 903              		.cfi_startproc
+ 904              		@ args = 0, pretend = 0, frame = 0
+ 905              		@ frame_needed = 0, uses_anonymous_args = 0
+ 906              		@ link register save eliminated.
+ 337:application/src/micro-ros/custom_memory_manager.c **** }
+ 907              		.loc 1 337 2 view .LVU330
+ 337:application/src/micro-ros/custom_memory_manager.c **** }
+ 908              		.loc 1 337 9 is_stmt 0 view .LVU331
+ 909 0000 014B     		ldr	r3, .L79
+ 338:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 910              		.loc 1 338 1 view .LVU332
+ 911 0002 1868     		ldr	r0, [r3]
+ 912 0004 7047     		bx	lr
+ 913              	.L80:
+ 914 0006 00BF     		.align	2
+ 915              	.L79:
+ 916 0008 00000000 		.word	.LANCHOR3
+ 917              		.cfi_endproc
+ 918              	.LFE11:
+ 920              		.section	.text.vPortInitialiseBlocksMicroROS,"ax",%progbits
+ 921              		.align	1
+ 922              		.p2align 2,,3
+ 923              		.global	vPortInitialiseBlocksMicroROS
+ 924              		.syntax unified
+ 925              		.thumb
+ 926              		.thumb_func
+ 928              	vPortInitialiseBlocksMicroROS:
+ 929              	.LFB12:
+ 342:application/src/micro-ros/custom_memory_manager.c **** 	/* This just exists to keep the linker quiet. */
+ 930              		.loc 1 342 1 is_stmt 1 view -0
+ 931              		.cfi_startproc
+ 932              		@ args = 0, pretend = 0, frame = 0
+ 933              		@ frame_needed = 0, uses_anonymous_args = 0
+ 934              		@ link register save eliminated.
+ 344:application/src/micro-ros/custom_memory_manager.c **** /*-----------------------------------------------------------*/
+ 935              		.loc 1 344 1 view .LVU334
+ 936 0000 7047     		bx	lr
+ 937              		.cfi_endproc
+ 938              	.LFE12:
+ 940 0002 00BF     		.section	.bss.pxEnd,"aw",%nobits
+ 941              		.align	2
+ 942              		.set	.LANCHOR1,. + 0
+ 945              	pxEnd:
+ 946 0000 00000000 		.space	4
+ 947              		.section	.bss.ucHeap,"aw",%nobits
+ 948              		.align	2
+ 951              	ucHeap:
+ 952 0000 00000000 		.space	16384
+ 952      00000000 
+ 952      00000000 
+ 952      00000000 
+ARM GAS  /tmp/cceAUFZ1.s 			page 34
+
+
+ 952      00000000 
+ 953              		.section	.bss.xBlockAllocatedBit,"aw",%nobits
+ 954              		.align	2
+ 955              		.set	.LANCHOR2,. + 0
+ 958              	xBlockAllocatedBit:
+ 959 0000 00000000 		.space	4
+ 960              		.section	.bss.xFreeBytesRemaining,"aw",%nobits
+ 961              		.align	2
+ 962              		.set	.LANCHOR4,. + 0
+ 965              	xFreeBytesRemaining:
+ 966 0000 00000000 		.space	4
+ 967              		.section	.bss.xMinimumEverFreeBytesRemaining,"aw",%nobits
+ 968              		.align	2
+ 969              		.set	.LANCHOR3,. + 0
+ 972              	xMinimumEverFreeBytesRemaining:
+ 973 0000 00000000 		.space	4
+ 974              		.section	.bss.xStart,"aw",%nobits
+ 975              		.align	2
+ 976              		.set	.LANCHOR0,. + 0
+ 979              	xStart:
+ 980 0000 00000000 		.space	8
+ 980      00000000 
+ 981              		.text
+ 982              	.Letext0:
+ 983              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/include/stddef.h"
+ 984              		.file 4 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 985              		.file 5 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 986              		.file 6 "Middlewares/Third_Party/FreeRTOS/Source/include/task.h"
+ 987              		.file 7 "<built-in>"
+ARM GAS  /tmp/cceAUFZ1.s 			page 35
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 custom_memory_manager.c
+     /tmp/cceAUFZ1.s:20     .text.prvInsertBlockIntoFreeList:0000000000000000 $t
+     /tmp/cceAUFZ1.s:26     .text.prvInsertBlockIntoFreeList:0000000000000000 prvInsertBlockIntoFreeList
+     /tmp/cceAUFZ1.s:149    .text.prvInsertBlockIntoFreeList:000000000000005c $d
+     /tmp/cceAUFZ1.s:155    .text.pvPortMallocMicroROS:0000000000000000 $t
+     /tmp/cceAUFZ1.s:162    .text.pvPortMallocMicroROS:0000000000000000 pvPortMallocMicroROS
+     /tmp/cceAUFZ1.s:503    .text.pvPortMallocMicroROS:0000000000000108 $d
+     /tmp/cceAUFZ1.s:951    .bss.ucHeap:0000000000000000 ucHeap
+     /tmp/cceAUFZ1.s:515    .text.vPortFreeMicroROS:0000000000000000 $t
+     /tmp/cceAUFZ1.s:522    .text.vPortFreeMicroROS:0000000000000000 vPortFreeMicroROS
+     /tmp/cceAUFZ1.s:661    .text.vPortFreeMicroROS:000000000000006c $d
+     /tmp/cceAUFZ1.s:667    .text.getBlockSize:0000000000000000 $t
+     /tmp/cceAUFZ1.s:674    .text.getBlockSize:0000000000000000 getBlockSize
+     /tmp/cceAUFZ1.s:703    .text.getBlockSize:0000000000000010 $d
+     /tmp/cceAUFZ1.s:708    .text.pvPortReallocMicroROS:0000000000000000 $t
+     /tmp/cceAUFZ1.s:715    .text.pvPortReallocMicroROS:0000000000000000 pvPortReallocMicroROS
+     /tmp/cceAUFZ1.s:801    .text.pvPortReallocMicroROS:000000000000003c $d
+     /tmp/cceAUFZ1.s:806    .text.pvPortCallocMicroROS:0000000000000000 $t
+     /tmp/cceAUFZ1.s:813    .text.pvPortCallocMicroROS:0000000000000000 pvPortCallocMicroROS
+     /tmp/cceAUFZ1.s:865    .text.xPortGetFreeHeapSizeMicroROS:0000000000000000 $t
+     /tmp/cceAUFZ1.s:872    .text.xPortGetFreeHeapSizeMicroROS:0000000000000000 xPortGetFreeHeapSizeMicroROS
+     /tmp/cceAUFZ1.s:888    .text.xPortGetFreeHeapSizeMicroROS:0000000000000008 $d
+     /tmp/cceAUFZ1.s:893    .text.xPortGetMinimumEverFreeHeapSizeMicroROS:0000000000000000 $t
+     /tmp/cceAUFZ1.s:900    .text.xPortGetMinimumEverFreeHeapSizeMicroROS:0000000000000000 xPortGetMinimumEverFreeHeapSizeMicroROS
+     /tmp/cceAUFZ1.s:916    .text.xPortGetMinimumEverFreeHeapSizeMicroROS:0000000000000008 $d
+     /tmp/cceAUFZ1.s:921    .text.vPortInitialiseBlocksMicroROS:0000000000000000 $t
+     /tmp/cceAUFZ1.s:928    .text.vPortInitialiseBlocksMicroROS:0000000000000000 vPortInitialiseBlocksMicroROS
+     /tmp/cceAUFZ1.s:941    .bss.pxEnd:0000000000000000 $d
+     /tmp/cceAUFZ1.s:945    .bss.pxEnd:0000000000000000 pxEnd
+     /tmp/cceAUFZ1.s:948    .bss.ucHeap:0000000000000000 $d
+     /tmp/cceAUFZ1.s:954    .bss.xBlockAllocatedBit:0000000000000000 $d
+     /tmp/cceAUFZ1.s:958    .bss.xBlockAllocatedBit:0000000000000000 xBlockAllocatedBit
+     /tmp/cceAUFZ1.s:961    .bss.xFreeBytesRemaining:0000000000000000 $d
+     /tmp/cceAUFZ1.s:965    .bss.xFreeBytesRemaining:0000000000000000 xFreeBytesRemaining
+     /tmp/cceAUFZ1.s:968    .bss.xMinimumEverFreeBytesRemaining:0000000000000000 $d
+     /tmp/cceAUFZ1.s:972    .bss.xMinimumEverFreeBytesRemaining:0000000000000000 xMinimumEverFreeBytesRemaining
+     /tmp/cceAUFZ1.s:975    .bss.xStart:0000000000000000 $d
+     /tmp/cceAUFZ1.s:979    .bss.xStart:0000000000000000 xStart
+
+UNDEFINED SYMBOLS
+vTaskSuspendAll
+xTaskResumeAll
+memcpy
+memset

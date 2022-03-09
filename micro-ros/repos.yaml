@@ -1,0 +1,109 @@
+repositories:
+  dev/cloned/ament_cmake:
+    type: git
+    url: https://github.com/ament/ament_cmake
+    version: master
+  dev/cloned/ament_cmake_ros:
+    type: git
+    url: https://github.com/ros2/ament_cmake_ros
+    version: master
+  dev/cloned/ament_index:
+    type: git
+    url: https://github.com/ament/ament_index
+    version: master
+  dev/cloned/ament_lint:
+    type: git
+    url: https://github.com/ament/ament_lint
+    version: master
+  dev/cloned/ament_package:
+    type: git
+    url: https://github.com/ament/ament_package
+    version: master
+  dev/cloned/googletest:
+    type: git
+    url: https://github.com/ament/googletest
+    version: ros2
+  src/cloned/Micro-XRCE-DDS-Client:
+    type: git
+    url: https://github.com/eProsima/Micro-XRCE-DDS-Client
+    version: ros2
+  src/cloned/common_interfaces:
+    type: git
+    url: https://github.com/ros2/common_interfaces
+    version: master
+  src/cloned/micro-CDR:
+    type: git
+    url: https://github.com/eProsima/micro-CDR
+    version: master
+  src/cloned/micro_ros_msgs:
+    type: git
+    url: https://github.com/micro-ROS/micro_ros_msgs
+    version: main
+  src/cloned/micro_ros_utilities:
+    type: git
+    url: https://github.com/micro-ROS/micro_ros_utilities
+    version: main
+  src/cloned/rcl:
+    type: git
+    url: https://github.com/ros2/rcl
+    version: master
+  src/cloned/rcl_interfaces:
+    type: git
+    url: https://github.com/ros2/rcl_interfaces
+    version: master
+  src/cloned/rcl_logging:
+    type: git
+    url: https://github.com/ros2/rcl_logging
+    version: master
+  src/cloned/rclc:
+    type: git
+    url: https://github.com/ros2/rclc
+    version: master
+  src/cloned/rcutils:
+    type: git
+    url: https://github.com/micro-ROS/rcutils
+    version: master
+  src/cloned/rmw:
+    type: git
+    url: https://github.com/ros2/rmw
+    version: master
+  src/cloned/rmw_implementation:
+    type: git
+    url: https://github.com/ros2/rmw_implementation
+    version: master
+  src/cloned/rmw_microxrcedds:
+    type: git
+    url: https://github.com/micro-ROS/rmw_microxrcedds
+    version: main
+  src/cloned/ros2_tracing:
+    type: git
+    url: https://gitlab.com/micro-ROS/ros_tracing/ros2_tracing
+    version: master
+  src/cloned/rosidl:
+    type: git
+    url: https://github.com/ros2/rosidl
+    version: master
+  src/cloned/rosidl_defaults:
+    type: git
+    url: https://github.com/ros2/rosidl_defaults
+    version: master
+  src/cloned/rosidl_typesupport:
+    type: git
+    url: https://github.com/micro-ROS/rosidl_typesupport
+    version: master
+  src/cloned/rosidl_typesupport_microxrcedds:
+    type: git
+    url: https://github.com/micro-ROS/rosidl_typesupport_microxrcedds
+    version: main
+  src/cloned/test_interface_files:
+    type: git
+    url: https://github.com/ros2/test_interface_files
+    version: master
+  src/cloned/unique_identifier_msgs:
+    type: git
+    url: https://github.com/ros2/unique_identifier_msgs
+    version: master
+  src/cloned/libyaml_vendor:
+    type: git
+    url: https://github.com/ros2/libyaml_vendor
+    version: master

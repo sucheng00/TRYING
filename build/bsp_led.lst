@@ -1,0 +1,149 @@
+ARM GAS  /tmp/ccxnGAab.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_led.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.aRGB_led_show,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	aRGB_led_show
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	aRGB_led_show:
+  28              	.LVL0:
+  29              	.LFB235:
+  30              		.file 1 "bsp/boards/Src/bsp_led.c"
+   1:bsp/boards/Src/bsp_led.c **** #include "bsp_led.h"
+   2:bsp/boards/Src/bsp_led.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_led.c **** 
+   4:bsp/boards/Src/bsp_led.c **** extern TIM_HandleTypeDef htim5;
+   5:bsp/boards/Src/bsp_led.c **** /**
+   6:bsp/boards/Src/bsp_led.c ****   * @brief          aRGB show
+   7:bsp/boards/Src/bsp_led.c ****   * @param[in]      aRGB: 0xaaRRGGBB, 'aa' is alpha, 'RR' is red, 'GG' is green, 'BB' is blue
+   8:bsp/boards/Src/bsp_led.c ****   * @retval         none
+   9:bsp/boards/Src/bsp_led.c ****   */
+  10:bsp/boards/Src/bsp_led.c **** /**
+  11:bsp/boards/Src/bsp_led.c ****   * @brief          显示RGB
+  12:bsp/boards/Src/bsp_led.c ****   * @param[in]      aRGB:0xaaRRGGBB,'aa' 是透明度,'RR'是红色,'GG'是绿色,'BB'是蓝色
+  13:bsp/boards/Src/bsp_led.c ****   * @retval         none
+  14:bsp/boards/Src/bsp_led.c ****   */
+  15:bsp/boards/Src/bsp_led.c **** void aRGB_led_show(uint32_t aRGB)
+  16:bsp/boards/Src/bsp_led.c **** {
+  31              		.loc 1 16 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+  17:bsp/boards/Src/bsp_led.c ****     static uint8_t alpha;
+  36              		.loc 1 17 5 view .LVU1
+  18:bsp/boards/Src/bsp_led.c ****     static uint16_t red,green,blue;
+  37              		.loc 1 18 5 view .LVU2
+  19:bsp/boards/Src/bsp_led.c **** 
+  20:bsp/boards/Src/bsp_led.c ****     alpha = (aRGB & 0xFF000000) >> 24;
+  38              		.loc 1 20 5 view .LVU3
+ARM GAS  /tmp/ccxnGAab.s 			page 2
+
+
+  21:bsp/boards/Src/bsp_led.c ****     red = ((aRGB & 0x00FF0000) >> 16) * alpha;
+  39              		.loc 1 21 5 view .LVU4
+  22:bsp/boards/Src/bsp_led.c ****     green = ((aRGB & 0x0000FF00) >> 8) * alpha;
+  23:bsp/boards/Src/bsp_led.c ****     blue = ((aRGB & 0x000000FF) >> 0) * alpha;
+  24:bsp/boards/Src/bsp_led.c **** 
+  25:bsp/boards/Src/bsp_led.c ****     __HAL_TIM_SetCompare(&htim5, TIM_CHANNEL_1, blue);
+  40              		.loc 1 25 5 is_stmt 0 view .LVU5
+  41 0000 0A4B     		ldr	r3, .L4
+  16:bsp/boards/Src/bsp_led.c ****     static uint8_t alpha;
+  42              		.loc 1 16 1 view .LVU6
+  43 0002 10B4     		push	{r4}
+  44              		.cfi_def_cfa_offset 4
+  45              		.cfi_offset 4, -4
+  46              		.loc 1 25 5 view .LVU7
+  47 0004 1A68     		ldr	r2, [r3]
+  23:bsp/boards/Src/bsp_led.c **** 
+  48              		.loc 1 23 10 view .LVU8
+  49 0006 C4B2     		uxtb	r4, r0
+  21:bsp/boards/Src/bsp_led.c ****     green = ((aRGB & 0x0000FF00) >> 8) * alpha;
+  50              		.loc 1 21 9 view .LVU9
+  51 0008 030E     		lsrs	r3, r0, #24
+  22:bsp/boards/Src/bsp_led.c ****     blue = ((aRGB & 0x000000FF) >> 0) * alpha;
+  52              		.loc 1 22 5 is_stmt 1 view .LVU10
+  23:bsp/boards/Src/bsp_led.c **** 
+  53              		.loc 1 23 5 view .LVU11
+  54              		.loc 1 25 5 view .LVU12
+  22:bsp/boards/Src/bsp_led.c ****     blue = ((aRGB & 0x000000FF) >> 0) * alpha;
+  55              		.loc 1 22 11 is_stmt 0 view .LVU13
+  56 000a C0F30721 		ubfx	r1, r0, #8, #8
+  21:bsp/boards/Src/bsp_led.c ****     green = ((aRGB & 0x0000FF00) >> 8) * alpha;
+  57              		.loc 1 21 9 view .LVU14
+  58 000e C0F30740 		ubfx	r0, r0, #16, #8
+  59              	.LVL1:
+  60              		.loc 1 25 5 view .LVU15
+  61 0012 03FB04F4 		mul	r4, r3, r4
+  26:bsp/boards/Src/bsp_led.c ****     __HAL_TIM_SetCompare(&htim5, TIM_CHANNEL_2, green);
+  62              		.loc 1 26 5 view .LVU16
+  63 0016 03FB01F1 		mul	r1, r3, r1
+  27:bsp/boards/Src/bsp_led.c ****     __HAL_TIM_SetCompare(&htim5, TIM_CHANNEL_3, red);
+  64              		.loc 1 27 5 view .LVU17
+  65 001a 03FB00F0 		mul	r0, r3, r0
+  25:bsp/boards/Src/bsp_led.c ****     __HAL_TIM_SetCompare(&htim5, TIM_CHANNEL_2, green);
+  66              		.loc 1 25 5 view .LVU18
+  67 001e 5463     		str	r4, [r2, #52]
+  26:bsp/boards/Src/bsp_led.c ****     __HAL_TIM_SetCompare(&htim5, TIM_CHANNEL_2, green);
+  68              		.loc 1 26 5 is_stmt 1 view .LVU19
+  69 0020 9163     		str	r1, [r2, #56]
+  70              		.loc 1 27 5 view .LVU20
+  28:bsp/boards/Src/bsp_led.c **** }
+  71              		.loc 1 28 1 is_stmt 0 view .LVU21
+  72 0022 5DF8044B 		ldr	r4, [sp], #4
+  73              		.cfi_restore 4
+  74              		.cfi_def_cfa_offset 0
+  27:bsp/boards/Src/bsp_led.c ****     __HAL_TIM_SetCompare(&htim5, TIM_CHANNEL_3, red);
+  75              		.loc 1 27 5 view .LVU22
+  76 0026 D063     		str	r0, [r2, #60]
+  77              		.loc 1 28 1 view .LVU23
+ARM GAS  /tmp/ccxnGAab.s 			page 3
+
+
+  78 0028 7047     		bx	lr
+  79              	.L5:
+  80 002a 00BF     		.align	2
+  81              	.L4:
+  82 002c 00000000 		.word	htim5
+  83              		.cfi_endproc
+  84              	.LFE235:
+  86              		.text
+  87              	.Letext0:
+  88              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+  89              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+  90              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+  91              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+  92              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+  93              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h"
+ARM GAS  /tmp/ccxnGAab.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_led.c
+     /tmp/ccxnGAab.s:20     .text.aRGB_led_show:0000000000000000 $t
+     /tmp/ccxnGAab.s:27     .text.aRGB_led_show:0000000000000000 aRGB_led_show
+     /tmp/ccxnGAab.s:82     .text.aRGB_led_show:000000000000002c $d
+
+UNDEFINED SYMBOLS
+htim5

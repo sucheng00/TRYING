@@ -1,0 +1,80 @@
+ARM GAS  /tmp/ccTdhxcB.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_imu_pwm.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.imu_pwm_set,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	imu_pwm_set
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	imu_pwm_set:
+  28              	.LVL0:
+  29              	.LFB235:
+  30              		.file 1 "bsp/boards/Src/bsp_imu_pwm.c"
+   1:bsp/boards/Src/bsp_imu_pwm.c **** #include "bsp_imu_pwm.h"
+   2:bsp/boards/Src/bsp_imu_pwm.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_imu_pwm.c **** 
+   4:bsp/boards/Src/bsp_imu_pwm.c **** extern TIM_HandleTypeDef htim10;
+   5:bsp/boards/Src/bsp_imu_pwm.c **** void imu_pwm_set(uint16_t pwm)
+   6:bsp/boards/Src/bsp_imu_pwm.c **** {
+  31              		.loc 1 6 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+   7:bsp/boards/Src/bsp_imu_pwm.c ****     __HAL_TIM_SetCompare(&htim10, TIM_CHANNEL_1, 65535);
+  36              		.loc 1 7 5 view .LVU1
+  37 0000 024B     		ldr	r3, .L3
+  38 0002 1B68     		ldr	r3, [r3]
+  39 0004 4FF6FF72 		movw	r2, #65535
+  40 0008 5A63     		str	r2, [r3, #52]
+   8:bsp/boards/Src/bsp_imu_pwm.c **** }
+  41              		.loc 1 8 1 is_stmt 0 view .LVU2
+  42 000a 7047     		bx	lr
+  43              	.L4:
+  44              		.align	2
+  45              	.L3:
+  46 000c 00000000 		.word	htim10
+  47              		.cfi_endproc
+  48              	.LFE235:
+  50              		.text
+  51              	.Letext0:
+ARM GAS  /tmp/ccTdhxcB.s 			page 2
+
+
+  52              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+  53              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+  54              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+  55              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+  56              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+  57              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h"
+ARM GAS  /tmp/ccTdhxcB.s 			page 3
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_imu_pwm.c
+     /tmp/ccTdhxcB.s:20     .text.imu_pwm_set:0000000000000000 $t
+     /tmp/ccTdhxcB.s:27     .text.imu_pwm_set:0000000000000000 imu_pwm_set
+     /tmp/ccTdhxcB.s:46     .text.imu_pwm_set:000000000000000c $d
+
+UNDEFINED SYMBOLS
+htim10

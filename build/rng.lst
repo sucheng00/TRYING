@@ -1,0 +1,304 @@
+ARM GAS  /tmp/cckEVY5D.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"rng.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.MX_RNG_Init,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	MX_RNG_Init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	MX_RNG_Init:
+  28              	.LFB235:
+  29              		.file 1 "Core/Src/rng.c"
+   1:Core/Src/rng.c **** /* USER CODE BEGIN Header */
+   2:Core/Src/rng.c **** /**
+   3:Core/Src/rng.c ****   ******************************************************************************
+   4:Core/Src/rng.c ****   * @file    rng.c
+   5:Core/Src/rng.c ****   * @brief   This file provides code for the configuration
+   6:Core/Src/rng.c ****   *          of the RNG instances.
+   7:Core/Src/rng.c ****   ******************************************************************************
+   8:Core/Src/rng.c ****   * @attention
+   9:Core/Src/rng.c ****   *
+  10:Core/Src/rng.c ****   * Copyright (c) 2022 STMicroelectronics.
+  11:Core/Src/rng.c ****   * All rights reserved.
+  12:Core/Src/rng.c ****   *
+  13:Core/Src/rng.c ****   * This software is licensed under terms that can be found in the LICENSE file
+  14:Core/Src/rng.c ****   * in the root directory of this software component.
+  15:Core/Src/rng.c ****   * If no LICENSE file comes with this software, it is provided AS-IS.
+  16:Core/Src/rng.c ****   *
+  17:Core/Src/rng.c ****   ******************************************************************************
+  18:Core/Src/rng.c ****   */
+  19:Core/Src/rng.c **** /* USER CODE END Header */
+  20:Core/Src/rng.c **** /* Includes ------------------------------------------------------------------*/
+  21:Core/Src/rng.c **** #include "rng.h"
+  22:Core/Src/rng.c **** 
+  23:Core/Src/rng.c **** /* USER CODE BEGIN 0 */
+  24:Core/Src/rng.c **** 
+  25:Core/Src/rng.c **** /* USER CODE END 0 */
+  26:Core/Src/rng.c **** 
+  27:Core/Src/rng.c **** RNG_HandleTypeDef hrng;
+  28:Core/Src/rng.c **** 
+  29:Core/Src/rng.c **** /* RNG init function */
+ARM GAS  /tmp/cckEVY5D.s 			page 2
+
+
+  30:Core/Src/rng.c **** void MX_RNG_Init(void)
+  31:Core/Src/rng.c **** {
+  30              		.loc 1 31 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  32:Core/Src/rng.c **** 
+  33:Core/Src/rng.c ****   /* USER CODE BEGIN RNG_Init 0 */
+  34:Core/Src/rng.c **** 
+  35:Core/Src/rng.c ****   /* USER CODE END RNG_Init 0 */
+  36:Core/Src/rng.c **** 
+  37:Core/Src/rng.c ****   /* USER CODE BEGIN RNG_Init 1 */
+  38:Core/Src/rng.c **** 
+  39:Core/Src/rng.c ****   /* USER CODE END RNG_Init 1 */
+  40:Core/Src/rng.c ****   hrng.Instance = RNG;
+  34              		.loc 1 40 3 view .LVU1
+  35              		.loc 1 40 17 is_stmt 0 view .LVU2
+  36 0000 0548     		ldr	r0, .L6
+  31:Core/Src/rng.c **** 
+  37              		.loc 1 31 1 view .LVU3
+  38 0002 08B5     		push	{r3, lr}
+  39              		.cfi_def_cfa_offset 8
+  40              		.cfi_offset 3, -8
+  41              		.cfi_offset 14, -4
+  42              		.loc 1 40 17 view .LVU4
+  43 0004 054B     		ldr	r3, .L6+4
+  44 0006 0360     		str	r3, [r0]
+  41:Core/Src/rng.c ****   if (HAL_RNG_Init(&hrng) != HAL_OK)
+  45              		.loc 1 41 3 is_stmt 1 view .LVU5
+  46              		.loc 1 41 7 is_stmt 0 view .LVU6
+  47 0008 FFF7FEFF 		bl	HAL_RNG_Init
+  48              	.LVL0:
+  49              		.loc 1 41 6 view .LVU7
+  50 000c 00B9     		cbnz	r0, .L5
+  42:Core/Src/rng.c ****   {
+  43:Core/Src/rng.c ****     Error_Handler();
+  44:Core/Src/rng.c ****   }
+  45:Core/Src/rng.c ****   /* USER CODE BEGIN RNG_Init 2 */
+  46:Core/Src/rng.c **** 
+  47:Core/Src/rng.c ****   /* USER CODE END RNG_Init 2 */
+  48:Core/Src/rng.c **** 
+  49:Core/Src/rng.c **** }
+  51              		.loc 1 49 1 view .LVU8
+  52 000e 08BD     		pop	{r3, pc}
+  53              	.L5:
+  43:Core/Src/rng.c ****   }
+  54              		.loc 1 43 5 is_stmt 1 view .LVU9
+  55              		.loc 1 49 1 is_stmt 0 view .LVU10
+  56 0010 BDE80840 		pop	{r3, lr}
+  57              		.cfi_restore 14
+  58              		.cfi_restore 3
+  59              		.cfi_def_cfa_offset 0
+  43:Core/Src/rng.c ****   }
+  60              		.loc 1 43 5 view .LVU11
+  61 0014 FFF7FEBF 		b	Error_Handler
+  62              	.LVL1:
+  63              	.L7:
+ARM GAS  /tmp/cckEVY5D.s 			page 3
+
+
+  64              		.align	2
+  65              	.L6:
+  66 0018 00000000 		.word	.LANCHOR0
+  67 001c 00080650 		.word	1342572544
+  68              		.cfi_endproc
+  69              	.LFE235:
+  71              		.section	.text.HAL_RNG_MspInit,"ax",%progbits
+  72              		.align	1
+  73              		.p2align 2,,3
+  74              		.global	HAL_RNG_MspInit
+  75              		.syntax unified
+  76              		.thumb
+  77              		.thumb_func
+  79              	HAL_RNG_MspInit:
+  80              	.LVL2:
+  81              	.LFB236:
+  50:Core/Src/rng.c **** 
+  51:Core/Src/rng.c **** void HAL_RNG_MspInit(RNG_HandleTypeDef* rngHandle)
+  52:Core/Src/rng.c **** {
+  82              		.loc 1 52 1 is_stmt 1 view -0
+  83              		.cfi_startproc
+  84              		@ args = 0, pretend = 0, frame = 8
+  85              		@ frame_needed = 0, uses_anonymous_args = 0
+  86              		@ link register save eliminated.
+  53:Core/Src/rng.c **** 
+  54:Core/Src/rng.c ****   if(rngHandle->Instance==RNG)
+  87              		.loc 1 54 3 view .LVU13
+  88              		.loc 1 54 5 is_stmt 0 view .LVU14
+  89 0000 094B     		ldr	r3, .L15
+  90 0002 0268     		ldr	r2, [r0]
+  91 0004 9A42     		cmp	r2, r3
+  92 0006 00D0     		beq	.L14
+  93 0008 7047     		bx	lr
+  94              	.L14:
+  55:Core/Src/rng.c ****   {
+  56:Core/Src/rng.c ****   /* USER CODE BEGIN RNG_MspInit 0 */
+  57:Core/Src/rng.c **** 
+  58:Core/Src/rng.c ****   /* USER CODE END RNG_MspInit 0 */
+  59:Core/Src/rng.c ****     /* RNG clock enable */
+  60:Core/Src/rng.c ****     __HAL_RCC_RNG_CLK_ENABLE();
+  95              		.loc 1 60 5 is_stmt 1 view .LVU15
+  96              	.LBB2:
+  97              		.loc 1 60 5 view .LVU16
+  98              	.LBE2:
+  52:Core/Src/rng.c **** 
+  99              		.loc 1 52 1 is_stmt 0 view .LVU17
+ 100 000a 82B0     		sub	sp, sp, #8
+ 101              		.cfi_def_cfa_offset 8
+ 102              	.LBB3:
+ 103              		.loc 1 60 5 view .LVU18
+ 104 000c 074B     		ldr	r3, .L15+4
+ 105 000e 0022     		movs	r2, #0
+ 106 0010 0192     		str	r2, [sp, #4]
+ 107              		.loc 1 60 5 is_stmt 1 view .LVU19
+ 108 0012 5A6B     		ldr	r2, [r3, #52]
+ 109 0014 42F04002 		orr	r2, r2, #64
+ 110 0018 5A63     		str	r2, [r3, #52]
+ARM GAS  /tmp/cckEVY5D.s 			page 4
+
+
+ 111              		.loc 1 60 5 view .LVU20
+ 112 001a 5B6B     		ldr	r3, [r3, #52]
+ 113 001c 03F04003 		and	r3, r3, #64
+ 114 0020 0193     		str	r3, [sp, #4]
+ 115              		.loc 1 60 5 view .LVU21
+ 116 0022 019B     		ldr	r3, [sp, #4]
+ 117              	.LBE3:
+ 118              		.loc 1 60 5 view .LVU22
+  61:Core/Src/rng.c ****   /* USER CODE BEGIN RNG_MspInit 1 */
+  62:Core/Src/rng.c **** 
+  63:Core/Src/rng.c ****   /* USER CODE END RNG_MspInit 1 */
+  64:Core/Src/rng.c ****   }
+  65:Core/Src/rng.c **** }
+ 119              		.loc 1 65 1 is_stmt 0 view .LVU23
+ 120 0024 02B0     		add	sp, sp, #8
+ 121              		.cfi_def_cfa_offset 0
+ 122              		@ sp needed
+ 123 0026 7047     		bx	lr
+ 124              	.L16:
+ 125              		.align	2
+ 126              	.L15:
+ 127 0028 00080650 		.word	1342572544
+ 128 002c 00380240 		.word	1073887232
+ 129              		.cfi_endproc
+ 130              	.LFE236:
+ 132              		.section	.text.HAL_RNG_MspDeInit,"ax",%progbits
+ 133              		.align	1
+ 134              		.p2align 2,,3
+ 135              		.global	HAL_RNG_MspDeInit
+ 136              		.syntax unified
+ 137              		.thumb
+ 138              		.thumb_func
+ 140              	HAL_RNG_MspDeInit:
+ 141              	.LVL3:
+ 142              	.LFB237:
+  66:Core/Src/rng.c **** 
+  67:Core/Src/rng.c **** void HAL_RNG_MspDeInit(RNG_HandleTypeDef* rngHandle)
+  68:Core/Src/rng.c **** {
+ 143              		.loc 1 68 1 is_stmt 1 view -0
+ 144              		.cfi_startproc
+ 145              		@ args = 0, pretend = 0, frame = 0
+ 146              		@ frame_needed = 0, uses_anonymous_args = 0
+ 147              		@ link register save eliminated.
+  69:Core/Src/rng.c **** 
+  70:Core/Src/rng.c ****   if(rngHandle->Instance==RNG)
+ 148              		.loc 1 70 3 view .LVU25
+ 149              		.loc 1 70 5 is_stmt 0 view .LVU26
+ 150 0000 054B     		ldr	r3, .L20
+ 151 0002 0268     		ldr	r2, [r0]
+ 152 0004 9A42     		cmp	r2, r3
+ 153 0006 00D0     		beq	.L19
+  71:Core/Src/rng.c ****   {
+  72:Core/Src/rng.c ****   /* USER CODE BEGIN RNG_MspDeInit 0 */
+  73:Core/Src/rng.c **** 
+  74:Core/Src/rng.c ****   /* USER CODE END RNG_MspDeInit 0 */
+  75:Core/Src/rng.c ****     /* Peripheral clock disable */
+  76:Core/Src/rng.c ****     __HAL_RCC_RNG_CLK_DISABLE();
+ARM GAS  /tmp/cckEVY5D.s 			page 5
+
+
+  77:Core/Src/rng.c ****   /* USER CODE BEGIN RNG_MspDeInit 1 */
+  78:Core/Src/rng.c **** 
+  79:Core/Src/rng.c ****   /* USER CODE END RNG_MspDeInit 1 */
+  80:Core/Src/rng.c ****   }
+  81:Core/Src/rng.c **** }
+ 154              		.loc 1 81 1 view .LVU27
+ 155 0008 7047     		bx	lr
+ 156              	.L19:
+  76:Core/Src/rng.c ****   /* USER CODE BEGIN RNG_MspDeInit 1 */
+ 157              		.loc 1 76 5 is_stmt 1 view .LVU28
+ 158 000a 044A     		ldr	r2, .L20+4
+ 159 000c 536B     		ldr	r3, [r2, #52]
+ 160 000e 23F04003 		bic	r3, r3, #64
+ 161 0012 5363     		str	r3, [r2, #52]
+ 162              		.loc 1 81 1 is_stmt 0 view .LVU29
+ 163 0014 7047     		bx	lr
+ 164              	.L21:
+ 165 0016 00BF     		.align	2
+ 166              	.L20:
+ 167 0018 00080650 		.word	1342572544
+ 168 001c 00380240 		.word	1073887232
+ 169              		.cfi_endproc
+ 170              	.LFE237:
+ 172              		.global	hrng
+ 173              		.section	.bss.hrng,"aw",%nobits
+ 174              		.align	2
+ 175              		.set	.LANCHOR0,. + 0
+ 178              	hrng:
+ 179 0000 00000000 		.space	16
+ 179      00000000 
+ 179      00000000 
+ 179      00000000 
+ 180              		.text
+ 181              	.Letext0:
+ 182              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 183              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 184              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 185              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 186              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rng.h"
+ 187              		.file 7 "Core/Inc/main.h"
+ 188              		.file 8 "Core/Inc/rng.h"
+ARM GAS  /tmp/cckEVY5D.s 			page 6
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 rng.c
+     /tmp/cckEVY5D.s:20     .text.MX_RNG_Init:0000000000000000 $t
+     /tmp/cckEVY5D.s:27     .text.MX_RNG_Init:0000000000000000 MX_RNG_Init
+     /tmp/cckEVY5D.s:66     .text.MX_RNG_Init:0000000000000018 $d
+     /tmp/cckEVY5D.s:72     .text.HAL_RNG_MspInit:0000000000000000 $t
+     /tmp/cckEVY5D.s:79     .text.HAL_RNG_MspInit:0000000000000000 HAL_RNG_MspInit
+     /tmp/cckEVY5D.s:127    .text.HAL_RNG_MspInit:0000000000000028 $d
+     /tmp/cckEVY5D.s:133    .text.HAL_RNG_MspDeInit:0000000000000000 $t
+     /tmp/cckEVY5D.s:140    .text.HAL_RNG_MspDeInit:0000000000000000 HAL_RNG_MspDeInit
+     /tmp/cckEVY5D.s:167    .text.HAL_RNG_MspDeInit:0000000000000018 $d
+     /tmp/cckEVY5D.s:178    .bss.hrng:0000000000000000 hrng
+     /tmp/cckEVY5D.s:174    .bss.hrng:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+HAL_RNG_Init
+Error_Handler

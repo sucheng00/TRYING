@@ -1,0 +1,480 @@
+ARM GAS  /tmp/ccHQnJPJ.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"pid_controller.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.pid_controller_init,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	pid_controller_init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	pid_controller_init:
+  28              	.LVL0:
+  29              	.LFB0:
+  30              		.file 1 "application/src/pid_controller.c"
+   1:application/src/pid_controller.c **** #include "pid_controller.h"
+   2:application/src/pid_controller.c **** 
+   3:application/src/pid_controller.c **** #define LimitMax(input, max)                                                   \
+   4:application/src/pid_controller.c **** 	{                                                                          \
+   5:application/src/pid_controller.c **** 		if (input > max) {                                                     \
+   6:application/src/pid_controller.c **** 			input = max;                                                       \
+   7:application/src/pid_controller.c **** 		} else if (input < -max) {                                             \
+   8:application/src/pid_controller.c **** 			input = -max;                                                      \
+   9:application/src/pid_controller.c **** 		}                                                                      \
+  10:application/src/pid_controller.c **** 	}
+  11:application/src/pid_controller.c **** 
+  12:application/src/pid_controller.c **** void pid_controller_init(pid_controller_t *pid,
+  13:application/src/pid_controller.c ****                          const pid_controller_param_t *param) {
+  31              		.loc 1 13 63 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  14:application/src/pid_controller.c **** 	pid->param = *param;
+  35              		.loc 1 14 2 view .LVU1
+  13:application/src/pid_controller.c **** 	pid->param = *param;
+  36              		.loc 1 13 63 is_stmt 0 view .LVU2
+  37 0000 10B5     		push	{r4, lr}
+  38              		.cfi_def_cfa_offset 8
+  39              		.cfi_offset 4, -8
+  40              		.cfi_offset 14, -4
+  41              		.loc 1 14 13 view .LVU3
+  42 0002 8E46     		mov	lr, r1
+  13:application/src/pid_controller.c **** 	pid->param = *param;
+ARM GAS  /tmp/ccHQnJPJ.s 			page 2
+
+
+  43              		.loc 1 13 63 view .LVU4
+  44 0004 8446     		mov	ip, r0
+  45              		.loc 1 14 13 view .LVU5
+  46 0006 0446     		mov	r4, r0
+  47 0008 BEE80F00 		ldmia	lr!, {r0, r1, r2, r3}
+  48              	.LVL1:
+  49              		.loc 1 14 13 view .LVU6
+  50 000c 0FC4     		stmia	r4!, {r0, r1, r2, r3}
+  51              	.LVL2:
+  52              		.loc 1 14 13 view .LVU7
+  53 000e 9EE80300 		ldm	lr, {r0, r1}
+  15:application/src/pid_controller.c **** 	pid->out = 0;
+  54              		.loc 1 15 11 view .LVU8
+  55 0012 DFED097A 		vldr.32	s15, .L4
+  14:application/src/pid_controller.c **** 	pid->param = *param;
+  56              		.loc 1 14 13 view .LVU9
+  57 0016 84E80300 		stm	r4, {r0, r1}
+  58              		.loc 1 15 2 is_stmt 1 view .LVU10
+  59              		.loc 1 15 11 is_stmt 0 view .LVU11
+  60 001a CCED0E7A 		vstr.32	s15, [ip, #56]
+  16:application/src/pid_controller.c **** 	pid->p_out = 0;
+  61              		.loc 1 16 2 is_stmt 1 view .LVU12
+  62              		.loc 1 16 13 is_stmt 0 view .LVU13
+  63 001e CCED0B7A 		vstr.32	s15, [ip, #44]
+  17:application/src/pid_controller.c **** 	pid->i_out = 0;
+  64              		.loc 1 17 2 is_stmt 1 view .LVU14
+  65              		.loc 1 17 13 is_stmt 0 view .LVU15
+  66 0022 CCED0C7A 		vstr.32	s15, [ip, #48]
+  18:application/src/pid_controller.c **** 	pid->d_out = 0;
+  67              		.loc 1 18 2 is_stmt 1 view .LVU16
+  68              		.loc 1 18 13 is_stmt 0 view .LVU17
+  69 0026 CCED0D7A 		vstr.32	s15, [ip, #52]
+  19:application/src/pid_controller.c **** 	pid->error = 0;
+  70              		.loc 1 19 2 is_stmt 1 view .LVU18
+  71              		.loc 1 19 13 is_stmt 0 view .LVU19
+  72 002a CCED087A 		vstr.32	s15, [ip, #32]
+  20:application/src/pid_controller.c **** 	pid->last_error = 0;
+  73              		.loc 1 20 2 is_stmt 1 view .LVU20
+  74              		.loc 1 20 18 is_stmt 0 view .LVU21
+  75 002e CCED097A 		vstr.32	s15, [ip, #36]
+  21:application/src/pid_controller.c **** 	pid->second_last_error = 0;
+  76              		.loc 1 21 2 is_stmt 1 view .LVU22
+  77              		.loc 1 21 25 is_stmt 0 view .LVU23
+  78 0032 CCED0A7A 		vstr.32	s15, [ip, #40]
+  22:application/src/pid_controller.c **** }
+  79              		.loc 1 22 1 view .LVU24
+  80 0036 10BD     		pop	{r4, pc}
+  81              	.L5:
+  82              		.align	2
+  83              	.L4:
+  84 0038 00000000 		.word	0
+  85              		.cfi_endproc
+  86              	.LFE0:
+  88              		.section	.text.pid_controller_update,"ax",%progbits
+  89              		.align	1
+  90              		.p2align 2,,3
+  91              		.global	pid_controller_update
+ARM GAS  /tmp/ccHQnJPJ.s 			page 3
+
+
+  92              		.syntax unified
+  93              		.thumb
+  94              		.thumb_func
+  96              	pid_controller_update:
+  97              	.LVL3:
+  98              	.LFB1:
+  23:application/src/pid_controller.c **** 
+  24:application/src/pid_controller.c **** float pid_controller_update(pid_controller_t *pid, float feedback, float set) {
+  99              		.loc 1 24 79 is_stmt 1 view -0
+ 100              		.cfi_startproc
+ 101              		@ args = 0, pretend = 0, frame = 0
+ 102              		@ frame_needed = 0, uses_anonymous_args = 0
+ 103              		@ link register save eliminated.
+  25:application/src/pid_controller.c **** 	pid->set = set;
+ 104              		.loc 1 25 2 view .LVU26
+  26:application/src/pid_controller.c **** 	pid->feedback = feedback;
+  27:application/src/pid_controller.c **** 	pid->second_last_error = pid->last_error;
+ 105              		.loc 1 27 30 is_stmt 0 view .LVU27
+ 106 0000 D0ED096A 		vldr.32	s13, [r0, #36]
+  28:application/src/pid_controller.c **** 	pid->last_error = pid->error;
+ 107              		.loc 1 28 23 view .LVU28
+ 108 0004 90ED087A 		vldr.32	s14, [r0, #32]
+  29:application/src/pid_controller.c **** 	pid->error = set - feedback;
+  30:application/src/pid_controller.c **** 	if (pid->param.mode == PID_CONTROLLER_POSITION) {
+ 109              		.loc 1 30 16 view .LVU29
+ 110 0008 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+  25:application/src/pid_controller.c **** 	pid->feedback = feedback;
+ 111              		.loc 1 25 11 view .LVU30
+ 112 000a C0ED060A 		vstr.32	s1, [r0, #24]
+  26:application/src/pid_controller.c **** 	pid->second_last_error = pid->last_error;
+ 113              		.loc 1 26 2 is_stmt 1 view .LVU31
+  29:application/src/pid_controller.c **** 	pid->error = set - feedback;
+ 114              		.loc 1 29 19 is_stmt 0 view .LVU32
+ 115 000e 70EEC07A 		vsub.f32	s15, s1, s0
+  26:application/src/pid_controller.c **** 	pid->second_last_error = pid->last_error;
+ 116              		.loc 1 26 16 view .LVU33
+ 117 0012 80ED070A 		vstr.32	s0, [r0, #28]
+  27:application/src/pid_controller.c **** 	pid->last_error = pid->error;
+ 118              		.loc 1 27 2 is_stmt 1 view .LVU34
+  27:application/src/pid_controller.c **** 	pid->last_error = pid->error;
+ 119              		.loc 1 27 25 is_stmt 0 view .LVU35
+ 120 0016 C0ED0A6A 		vstr.32	s13, [r0, #40]
+  28:application/src/pid_controller.c **** 	pid->error = set - feedback;
+ 121              		.loc 1 28 2 is_stmt 1 view .LVU36
+  28:application/src/pid_controller.c **** 	pid->error = set - feedback;
+ 122              		.loc 1 28 18 is_stmt 0 view .LVU37
+ 123 001a 80ED097A 		vstr.32	s14, [r0, #36]
+  29:application/src/pid_controller.c **** 	if (pid->param.mode == PID_CONTROLLER_POSITION) {
+ 124              		.loc 1 29 2 is_stmt 1 view .LVU38
+  29:application/src/pid_controller.c **** 	if (pid->param.mode == PID_CONTROLLER_POSITION) {
+ 125              		.loc 1 29 13 is_stmt 0 view .LVU39
+ 126 001e C0ED087A 		vstr.32	s15, [r0, #32]
+ 127              		.loc 1 30 2 is_stmt 1 view .LVU40
+ 128              		.loc 1 30 5 is_stmt 0 view .LVU41
+ 129 0022 ABBB     		cbnz	r3, .L7
+  31:application/src/pid_controller.c **** 		pid->p_out = pid->param.k_p * pid->error;
+ 130              		.loc 1 31 3 is_stmt 1 view .LVU42
+ARM GAS  /tmp/ccHQnJPJ.s 			page 4
+
+
+  32:application/src/pid_controller.c **** 		pid->i_out += pid->param.k_i * pid->error;
+ 131              		.loc 1 32 14 is_stmt 0 view .LVU43
+ 132 0024 D0ED0C6A 		vldr.32	s13, [r0, #48]
+ 133 0028 90ED026A 		vldr.32	s12, [r0, #8]
+  31:application/src/pid_controller.c **** 		pid->p_out = pid->param.k_p * pid->error;
+ 134              		.loc 1 31 31 view .LVU44
+ 135 002c D0ED015A 		vldr.32	s11, [r0, #4]
+ 136              		.loc 1 32 14 view .LVU45
+ 137 0030 E7EE866A 		vfma.f32	s13, s15, s12
+  33:application/src/pid_controller.c **** 		pid->d_out = pid->param.k_d * (pid->error - pid->last_error);
+ 138              		.loc 1 33 45 view .LVU46
+ 139 0034 37EEC77A 		vsub.f32	s14, s15, s14
+ 140              		.loc 1 33 31 view .LVU47
+ 141 0038 90ED036A 		vldr.32	s12, [r0, #12]
+  32:application/src/pid_controller.c **** 		pid->i_out += pid->param.k_i * pid->error;
+ 142              		.loc 1 32 14 view .LVU48
+ 143 003c C0ED0C6A 		vstr.32	s13, [r0, #48]
+ 144              		.loc 1 33 31 view .LVU49
+ 145 0040 27EE067A 		vmul.f32	s14, s14, s12
+  34:application/src/pid_controller.c **** 		LimitMax(pid->i_out, pid->param.integral_limit);
+ 146              		.loc 1 34 3 view .LVU50
+ 147 0044 90ED046A 		vldr.32	s12, [r0, #16]
+  33:application/src/pid_controller.c **** 		pid->d_out = pid->param.k_d * (pid->error - pid->last_error);
+ 148              		.loc 1 33 14 view .LVU51
+ 149 0048 80ED0D7A 		vstr.32	s14, [r0, #52]
+  31:application/src/pid_controller.c **** 		pid->i_out += pid->param.k_i * pid->error;
+ 150              		.loc 1 31 31 view .LVU52
+ 151 004c 67EEA57A 		vmul.f32	s15, s15, s11
+ 152              		.loc 1 34 3 view .LVU53
+ 153 0050 F4EEC66A 		vcmpe.f32	s13, s12
+ 154 0054 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+  31:application/src/pid_controller.c **** 		pid->i_out += pid->param.k_i * pid->error;
+ 155              		.loc 1 31 14 view .LVU54
+ 156 0058 C0ED0B7A 		vstr.32	s15, [r0, #44]
+  32:application/src/pid_controller.c **** 		pid->d_out = pid->param.k_d * (pid->error - pid->last_error);
+ 157              		.loc 1 32 3 is_stmt 1 view .LVU55
+  33:application/src/pid_controller.c **** 		LimitMax(pid->i_out, pid->param.integral_limit);
+ 158              		.loc 1 33 3 view .LVU56
+ 159              		.loc 1 34 3 view .LVU57
+ 160 005c 1DDD     		ble	.L29
+ 161              	.L35:
+ 162              		.loc 1 34 3 discriminator 4 view .LVU58
+ 163 005e 80ED0C6A 		vstr.32	s12, [r0, #48]
+ 164              	.L10:
+ 165              		.loc 1 34 50 discriminator 6 view .LVU59
+  35:application/src/pid_controller.c **** 		pid->out = pid->p_out + pid->i_out + pid->d_out;
+ 166              		.loc 1 35 3 discriminator 6 view .LVU60
+ 167              		.loc 1 35 25 is_stmt 0 discriminator 6 view .LVU61
+ 168 0062 77EE867A 		vadd.f32	s15, s15, s12
+  36:application/src/pid_controller.c **** 		LimitMax(pid->out, pid->param.out_limit);
+ 169              		.loc 1 36 3 discriminator 6 view .LVU62
+ 170 0066 90ED050A 		vldr.32	s0, [r0, #20]
+ 171              	.LVL4:
+  35:application/src/pid_controller.c **** 		pid->out = pid->p_out + pid->i_out + pid->d_out;
+ 172              		.loc 1 35 38 discriminator 6 view .LVU63
+ 173 006a 77EE877A 		vadd.f32	s15, s15, s14
+ 174              		.loc 1 36 3 discriminator 6 view .LVU64
+ARM GAS  /tmp/ccHQnJPJ.s 			page 5
+
+
+ 175 006e F4EEC07A 		vcmpe.f32	s15, s0
+ 176 0072 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+  35:application/src/pid_controller.c **** 		pid->out = pid->p_out + pid->i_out + pid->d_out;
+ 177              		.loc 1 35 12 discriminator 6 view .LVU65
+ 178 0076 C0ED0E7A 		vstr.32	s15, [r0, #56]
+ 179              		.loc 1 36 3 is_stmt 1 discriminator 6 view .LVU66
+ 180 007a 06DC     		bgt	.L38
+ 181              		.loc 1 36 3 discriminator 2 view .LVU67
+ 182 007c B1EE400A 		vneg.f32	s0, s0
+ 183 0080 F4EEC07A 		vcmpe.f32	s15, s0
+ 184 0084 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 185 0088 48D5     		bpl	.L32
+ 186              	.L38:
+  37:application/src/pid_controller.c **** 	} else if (pid->param.mode == PID_CONTROLLER_DELTA) {
+  38:application/src/pid_controller.c **** 		pid->p_out = pid->param.k_p * (pid->error - pid->last_error);
+  39:application/src/pid_controller.c **** 		pid->i_out = pid->param.k_i * pid->error;
+  40:application/src/pid_controller.c **** 		pid->d_out = pid->param.k_d * (pid->error - 2.0f * pid->last_error +
+  41:application/src/pid_controller.c **** 		                               pid->second_last_error);
+  42:application/src/pid_controller.c **** 		pid->out += pid->p_out + pid->i_out + pid->d_out;
+  43:application/src/pid_controller.c **** 		LimitMax(pid->out, pid->param.out_limit);
+ 187              		.loc 1 43 3 discriminator 4 view .LVU68
+ 188 008a 80ED0E0A 		vstr.32	s0, [r0, #56]
+ 189 008e 7047     		bx	lr
+ 190              	.LVL5:
+ 191              	.L7:
+  37:application/src/pid_controller.c **** 	} else if (pid->param.mode == PID_CONTROLLER_DELTA) {
+ 192              		.loc 1 37 9 view .LVU69
+  37:application/src/pid_controller.c **** 	} else if (pid->param.mode == PID_CONTROLLER_DELTA) {
+ 193              		.loc 1 37 12 is_stmt 0 view .LVU70
+ 194 0090 012B     		cmp	r3, #1
+ 195 0092 0CD0     		beq	.L16
+  44:application/src/pid_controller.c **** 	}
+  45:application/src/pid_controller.c **** 	return pid->out;
+ 196              		.loc 1 45 12 view .LVU71
+ 197 0094 90ED0E0A 		vldr.32	s0, [r0, #56]
+ 198              	.LVL6:
+ 199              		.loc 1 45 12 view .LVU72
+ 200 0098 7047     		bx	lr
+ 201              	.LVL7:
+ 202              	.L29:
+  34:application/src/pid_controller.c **** 		pid->out = pid->p_out + pid->i_out + pid->d_out;
+ 203              		.loc 1 34 3 is_stmt 1 discriminator 2 view .LVU73
+ 204 009a B1EE466A 		vneg.f32	s12, s12
+ 205 009e F4EEC66A 		vcmpe.f32	s13, s12
+ 206 00a2 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 207 00a6 DAD4     		bmi	.L35
+ 208 00a8 B0EE666A 		vmov.f32	s12, s13
+ 209 00ac D9E7     		b	.L10
+ 210              	.L16:
+  38:application/src/pid_controller.c **** 		pid->i_out = pid->param.k_i * pid->error;
+ 211              		.loc 1 38 3 view .LVU74
+  40:application/src/pid_controller.c **** 		                               pid->second_last_error);
+ 212              		.loc 1 40 45 is_stmt 0 view .LVU75
+ 213 00ae F0EE005A 		vmov.f32	s11, #2.0e+0
+ 214 00b2 B0EE676A 		vmov.f32	s12, s15
+ 215 00b6 A7EE656A 		vfms.f32	s12, s14, s11
+  38:application/src/pid_controller.c **** 		pid->i_out = pid->param.k_i * pid->error;
+ARM GAS  /tmp/ccHQnJPJ.s 			page 6
+
+
+ 216              		.loc 1 38 31 view .LVU76
+ 217 00ba 90ED015A 		vldr.32	s10, [r0, #4]
+  39:application/src/pid_controller.c **** 		pid->d_out = pid->param.k_d * (pid->error - 2.0f * pid->last_error +
+ 218              		.loc 1 39 31 view .LVU77
+ 219 00be D0ED025A 		vldr.32	s11, [r0, #8]
+  43:application/src/pid_controller.c **** 	}
+ 220              		.loc 1 43 3 view .LVU78
+ 221 00c2 90ED050A 		vldr.32	s0, [r0, #20]
+ 222              	.LVL8:
+  38:application/src/pid_controller.c **** 		pid->i_out = pid->param.k_i * pid->error;
+ 223              		.loc 1 38 45 view .LVU79
+ 224 00c6 37EEC77A 		vsub.f32	s14, s15, s14
+  40:application/src/pid_controller.c **** 		                               pid->second_last_error);
+ 225              		.loc 1 40 70 view .LVU80
+ 226 00ca 76EE866A 		vadd.f32	s13, s13, s12
+  39:application/src/pid_controller.c **** 		pid->d_out = pid->param.k_d * (pid->error - 2.0f * pid->last_error +
+ 227              		.loc 1 39 31 view .LVU81
+ 228 00ce 67EEA57A 		vmul.f32	s15, s15, s11
+  38:application/src/pid_controller.c **** 		pid->i_out = pid->param.k_i * pid->error;
+ 229              		.loc 1 38 31 view .LVU82
+ 230 00d2 27EE057A 		vmul.f32	s14, s14, s10
+  40:application/src/pid_controller.c **** 		                               pid->second_last_error);
+ 231              		.loc 1 40 31 view .LVU83
+ 232 00d6 D0ED035A 		vldr.32	s11, [r0, #12]
+  38:application/src/pid_controller.c **** 		pid->i_out = pid->param.k_i * pid->error;
+ 233              		.loc 1 38 14 view .LVU84
+ 234 00da 80ED0B7A 		vstr.32	s14, [r0, #44]
+  39:application/src/pid_controller.c **** 		pid->d_out = pid->param.k_d * (pid->error - 2.0f * pid->last_error +
+ 235              		.loc 1 39 3 is_stmt 1 view .LVU85
+  40:application/src/pid_controller.c **** 		                               pid->second_last_error);
+ 236              		.loc 1 40 31 is_stmt 0 view .LVU86
+ 237 00de 66EEA56A 		vmul.f32	s13, s13, s11
+  42:application/src/pid_controller.c **** 		LimitMax(pid->out, pid->param.out_limit);
+ 238              		.loc 1 42 26 view .LVU87
+ 239 00e2 37EE276A 		vadd.f32	s12, s14, s15
+  42:application/src/pid_controller.c **** 		LimitMax(pid->out, pid->param.out_limit);
+ 240              		.loc 1 42 12 view .LVU88
+ 241 00e6 D0ED0E5A 		vldr.32	s11, [r0, #56]
+  39:application/src/pid_controller.c **** 		pid->d_out = pid->param.k_d * (pid->error - 2.0f * pid->last_error +
+ 242              		.loc 1 39 14 view .LVU89
+ 243 00ea C0ED0C7A 		vstr.32	s15, [r0, #48]
+  40:application/src/pid_controller.c **** 		                               pid->second_last_error);
+ 244              		.loc 1 40 3 is_stmt 1 view .LVU90
+  42:application/src/pid_controller.c **** 		LimitMax(pid->out, pid->param.out_limit);
+ 245              		.loc 1 42 39 is_stmt 0 view .LVU91
+ 246 00ee 36EE266A 		vadd.f32	s12, s12, s13
+  40:application/src/pid_controller.c **** 		                               pid->second_last_error);
+ 247              		.loc 1 40 14 view .LVU92
+ 248 00f2 C0ED0D6A 		vstr.32	s13, [r0, #52]
+  42:application/src/pid_controller.c **** 		LimitMax(pid->out, pid->param.out_limit);
+ 249              		.loc 1 42 3 is_stmt 1 view .LVU93
+  42:application/src/pid_controller.c **** 		LimitMax(pid->out, pid->param.out_limit);
+ 250              		.loc 1 42 12 is_stmt 0 view .LVU94
+ 251 00f6 36EE256A 		vadd.f32	s12, s12, s11
+  43:application/src/pid_controller.c **** 	}
+ 252              		.loc 1 43 3 view .LVU95
+ 253 00fa B4EEC06A 		vcmpe.f32	s12, s0
+ARM GAS  /tmp/ccHQnJPJ.s 			page 7
+
+
+ 254 00fe F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+  42:application/src/pid_controller.c **** 		LimitMax(pid->out, pid->param.out_limit);
+ 255              		.loc 1 42 12 view .LVU96
+ 256 0102 80ED0E6A 		vstr.32	s12, [r0, #56]
+  43:application/src/pid_controller.c **** 	}
+ 257              		.loc 1 43 3 is_stmt 1 view .LVU97
+ 258 0106 C0DC     		bgt	.L38
+  43:application/src/pid_controller.c **** 	}
+ 259              		.loc 1 43 3 discriminator 2 view .LVU98
+ 260 0108 B1EE400A 		vneg.f32	s0, s0
+ 261 010c B4EEC06A 		vcmpe.f32	s12, s0
+ 262 0110 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 263 0114 B9D4     		bmi	.L38
+ 264 0116 B0EE460A 		vmov.f32	s0, s12
+  43:application/src/pid_controller.c **** 	}
+ 265              		.loc 1 43 43 view .LVU99
+ 266              		.loc 1 45 2 view .LVU100
+  46:application/src/pid_controller.c **** }
+ 267              		.loc 1 46 1 is_stmt 0 view .LVU101
+ 268 011a 7047     		bx	lr
+ 269              	.L32:
+ 270              		.loc 1 46 1 view .LVU102
+ 271 011c B0EE670A 		vmov.f32	s0, s15
+ 272 0120 7047     		bx	lr
+ 273              		.cfi_endproc
+ 274              	.LFE1:
+ 276 0122 00BF     		.section	.text.pid_controller_reset,"ax",%progbits
+ 277              		.align	1
+ 278              		.p2align 2,,3
+ 279              		.global	pid_controller_reset
+ 280              		.syntax unified
+ 281              		.thumb
+ 282              		.thumb_func
+ 284              	pid_controller_reset:
+ 285              	.LVL9:
+ 286              	.LFB2:
+  47:application/src/pid_controller.c **** 
+  48:application/src/pid_controller.c **** void pid_controller_reset(pid_controller_t *pid) {
+ 287              		.loc 1 48 50 is_stmt 1 view -0
+ 288              		.cfi_startproc
+ 289              		@ args = 0, pretend = 0, frame = 0
+ 290              		@ frame_needed = 0, uses_anonymous_args = 0
+ 291              		@ link register save eliminated.
+  49:application/src/pid_controller.c **** 	pid->out = 0;
+ 292              		.loc 1 49 2 view .LVU104
+ 293              		.loc 1 49 11 is_stmt 0 view .LVU105
+ 294 0000 0023     		movs	r3, #0
+  50:application/src/pid_controller.c **** 	pid->p_out = 0;
+  51:application/src/pid_controller.c **** 	pid->i_out = 0;
+  52:application/src/pid_controller.c **** 	pid->d_out = 0;
+  53:application/src/pid_controller.c **** 	pid->error = 0;
+  54:application/src/pid_controller.c **** 	pid->last_error = 0;
+  55:application/src/pid_controller.c **** 	pid->second_last_error = 0;
+  56:application/src/pid_controller.c **** 	pid->feedback = pid->set;
+ 295              		.loc 1 56 16 view .LVU106
+ 296 0002 8269     		ldr	r2, [r0, #24]	@ float
+  49:application/src/pid_controller.c **** 	pid->out = 0;
+ARM GAS  /tmp/ccHQnJPJ.s 			page 8
+
+
+ 297              		.loc 1 49 11 view .LVU107
+ 298 0004 8363     		str	r3, [r0, #56]	@ float
+  50:application/src/pid_controller.c **** 	pid->p_out = 0;
+ 299              		.loc 1 50 2 is_stmt 1 view .LVU108
+  50:application/src/pid_controller.c **** 	pid->p_out = 0;
+ 300              		.loc 1 50 13 is_stmt 0 view .LVU109
+ 301 0006 C362     		str	r3, [r0, #44]	@ float
+  51:application/src/pid_controller.c **** 	pid->d_out = 0;
+ 302              		.loc 1 51 2 is_stmt 1 view .LVU110
+  51:application/src/pid_controller.c **** 	pid->d_out = 0;
+ 303              		.loc 1 51 13 is_stmt 0 view .LVU111
+ 304 0008 0363     		str	r3, [r0, #48]	@ float
+  52:application/src/pid_controller.c **** 	pid->error = 0;
+ 305              		.loc 1 52 2 is_stmt 1 view .LVU112
+  52:application/src/pid_controller.c **** 	pid->error = 0;
+ 306              		.loc 1 52 13 is_stmt 0 view .LVU113
+ 307 000a 4363     		str	r3, [r0, #52]	@ float
+  53:application/src/pid_controller.c **** 	pid->last_error = 0;
+ 308              		.loc 1 53 2 is_stmt 1 view .LVU114
+  53:application/src/pid_controller.c **** 	pid->last_error = 0;
+ 309              		.loc 1 53 13 is_stmt 0 view .LVU115
+ 310 000c 0362     		str	r3, [r0, #32]	@ float
+  54:application/src/pid_controller.c **** 	pid->second_last_error = 0;
+ 311              		.loc 1 54 2 is_stmt 1 view .LVU116
+  54:application/src/pid_controller.c **** 	pid->second_last_error = 0;
+ 312              		.loc 1 54 18 is_stmt 0 view .LVU117
+ 313 000e 4362     		str	r3, [r0, #36]	@ float
+  55:application/src/pid_controller.c **** 	pid->feedback = pid->set;
+ 314              		.loc 1 55 2 is_stmt 1 view .LVU118
+  55:application/src/pid_controller.c **** 	pid->feedback = pid->set;
+ 315              		.loc 1 55 25 is_stmt 0 view .LVU119
+ 316 0010 8362     		str	r3, [r0, #40]	@ float
+ 317              		.loc 1 56 2 is_stmt 1 view .LVU120
+ 318              		.loc 1 56 16 is_stmt 0 view .LVU121
+ 319 0012 C261     		str	r2, [r0, #28]	@ float
+  57:application/src/pid_controller.c **** }
+ 320              		.loc 1 57 1 view .LVU122
+ 321 0014 7047     		bx	lr
+ 322              		.cfi_endproc
+ 323              	.LFE2:
+ 325 0016 00BF     		.text
+ 326              	.Letext0:
+ 327              		.file 2 "application/include/pid_controller.h"
+ARM GAS  /tmp/ccHQnJPJ.s 			page 9
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 pid_controller.c
+     /tmp/ccHQnJPJ.s:20     .text.pid_controller_init:0000000000000000 $t
+     /tmp/ccHQnJPJ.s:27     .text.pid_controller_init:0000000000000000 pid_controller_init
+     /tmp/ccHQnJPJ.s:84     .text.pid_controller_init:0000000000000038 $d
+     /tmp/ccHQnJPJ.s:89     .text.pid_controller_update:0000000000000000 $t
+     /tmp/ccHQnJPJ.s:96     .text.pid_controller_update:0000000000000000 pid_controller_update
+     /tmp/ccHQnJPJ.s:277    .text.pid_controller_reset:0000000000000000 $t
+     /tmp/ccHQnJPJ.s:284    .text.pid_controller_reset:0000000000000000 pid_controller_reset
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,113 @@
+ARM GAS  /tmp/cccWTD0Z.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_laser.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.laser_on,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	laser_on
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	laser_on:
+  28              	.LFB235:
+  29              		.file 1 "bsp/boards/Src/bsp_laser.c"
+   1:bsp/boards/Src/bsp_laser.c **** #include "bsp_laser.h"
+   2:bsp/boards/Src/bsp_laser.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_laser.c **** 
+   4:bsp/boards/Src/bsp_laser.c **** extern TIM_HandleTypeDef htim3;
+   5:bsp/boards/Src/bsp_laser.c **** void laser_on(void)
+   6:bsp/boards/Src/bsp_laser.c **** {
+  30              		.loc 1 6 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+   7:bsp/boards/Src/bsp_laser.c ****     __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 8399);
+  35              		.loc 1 7 5 view .LVU1
+  36 0000 024B     		ldr	r3, .L3
+  37 0002 1B68     		ldr	r3, [r3]
+  38 0004 42F2CF02 		movw	r2, #8399
+  39 0008 DA63     		str	r2, [r3, #60]
+   8:bsp/boards/Src/bsp_laser.c **** }
+  40              		.loc 1 8 1 is_stmt 0 view .LVU2
+  41 000a 7047     		bx	lr
+  42              	.L4:
+  43              		.align	2
+  44              	.L3:
+  45 000c 00000000 		.word	htim3
+  46              		.cfi_endproc
+  47              	.LFE235:
+  49              		.section	.text.laser_off,"ax",%progbits
+  50              		.align	1
+  51              		.p2align 2,,3
+ARM GAS  /tmp/cccWTD0Z.s 			page 2
+
+
+  52              		.global	laser_off
+  53              		.syntax unified
+  54              		.thumb
+  55              		.thumb_func
+  57              	laser_off:
+  58              	.LFB236:
+   9:bsp/boards/Src/bsp_laser.c **** void laser_off(void)
+  10:bsp/boards/Src/bsp_laser.c **** {
+  59              		.loc 1 10 1 is_stmt 1 view -0
+  60              		.cfi_startproc
+  61              		@ args = 0, pretend = 0, frame = 0
+  62              		@ frame_needed = 0, uses_anonymous_args = 0
+  63              		@ link register save eliminated.
+  11:bsp/boards/Src/bsp_laser.c ****     __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3, 0);
+  64              		.loc 1 11 5 view .LVU4
+  65 0000 024B     		ldr	r3, .L6
+  66 0002 1B68     		ldr	r3, [r3]
+  67 0004 0022     		movs	r2, #0
+  68 0006 DA63     		str	r2, [r3, #60]
+  12:bsp/boards/Src/bsp_laser.c **** }
+  69              		.loc 1 12 1 is_stmt 0 view .LVU5
+  70 0008 7047     		bx	lr
+  71              	.L7:
+  72 000a 00BF     		.align	2
+  73              	.L6:
+  74 000c 00000000 		.word	htim3
+  75              		.cfi_endproc
+  76              	.LFE236:
+  78              		.text
+  79              	.Letext0:
+  80              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+  81              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+  82              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+  83              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+  84              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+  85              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h"
+ARM GAS  /tmp/cccWTD0Z.s 			page 3
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_laser.c
+     /tmp/cccWTD0Z.s:20     .text.laser_on:0000000000000000 $t
+     /tmp/cccWTD0Z.s:27     .text.laser_on:0000000000000000 laser_on
+     /tmp/cccWTD0Z.s:45     .text.laser_on:000000000000000c $d
+     /tmp/cccWTD0Z.s:50     .text.laser_off:0000000000000000 $t
+     /tmp/cccWTD0Z.s:57     .text.laser_off:0000000000000000 laser_off
+     /tmp/cccWTD0Z.s:74     .text.laser_off:000000000000000c $d
+
+UNDEFINED SYMBOLS
+htim3

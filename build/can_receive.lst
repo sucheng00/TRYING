@@ -1,0 +1,88 @@
+ARM GAS  /tmp/cclstG6A.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"can_receive.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.CAN_cmd_receive_data,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	CAN_cmd_receive_data
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	CAN_cmd_receive_data:
+  28              	.LFB235:
+  29              		.file 1 "application/src/can_receive.c"
+   1:application/src/can_receive.c **** #include "can_receive.h"
+   2:application/src/can_receive.c **** #include "bsp_fric.h"
+   3:application/src/can_receive.c **** 
+   4:application/src/can_receive.c **** uint8_t rx_data[8];
+   5:application/src/can_receive.c **** uint16_t fric_pwm1,fric_pwm2;
+   6:application/src/can_receive.c **** 
+   7:application/src/can_receive.c **** void CAN_cmd_receive_data(void)
+   8:application/src/can_receive.c **** {
+  30              		.loc 1 8 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+   9:application/src/can_receive.c **** 
+  10:application/src/can_receive.c **** }
+  35              		.loc 1 10 1 view .LVU1
+  36 0000 7047     		bx	lr
+  37              		.cfi_endproc
+  38              	.LFE235:
+  40              		.global	fric_pwm2
+  41              		.global	fric_pwm1
+  42              		.global	rx_data
+  43 0002 00BF     		.section	.bss.fric_pwm1,"aw",%nobits
+  44              		.align	1
+  47              	fric_pwm1:
+  48 0000 0000     		.space	2
+  49              		.section	.bss.fric_pwm2,"aw",%nobits
+  50              		.align	1
+  53              	fric_pwm2:
+ARM GAS  /tmp/cclstG6A.s 			page 2
+
+
+  54 0000 0000     		.space	2
+  55              		.section	.bss.rx_data,"aw",%nobits
+  56              		.align	2
+  59              	rx_data:
+  60 0000 00000000 		.space	8
+  60      00000000 
+  61              		.text
+  62              	.Letext0:
+  63              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+  64              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ARM GAS  /tmp/cclstG6A.s 			page 3
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 can_receive.c
+     /tmp/cclstG6A.s:20     .text.CAN_cmd_receive_data:0000000000000000 $t
+     /tmp/cclstG6A.s:27     .text.CAN_cmd_receive_data:0000000000000000 CAN_cmd_receive_data
+     /tmp/cclstG6A.s:53     .bss.fric_pwm2:0000000000000000 fric_pwm2
+     /tmp/cclstG6A.s:47     .bss.fric_pwm1:0000000000000000 fric_pwm1
+     /tmp/cclstG6A.s:59     .bss.rx_data:0000000000000000 rx_data
+     /tmp/cclstG6A.s:44     .bss.fric_pwm1:0000000000000000 $d
+     /tmp/cclstG6A.s:50     .bss.fric_pwm2:0000000000000000 $d
+     /tmp/cclstG6A.s:56     .bss.rx_data:0000000000000000 $d
+
+NO UNDEFINED SYMBOLS

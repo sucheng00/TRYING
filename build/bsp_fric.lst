@@ -1,0 +1,152 @@
+ARM GAS  /tmp/ccuKxFmh.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_fric.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.fric_off,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	fric_off
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	fric_off:
+  28              	.LFB235:
+  29              		.file 1 "bsp/boards/Src/bsp_fric.c"
+   1:bsp/boards/Src/bsp_fric.c **** #include "bsp_fric.h"
+   2:bsp/boards/Src/bsp_fric.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_fric.c **** extern TIM_HandleTypeDef htim1;
+   4:bsp/boards/Src/bsp_fric.c **** void fric_off(void)
+   5:bsp/boards/Src/bsp_fric.c **** {
+  30              		.loc 1 5 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+   6:bsp/boards/Src/bsp_fric.c ****     __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, FRIC_OFF);
+  35              		.loc 1 6 5 view .LVU1
+  36 0000 034B     		ldr	r3, .L3
+  37 0002 1B68     		ldr	r3, [r3]
+  38 0004 4FF47A72 		mov	r2, #1000
+  39 0008 5A63     		str	r2, [r3, #52]
+   7:bsp/boards/Src/bsp_fric.c ****     __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_2, FRIC_OFF);
+  40              		.loc 1 7 5 view .LVU2
+  41 000a 9A63     		str	r2, [r3, #56]
+   8:bsp/boards/Src/bsp_fric.c **** }
+  42              		.loc 1 8 1 is_stmt 0 view .LVU3
+  43 000c 7047     		bx	lr
+  44              	.L4:
+  45 000e 00BF     		.align	2
+  46              	.L3:
+  47 0010 00000000 		.word	htim1
+  48              		.cfi_endproc
+  49              	.LFE235:
+  51              		.section	.text.fric1_on,"ax",%progbits
+ARM GAS  /tmp/ccuKxFmh.s 			page 2
+
+
+  52              		.align	1
+  53              		.p2align 2,,3
+  54              		.global	fric1_on
+  55              		.syntax unified
+  56              		.thumb
+  57              		.thumb_func
+  59              	fric1_on:
+  60              	.LVL0:
+  61              	.LFB236:
+   9:bsp/boards/Src/bsp_fric.c **** void fric1_on(uint16_t cmd)
+  10:bsp/boards/Src/bsp_fric.c **** {
+  62              		.loc 1 10 1 is_stmt 1 view -0
+  63              		.cfi_startproc
+  64              		@ args = 0, pretend = 0, frame = 0
+  65              		@ frame_needed = 0, uses_anonymous_args = 0
+  66              		@ link register save eliminated.
+  11:bsp/boards/Src/bsp_fric.c ****     __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, cmd);
+  67              		.loc 1 11 5 view .LVU5
+  68 0000 014B     		ldr	r3, .L6
+  69 0002 1B68     		ldr	r3, [r3]
+  70 0004 5863     		str	r0, [r3, #52]
+  12:bsp/boards/Src/bsp_fric.c **** }
+  71              		.loc 1 12 1 is_stmt 0 view .LVU6
+  72 0006 7047     		bx	lr
+  73              	.L7:
+  74              		.align	2
+  75              	.L6:
+  76 0008 00000000 		.word	htim1
+  77              		.cfi_endproc
+  78              	.LFE236:
+  80              		.section	.text.fric2_on,"ax",%progbits
+  81              		.align	1
+  82              		.p2align 2,,3
+  83              		.global	fric2_on
+  84              		.syntax unified
+  85              		.thumb
+  86              		.thumb_func
+  88              	fric2_on:
+  89              	.LVL1:
+  90              	.LFB237:
+  13:bsp/boards/Src/bsp_fric.c **** void fric2_on(uint16_t cmd)
+  14:bsp/boards/Src/bsp_fric.c **** {
+  91              		.loc 1 14 1 is_stmt 1 view -0
+  92              		.cfi_startproc
+  93              		@ args = 0, pretend = 0, frame = 0
+  94              		@ frame_needed = 0, uses_anonymous_args = 0
+  95              		@ link register save eliminated.
+  15:bsp/boards/Src/bsp_fric.c ****     __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_2, cmd);
+  96              		.loc 1 15 5 view .LVU8
+  97 0000 014B     		ldr	r3, .L9
+  98 0002 1B68     		ldr	r3, [r3]
+  99 0004 9863     		str	r0, [r3, #56]
+  16:bsp/boards/Src/bsp_fric.c **** }
+ 100              		.loc 1 16 1 is_stmt 0 view .LVU9
+ 101 0006 7047     		bx	lr
+ 102              	.L10:
+ 103              		.align	2
+ARM GAS  /tmp/ccuKxFmh.s 			page 3
+
+
+ 104              	.L9:
+ 105 0008 00000000 		.word	htim1
+ 106              		.cfi_endproc
+ 107              	.LFE237:
+ 109              		.text
+ 110              	.Letext0:
+ 111              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 112              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 113              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 114              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 115              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 116              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h"
+ARM GAS  /tmp/ccuKxFmh.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_fric.c
+     /tmp/ccuKxFmh.s:20     .text.fric_off:0000000000000000 $t
+     /tmp/ccuKxFmh.s:27     .text.fric_off:0000000000000000 fric_off
+     /tmp/ccuKxFmh.s:47     .text.fric_off:0000000000000010 $d
+     /tmp/ccuKxFmh.s:52     .text.fric1_on:0000000000000000 $t
+     /tmp/ccuKxFmh.s:59     .text.fric1_on:0000000000000000 fric1_on
+     /tmp/ccuKxFmh.s:76     .text.fric1_on:0000000000000008 $d
+     /tmp/ccuKxFmh.s:81     .text.fric2_on:0000000000000000 $t
+     /tmp/ccuKxFmh.s:88     .text.fric2_on:0000000000000000 fric2_on
+     /tmp/ccuKxFmh.s:105    .text.fric2_on:0000000000000008 $d
+
+UNDEFINED SYMBOLS
+htim1

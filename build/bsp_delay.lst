@@ -1,0 +1,400 @@
+ARM GAS  /tmp/ccJ9wwMp.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_delay.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.delay_init,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	delay_init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	delay_init:
+  28              	.LFB235:
+  29              		.file 1 "bsp/boards/Src/bsp_delay.c"
+   1:bsp/boards/Src/bsp_delay.c **** #include "bsp_delay.h"
+   2:bsp/boards/Src/bsp_delay.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_delay.c **** 
+   4:bsp/boards/Src/bsp_delay.c **** static uint8_t fac_us = 0;
+   5:bsp/boards/Src/bsp_delay.c **** static uint32_t fac_ms = 0;
+   6:bsp/boards/Src/bsp_delay.c **** 
+   7:bsp/boards/Src/bsp_delay.c **** void delay_init(void)
+   8:bsp/boards/Src/bsp_delay.c **** {
+  30              		.loc 1 8 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+   9:bsp/boards/Src/bsp_delay.c ****     fac_us = SystemCoreClock / 1000000;
+  35              		.loc 1 9 5 view .LVU1
+  36              		.loc 1 9 30 is_stmt 0 view .LVU2
+  37 0000 084B     		ldr	r3, .L4
+  38 0002 094A     		ldr	r2, .L4+4
+  39 0004 1B68     		ldr	r3, [r3]
+  40              		.loc 1 9 12 view .LVU3
+  41 0006 0948     		ldr	r0, .L4+8
+  10:bsp/boards/Src/bsp_delay.c ****     fac_ms = SystemCoreClock / 1000;
+  42              		.loc 1 10 12 view .LVU4
+  43 0008 0949     		ldr	r1, .L4+12
+   8:bsp/boards/Src/bsp_delay.c ****     fac_us = SystemCoreClock / 1000000;
+  44              		.loc 1 8 1 view .LVU5
+  45 000a 10B4     		push	{r4}
+  46              		.cfi_def_cfa_offset 4
+  47              		.cfi_offset 4, -4
+ARM GAS  /tmp/ccJ9wwMp.s 			page 2
+
+
+  48              		.loc 1 10 30 view .LVU6
+  49 000c 094C     		ldr	r4, .L4+16
+   9:bsp/boards/Src/bsp_delay.c ****     fac_us = SystemCoreClock / 1000000;
+  50              		.loc 1 9 30 view .LVU7
+  51 000e A2FB03C2 		umull	ip, r2, r2, r3
+  52 0012 920C     		lsrs	r2, r2, #18
+  53              		.loc 1 10 30 view .LVU8
+  54 0014 A4FB0343 		umull	r4, r3, r4, r3
+  55 0018 9B09     		lsrs	r3, r3, #6
+   9:bsp/boards/Src/bsp_delay.c ****     fac_us = SystemCoreClock / 1000000;
+  56              		.loc 1 9 12 view .LVU9
+  57 001a 0270     		strb	r2, [r0]
+  58              		.loc 1 10 5 is_stmt 1 view .LVU10
+  11:bsp/boards/Src/bsp_delay.c **** 
+  12:bsp/boards/Src/bsp_delay.c **** }
+  59              		.loc 1 12 1 is_stmt 0 view .LVU11
+  60 001c 5DF8044B 		ldr	r4, [sp], #4
+  61              		.cfi_restore 4
+  62              		.cfi_def_cfa_offset 0
+  10:bsp/boards/Src/bsp_delay.c **** 
+  63              		.loc 1 10 12 view .LVU12
+  64 0020 0B60     		str	r3, [r1]
+  65              		.loc 1 12 1 view .LVU13
+  66 0022 7047     		bx	lr
+  67              	.L5:
+  68              		.align	2
+  69              	.L4:
+  70 0024 00000000 		.word	SystemCoreClock
+  71 0028 83DE1B43 		.word	1125899907
+  72 002c 00000000 		.word	.LANCHOR0
+  73 0030 00000000 		.word	.LANCHOR1
+  74 0034 D34D6210 		.word	274877907
+  75              		.cfi_endproc
+  76              	.LFE235:
+  78              		.section	.text.delay_us,"ax",%progbits
+  79              		.align	1
+  80              		.p2align 2,,3
+  81              		.global	delay_us
+  82              		.syntax unified
+  83              		.thumb
+  84              		.thumb_func
+  86              	delay_us:
+  87              	.LVL0:
+  88              	.LFB236:
+  13:bsp/boards/Src/bsp_delay.c **** 
+  14:bsp/boards/Src/bsp_delay.c **** void delay_us(uint16_t nus)
+  15:bsp/boards/Src/bsp_delay.c **** {
+  89              		.loc 1 15 1 is_stmt 1 view -0
+  90              		.cfi_startproc
+  91              		@ args = 0, pretend = 0, frame = 0
+  92              		@ frame_needed = 0, uses_anonymous_args = 0
+  16:bsp/boards/Src/bsp_delay.c ****     uint32_t ticks = 0;
+  93              		.loc 1 16 5 view .LVU15
+  17:bsp/boards/Src/bsp_delay.c ****     uint32_t told = 0;
+  94              		.loc 1 17 5 view .LVU16
+  18:bsp/boards/Src/bsp_delay.c ****     uint32_t tnow = 0;
+  95              		.loc 1 18 5 view .LVU17
+ARM GAS  /tmp/ccJ9wwMp.s 			page 3
+
+
+  19:bsp/boards/Src/bsp_delay.c ****     uint32_t tcnt = 0;
+  96              		.loc 1 19 5 view .LVU18
+  20:bsp/boards/Src/bsp_delay.c ****     uint32_t reload = 0;
+  97              		.loc 1 20 5 view .LVU19
+  21:bsp/boards/Src/bsp_delay.c ****     reload = SysTick->LOAD;
+  98              		.loc 1 21 5 view .LVU20
+  15:bsp/boards/Src/bsp_delay.c ****     uint32_t ticks = 0;
+  99              		.loc 1 15 1 is_stmt 0 view .LVU21
+ 100 0000 10B5     		push	{r4, lr}
+ 101              		.cfi_def_cfa_offset 8
+ 102              		.cfi_offset 4, -8
+ 103              		.cfi_offset 14, -4
+  22:bsp/boards/Src/bsp_delay.c ****     ticks = nus * fac_us;
+ 104              		.loc 1 22 17 view .LVU22
+ 105 0002 0D4B     		ldr	r3, .L15
+  21:bsp/boards/Src/bsp_delay.c ****     reload = SysTick->LOAD;
+ 106              		.loc 1 21 12 view .LVU23
+ 107 0004 4FF0E021 		mov	r1, #-536813568
+ 108              		.loc 1 22 17 view .LVU24
+ 109 0008 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  21:bsp/boards/Src/bsp_delay.c ****     reload = SysTick->LOAD;
+ 110              		.loc 1 21 12 view .LVU25
+ 111 000a 4C69     		ldr	r4, [r1, #20]
+ 112              	.LVL1:
+ 113              		.loc 1 22 5 is_stmt 1 view .LVU26
+  23:bsp/boards/Src/bsp_delay.c ****     told = SysTick->VAL;
+ 114              		.loc 1 23 10 is_stmt 0 view .LVU27
+ 115 000c 8A69     		ldr	r2, [r1, #24]
+ 116              	.LVL2:
+  22:bsp/boards/Src/bsp_delay.c ****     ticks = nus * fac_us;
+ 117              		.loc 1 22 17 view .LVU28
+ 118 000e 03FB00F0 		mul	r0, r3, r0
+ 119              	.LVL3:
+ 120              		.loc 1 23 5 is_stmt 1 view .LVU29
+  19:bsp/boards/Src/bsp_delay.c ****     uint32_t reload = 0;
+ 121              		.loc 1 19 14 is_stmt 0 view .LVU30
+ 122 0012 4FF0000C 		mov	ip, #0
+ 123              	.LVL4:
+ 124              	.L7:
+  24:bsp/boards/Src/bsp_delay.c ****     while (1)
+ 125              		.loc 1 24 5 is_stmt 1 view .LVU31
+  25:bsp/boards/Src/bsp_delay.c ****     {
+  26:bsp/boards/Src/bsp_delay.c ****         tnow = SysTick->VAL;
+ 126              		.loc 1 26 9 view .LVU32
+ 127              		.loc 1 26 14 is_stmt 0 view .LVU33
+ 128 0016 8B69     		ldr	r3, [r1, #24]
+ 129              	.LVL5:
+  27:bsp/boards/Src/bsp_delay.c ****         if (tnow != told)
+ 130              		.loc 1 27 9 is_stmt 1 view .LVU34
+ 131              		.loc 1 27 12 is_stmt 0 view .LVU35
+ 132 0018 9A42     		cmp	r2, r3
+ 133 001a FCD0     		beq	.L7
+  28:bsp/boards/Src/bsp_delay.c ****         {
+  29:bsp/boards/Src/bsp_delay.c ****             if (tnow < told)
+ 134              		.loc 1 29 13 is_stmt 1 view .LVU36
+  30:bsp/boards/Src/bsp_delay.c ****             {
+  31:bsp/boards/Src/bsp_delay.c ****                 tcnt += told - tnow;
+ARM GAS  /tmp/ccJ9wwMp.s 			page 4
+
+
+ 135              		.loc 1 31 17 view .LVU37
+  32:bsp/boards/Src/bsp_delay.c ****             }
+  33:bsp/boards/Src/bsp_delay.c ****             else
+  34:bsp/boards/Src/bsp_delay.c ****             {
+  35:bsp/boards/Src/bsp_delay.c ****                 tcnt += reload - tnow + told;
+ 136              		.loc 1 35 17 view .LVU38
+ 137 001c 02EB0C0E 		add	lr, r2, ip
+ 138 0020 9BBF     		ittet	ls
+ 139 0022 6244     		addls	r2, r2, ip
+ 140              	.LVL6:
+ 141              		.loc 1 35 17 is_stmt 0 view .LVU39
+ 142 0024 1219     		addls	r2, r2, r4
+  31:bsp/boards/Src/bsp_delay.c ****             }
+ 143              		.loc 1 31 22 view .LVU40
+ 144 0026 AEEB030C 		subhi	ip, lr, r3
+ 145              	.LVL7:
+ 146              		.loc 1 35 22 view .LVU41
+ 147 002a A2EB030C 		subls	ip, r2, r3
+ 148              	.LVL8:
+  36:bsp/boards/Src/bsp_delay.c ****             }
+  37:bsp/boards/Src/bsp_delay.c ****             told = tnow;
+ 149              		.loc 1 37 13 is_stmt 1 view .LVU42
+  38:bsp/boards/Src/bsp_delay.c ****             if (tcnt >= ticks)
+ 150              		.loc 1 38 13 view .LVU43
+ 151              		.loc 1 38 16 is_stmt 0 view .LVU44
+ 152 002e 8445     		cmp	ip, r0
+ 153 0030 01D2     		bcs	.L14
+ 154 0032 1A46     		mov	r2, r3
+ 155 0034 EFE7     		b	.L7
+ 156              	.L14:
+  39:bsp/boards/Src/bsp_delay.c ****             {
+  40:bsp/boards/Src/bsp_delay.c ****                 break;
+  41:bsp/boards/Src/bsp_delay.c ****             }
+  42:bsp/boards/Src/bsp_delay.c ****         }
+  43:bsp/boards/Src/bsp_delay.c ****     }
+  44:bsp/boards/Src/bsp_delay.c **** }
+ 157              		.loc 1 44 1 view .LVU45
+ 158 0036 10BD     		pop	{r4, pc}
+ 159              	.LVL9:
+ 160              	.L16:
+ 161              		.loc 1 44 1 view .LVU46
+ 162              		.align	2
+ 163              	.L15:
+ 164 0038 00000000 		.word	.LANCHOR0
+ 165              		.cfi_endproc
+ 166              	.LFE236:
+ 168              		.section	.text.delay_ms,"ax",%progbits
+ 169              		.align	1
+ 170              		.p2align 2,,3
+ 171              		.global	delay_ms
+ 172              		.syntax unified
+ 173              		.thumb
+ 174              		.thumb_func
+ 176              	delay_ms:
+ 177              	.LVL10:
+ 178              	.LFB237:
+  45:bsp/boards/Src/bsp_delay.c **** 
+ARM GAS  /tmp/ccJ9wwMp.s 			page 5
+
+
+  46:bsp/boards/Src/bsp_delay.c **** void delay_ms(uint16_t nms)
+  47:bsp/boards/Src/bsp_delay.c **** {
+ 179              		.loc 1 47 1 is_stmt 1 view -0
+ 180              		.cfi_startproc
+ 181              		@ args = 0, pretend = 0, frame = 0
+ 182              		@ frame_needed = 0, uses_anonymous_args = 0
+  48:bsp/boards/Src/bsp_delay.c ****     uint32_t ticks = 0;
+ 183              		.loc 1 48 5 view .LVU48
+  49:bsp/boards/Src/bsp_delay.c ****     uint32_t told = 0;
+ 184              		.loc 1 49 5 view .LVU49
+  50:bsp/boards/Src/bsp_delay.c ****     uint32_t tnow = 0;
+ 185              		.loc 1 50 5 view .LVU50
+  51:bsp/boards/Src/bsp_delay.c ****     uint32_t tcnt = 0;
+ 186              		.loc 1 51 5 view .LVU51
+  52:bsp/boards/Src/bsp_delay.c ****     uint32_t reload = 0;
+ 187              		.loc 1 52 5 view .LVU52
+  53:bsp/boards/Src/bsp_delay.c ****     reload = SysTick->LOAD;
+ 188              		.loc 1 53 5 view .LVU53
+  54:bsp/boards/Src/bsp_delay.c ****     ticks = nms * fac_ms;
+ 189              		.loc 1 54 17 is_stmt 0 view .LVU54
+ 190 0000 0D4B     		ldr	r3, .L26
+  53:bsp/boards/Src/bsp_delay.c ****     reload = SysTick->LOAD;
+ 191              		.loc 1 53 12 view .LVU55
+ 192 0002 4FF0E021 		mov	r1, #-536813568
+ 193              		.loc 1 54 11 view .LVU56
+ 194 0006 1B68     		ldr	r3, [r3]
+  47:bsp/boards/Src/bsp_delay.c ****     uint32_t ticks = 0;
+ 195              		.loc 1 47 1 view .LVU57
+ 196 0008 10B5     		push	{r4, lr}
+ 197              		.cfi_def_cfa_offset 8
+ 198              		.cfi_offset 4, -8
+ 199              		.cfi_offset 14, -4
+  53:bsp/boards/Src/bsp_delay.c ****     reload = SysTick->LOAD;
+ 200              		.loc 1 53 12 view .LVU58
+ 201 000a 4C69     		ldr	r4, [r1, #20]
+ 202              	.LVL11:
+ 203              		.loc 1 54 5 is_stmt 1 view .LVU59
+  55:bsp/boards/Src/bsp_delay.c ****     told = SysTick->VAL;
+ 204              		.loc 1 55 10 is_stmt 0 view .LVU60
+ 205 000c 8A69     		ldr	r2, [r1, #24]
+ 206              	.LVL12:
+  54:bsp/boards/Src/bsp_delay.c ****     ticks = nms * fac_ms;
+ 207              		.loc 1 54 11 view .LVU61
+ 208 000e 03FB00F0 		mul	r0, r3, r0
+ 209              	.LVL13:
+ 210              		.loc 1 55 5 is_stmt 1 view .LVU62
+  51:bsp/boards/Src/bsp_delay.c ****     uint32_t reload = 0;
+ 211              		.loc 1 51 14 is_stmt 0 view .LVU63
+ 212 0012 4FF0000C 		mov	ip, #0
+ 213              	.LVL14:
+ 214              	.L18:
+  56:bsp/boards/Src/bsp_delay.c ****     while (1)
+ 215              		.loc 1 56 5 is_stmt 1 view .LVU64
+  57:bsp/boards/Src/bsp_delay.c ****     {
+  58:bsp/boards/Src/bsp_delay.c ****         tnow = SysTick->VAL;
+ 216              		.loc 1 58 9 view .LVU65
+ 217              		.loc 1 58 14 is_stmt 0 view .LVU66
+ARM GAS  /tmp/ccJ9wwMp.s 			page 6
+
+
+ 218 0016 8B69     		ldr	r3, [r1, #24]
+ 219              	.LVL15:
+  59:bsp/boards/Src/bsp_delay.c ****         if (tnow != told)
+ 220              		.loc 1 59 9 is_stmt 1 view .LVU67
+ 221              		.loc 1 59 12 is_stmt 0 view .LVU68
+ 222 0018 9A42     		cmp	r2, r3
+ 223 001a FCD0     		beq	.L18
+  60:bsp/boards/Src/bsp_delay.c ****         {
+  61:bsp/boards/Src/bsp_delay.c ****             if (tnow < told)
+ 224              		.loc 1 61 13 is_stmt 1 view .LVU69
+  62:bsp/boards/Src/bsp_delay.c ****             {
+  63:bsp/boards/Src/bsp_delay.c ****                 tcnt += told - tnow;
+ 225              		.loc 1 63 17 view .LVU70
+  64:bsp/boards/Src/bsp_delay.c ****             }
+  65:bsp/boards/Src/bsp_delay.c ****             else
+  66:bsp/boards/Src/bsp_delay.c ****             {
+  67:bsp/boards/Src/bsp_delay.c ****                 tcnt += reload - tnow + told;
+ 226              		.loc 1 67 17 view .LVU71
+ 227 001c 02EB0C0E 		add	lr, r2, ip
+ 228 0020 9BBF     		ittet	ls
+ 229 0022 6244     		addls	r2, r2, ip
+ 230              	.LVL16:
+ 231              		.loc 1 67 17 is_stmt 0 view .LVU72
+ 232 0024 1219     		addls	r2, r2, r4
+  63:bsp/boards/Src/bsp_delay.c ****             }
+ 233              		.loc 1 63 22 view .LVU73
+ 234 0026 AEEB030C 		subhi	ip, lr, r3
+ 235              	.LVL17:
+ 236              		.loc 1 67 22 view .LVU74
+ 237 002a A2EB030C 		subls	ip, r2, r3
+ 238              	.LVL18:
+  68:bsp/boards/Src/bsp_delay.c ****             }
+  69:bsp/boards/Src/bsp_delay.c ****             told = tnow;
+ 239              		.loc 1 69 13 is_stmt 1 view .LVU75
+  70:bsp/boards/Src/bsp_delay.c ****             if (tcnt >= ticks)
+ 240              		.loc 1 70 13 view .LVU76
+ 241              		.loc 1 70 16 is_stmt 0 view .LVU77
+ 242 002e 8445     		cmp	ip, r0
+ 243 0030 01D2     		bcs	.L25
+ 244 0032 1A46     		mov	r2, r3
+ 245 0034 EFE7     		b	.L18
+ 246              	.L25:
+  71:bsp/boards/Src/bsp_delay.c ****             {
+  72:bsp/boards/Src/bsp_delay.c ****                 break;
+  73:bsp/boards/Src/bsp_delay.c ****             }
+  74:bsp/boards/Src/bsp_delay.c ****         }
+  75:bsp/boards/Src/bsp_delay.c ****     }
+  76:bsp/boards/Src/bsp_delay.c **** }
+ 247              		.loc 1 76 1 view .LVU78
+ 248 0036 10BD     		pop	{r4, pc}
+ 249              	.LVL19:
+ 250              	.L27:
+ 251              		.loc 1 76 1 view .LVU79
+ 252              		.align	2
+ 253              	.L26:
+ 254 0038 00000000 		.word	.LANCHOR1
+ 255              		.cfi_endproc
+ARM GAS  /tmp/ccJ9wwMp.s 			page 7
+
+
+ 256              	.LFE237:
+ 258              		.section	.bss.fac_ms,"aw",%nobits
+ 259              		.align	2
+ 260              		.set	.LANCHOR1,. + 0
+ 263              	fac_ms:
+ 264 0000 00000000 		.space	4
+ 265              		.section	.bss.fac_us,"aw",%nobits
+ 266              		.set	.LANCHOR0,. + 0
+ 269              	fac_us:
+ 270 0000 00       		.space	1
+ 271              		.text
+ 272              	.Letext0:
+ 273              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 274              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 275              		.file 4 "Drivers/CMSIS/Include/core_cm4.h"
+ 276              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h"
+ARM GAS  /tmp/ccJ9wwMp.s 			page 8
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_delay.c
+     /tmp/ccJ9wwMp.s:20     .text.delay_init:0000000000000000 $t
+     /tmp/ccJ9wwMp.s:27     .text.delay_init:0000000000000000 delay_init
+     /tmp/ccJ9wwMp.s:70     .text.delay_init:0000000000000024 $d
+     /tmp/ccJ9wwMp.s:79     .text.delay_us:0000000000000000 $t
+     /tmp/ccJ9wwMp.s:86     .text.delay_us:0000000000000000 delay_us
+     /tmp/ccJ9wwMp.s:164    .text.delay_us:0000000000000038 $d
+     /tmp/ccJ9wwMp.s:169    .text.delay_ms:0000000000000000 $t
+     /tmp/ccJ9wwMp.s:176    .text.delay_ms:0000000000000000 delay_ms
+     /tmp/ccJ9wwMp.s:254    .text.delay_ms:0000000000000038 $d
+     /tmp/ccJ9wwMp.s:259    .bss.fac_ms:0000000000000000 $d
+     /tmp/ccJ9wwMp.s:263    .bss.fac_ms:0000000000000000 fac_ms
+     /tmp/ccJ9wwMp.s:269    .bss.fac_us:0000000000000000 fac_us
+     /tmp/ccJ9wwMp.s:270    .bss.fac_us:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+SystemCoreClock

@@ -1,0 +1,2243 @@
+ARM GAS  /tmp/cc1QW4OW.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"madgwick.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.madgwick_update_9d,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	madgwick_update_9d
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	madgwick_update_9d:
+  28              	.LVL0:
+  29              	.LFB1:
+  30              		.file 1 "application/src/imu/madgwick.c"
+   1:application/src/imu/madgwick.c **** #include "madgwick.h"
+   2:application/src/imu/madgwick.c **** #include <math.h>
+   3:application/src/imu/madgwick.c **** 
+   4:application/src/imu/madgwick.c **** //-------------------------------------------------------------------------------------------
+   5:application/src/imu/madgwick.c **** // Fast inverse square-root
+   6:application/src/imu/madgwick.c **** // See: http://en.wikipedia.org/wiki/Fast_inverse_square_root
+   7:application/src/imu/madgwick.c **** 
+   8:application/src/imu/madgwick.c **** static float invSqrt(float x) {
+   9:application/src/imu/madgwick.c **** 	float halfx = 0.5f * x;
+  10:application/src/imu/madgwick.c **** 	float y = x;
+  11:application/src/imu/madgwick.c **** 	long i = *(long *)&y;
+  12:application/src/imu/madgwick.c **** 	i = 0x5f3759df - (i >> 1);
+  13:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+  15:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+  16:application/src/imu/madgwick.c **** 	return y;
+  17:application/src/imu/madgwick.c **** }
+  18:application/src/imu/madgwick.c **** 
+  19:application/src/imu/madgwick.c **** //-------------------------------------------------------------------------------------------
+  20:application/src/imu/madgwick.c **** 
+  21:application/src/imu/madgwick.c **** void madgwick_update_9d(quaternion_t *q, float beta, float dt, float gx,
+  22:application/src/imu/madgwick.c ****                         float gy, float gz, float ax, float ay, float az,
+  23:application/src/imu/madgwick.c ****                         float mx, float my, float mz) {
+  31              		.loc 1 23 55 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 80
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  24:application/src/imu/madgwick.c **** 	float recipNorm;
+ARM GAS  /tmp/cc1QW4OW.s 			page 2
+
+
+  35              		.loc 1 24 2 view .LVU1
+  25:application/src/imu/madgwick.c **** 	float s0, s1, s2, s3;
+  36              		.loc 1 25 2 view .LVU2
+  26:application/src/imu/madgwick.c **** 	float qDot1, qDot2, qDot3, qDot4;
+  37              		.loc 1 26 2 view .LVU3
+  27:application/src/imu/madgwick.c **** 	float hx, hy;
+  38              		.loc 1 27 2 view .LVU4
+  28:application/src/imu/madgwick.c **** 	float _2q0mx, _2q0my, _2q0mz, _2q1mx, _2bx, _2bz, _4bx, _4bz, _2q0, _2q1,
+  39              		.loc 1 28 2 view .LVU5
+  29:application/src/imu/madgwick.c **** 	    _2q2, _2q3, _2q0q2, _2q2q3, q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3,
+  30:application/src/imu/madgwick.c **** 	    q2q2, q2q3, q3q3;
+  31:application/src/imu/madgwick.c **** 	float q0 = q->w;
+  40              		.loc 1 31 2 view .LVU6
+  23:application/src/imu/madgwick.c **** 	float recipNorm;
+  41              		.loc 1 23 55 is_stmt 0 view .LVU7
+  42 0000 00B5     		push	{lr}
+  43              		.cfi_def_cfa_offset 4
+  44              		.cfi_offset 14, -4
+  45 0002 2DED108B 		vpush.64	{d8, d9, d10, d11, d12, d13, d14, d15}
+  46              		.cfi_def_cfa_offset 68
+  47              		.cfi_offset 80, -68
+  48              		.cfi_offset 81, -64
+  49              		.cfi_offset 82, -60
+  50              		.cfi_offset 83, -56
+  51              		.cfi_offset 84, -52
+  52              		.cfi_offset 85, -48
+  53              		.cfi_offset 86, -44
+  54              		.cfi_offset 87, -40
+  55              		.cfi_offset 88, -36
+  56              		.cfi_offset 89, -32
+  57              		.cfi_offset 90, -28
+  58              		.cfi_offset 91, -24
+  59              		.cfi_offset 92, -20
+  60              		.cfi_offset 93, -16
+  61              		.cfi_offset 94, -12
+  62              		.cfi_offset 95, -8
+  32:application/src/imu/madgwick.c **** 	float q1 = q->x;
+  63              		.loc 1 32 8 view .LVU8
+  64 0006 D0ED019A 		vldr.32	s19, [r0, #4]
+  33:application/src/imu/madgwick.c **** 	float q2 = q->y;
+  65              		.loc 1 33 8 view .LVU9
+  66 000a D0ED028A 		vldr.32	s17, [r0, #8]
+  31:application/src/imu/madgwick.c **** 	float q1 = q->x;
+  67              		.loc 1 31 8 view .LVU10
+  68 000e 90ED00AA 		vldr.32	s20, [r0]
+  69              	.LVL1:
+  32:application/src/imu/madgwick.c **** 	float q1 = q->x;
+  70              		.loc 1 32 2 is_stmt 1 view .LVU11
+  71              		.loc 1 33 2 view .LVU12
+  34:application/src/imu/madgwick.c **** 	float q3 = q->z;
+  72              		.loc 1 34 2 view .LVU13
+  73              		.loc 1 34 8 is_stmt 0 view .LVU14
+  74 0012 90ED038A 		vldr.32	s16, [r0, #12]
+  75              	.LVL2:
+  35:application/src/imu/madgwick.c **** 
+  36:application/src/imu/madgwick.c **** 	// Rate of change of quaternion from gyroscope
+  37:application/src/imu/madgwick.c **** 	qDot1 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);
+ARM GAS  /tmp/cc1QW4OW.s 			page 3
+
+
+  76              		.loc 1 37 2 is_stmt 1 view .LVU15
+  77              		.loc 1 37 27 is_stmt 0 view .LVU16
+  78 0016 21EEE8DA 		vnmul.f32	s26, s3, s17
+  38:application/src/imu/madgwick.c **** 	qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+  79              		.loc 1 38 31 view .LVU17
+  80 001a 68EE82DA 		vmul.f32	s27, s17, s4
+  39:application/src/imu/madgwick.c **** 	qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+  81              		.loc 1 39 26 view .LVU18
+  82 001e 62EE69CA 		vnmul.f32	s25, s4, s19
+  40:application/src/imu/madgwick.c **** 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+  83              		.loc 1 40 31 view .LVU19
+  84 0022 29EEA1CA 		vmul.f32	s24, s19, s3
+  37:application/src/imu/madgwick.c **** 	qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+  85              		.loc 1 37 27 view .LVU20
+  86 0026 A9EEC1DA 		vfms.f32	s26, s19, s2
+  23:application/src/imu/madgwick.c **** 	float recipNorm;
+  87              		.loc 1 23 55 view .LVU21
+  88 002a 95B0     		sub	sp, sp, #84
+  89              		.cfi_def_cfa_offset 152
+  38:application/src/imu/madgwick.c **** 	qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+  90              		.loc 1 38 26 view .LVU22
+  91 002c EAEE01DA 		vfma.f32	s27, s20, s2
+  39:application/src/imu/madgwick.c **** 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+  92              		.loc 1 39 26 view .LVU23
+  93 0030 EAEE21CA 		vfma.f32	s25, s20, s3
+  94              		.loc 1 40 26 view .LVU24
+  95 0034 AAEE02CA 		vfma.f32	s24, s20, s4
+  37:application/src/imu/madgwick.c **** 	qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+  96              		.loc 1 37 37 view .LVU25
+  97 0038 A8EE42DA 		vfms.f32	s26, s16, s4
+  38:application/src/imu/madgwick.c **** 	qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+  98              		.loc 1 38 36 view .LVU26
+  99 003c E8EE61DA 		vfms.f32	s27, s16, s3
+  39:application/src/imu/madgwick.c **** 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+ 100              		.loc 1 39 36 view .LVU27
+ 101 0040 E8EE01CA 		vfma.f32	s25, s16, s2
+ 102              		.loc 1 40 36 view .LVU28
+ 103 0044 A8EEC1CA 		vfms.f32	s24, s17, s2
+  41:application/src/imu/madgwick.c **** 
+  42:application/src/imu/madgwick.c **** 	// Compute feedback only if accelerometer measurement valid (avoids NaN in
+  43:application/src/imu/madgwick.c **** 	// accelerometer normalisation)
+  44:application/src/imu/madgwick.c **** 	if (!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
+ 104              		.loc 1 44 5 view .LVU29
+ 105 0048 F5EE402A 		vcmp.f32	s5, #0
+  37:application/src/imu/madgwick.c **** 	qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+ 106              		.loc 1 37 8 view .LVU30
+ 107 004c F6EE007A 		vmov.f32	s15, #5.0e-1
+ 108              		.loc 1 44 5 view .LVU31
+ 109 0050 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+  37:application/src/imu/madgwick.c **** 	qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+ 110              		.loc 1 37 8 view .LVU32
+ 111 0054 2DEE27DA 		vmul.f32	s26, s26, s15
+ 112              	.LVL3:
+  38:application/src/imu/madgwick.c **** 	qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+ 113              		.loc 1 38 2 is_stmt 1 view .LVU33
+  38:application/src/imu/madgwick.c **** 	qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+ 114              		.loc 1 38 8 is_stmt 0 view .LVU34
+ARM GAS  /tmp/cc1QW4OW.s 			page 4
+
+
+ 115 0058 6DEEA7DA 		vmul.f32	s27, s27, s15
+ 116              	.LVL4:
+  39:application/src/imu/madgwick.c **** 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+ 117              		.loc 1 39 2 is_stmt 1 view .LVU35
+  39:application/src/imu/madgwick.c **** 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+ 118              		.loc 1 39 8 is_stmt 0 view .LVU36
+ 119 005c 6CEEA7CA 		vmul.f32	s25, s25, s15
+ 120              	.LVL5:
+  40:application/src/imu/madgwick.c **** 
+ 121              		.loc 1 40 2 is_stmt 1 view .LVU37
+  40:application/src/imu/madgwick.c **** 
+ 122              		.loc 1 40 8 is_stmt 0 view .LVU38
+ 123 0060 2CEE27CA 		vmul.f32	s24, s24, s15
+ 124              	.LVL6:
+ 125              		.loc 1 44 2 is_stmt 1 view .LVU39
+  23:application/src/imu/madgwick.c **** 	float recipNorm;
+ 126              		.loc 1 23 55 is_stmt 0 view .LVU40
+ 127 0064 F0EE40EA 		vmov.f32	s29, s0
+  37:application/src/imu/madgwick.c **** 	qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+ 128              		.loc 1 37 18 view .LVU41
+ 129 0068 B1EE697A 		vneg.f32	s14, s19
+ 130              		.loc 1 44 5 view .LVU42
+ 131 006c 05D1     		bne	.L2
+ 132              		.loc 1 44 21 discriminator 1 view .LVU43
+ 133 006e B5EE403A 		vcmp.f32	s6, #0
+ 134 0072 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 135 0076 00F0D081 		beq	.L11
+ 136              	.L2:
+  45:application/src/imu/madgwick.c **** 
+  46:application/src/imu/madgwick.c **** 		// Normalise accelerometer measurement
+  47:application/src/imu/madgwick.c **** 		recipNorm = invSqrt(ax * ax + ay * ay + az * az);
+ 137              		.loc 1 47 3 is_stmt 1 view .LVU44
+  48:application/src/imu/madgwick.c **** 		ax *= recipNorm;
+  49:application/src/imu/madgwick.c **** 		ay *= recipNorm;
+  50:application/src/imu/madgwick.c **** 		az *= recipNorm;
+  51:application/src/imu/madgwick.c **** 
+  52:application/src/imu/madgwick.c **** 		// Normalise magnetometer measurement
+  53:application/src/imu/madgwick.c **** 		recipNorm = invSqrt(mx * mx + my * my + mz * mz);
+ 138              		.loc 1 53 36 is_stmt 0 view .LVU45
+ 139 007a 64EEA47A 		vmul.f32	s15, s9, s9
+ 140              	.LBB10:
+ 141              	.LBB11:
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 142              		.loc 1 12 17 view .LVU46
+ 143 007e EA4B     		ldr	r3, .L12
+ 144              	.LBE11:
+ 145              	.LBE10:
+ 146              		.loc 1 53 31 view .LVU47
+ 147 0080 E4EE047A 		vfma.f32	s15, s8, s8
+ 148              	.LBB21:
+ 149              	.LBB12:
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 150              		.loc 1 9 8 view .LVU48
+ 151 0084 F6EE00AA 		vmov.f32	s21, #5.0e-1
+ 152              	.LBE12:
+ 153              	.LBE21:
+ 154              		.loc 1 53 15 view .LVU49
+ARM GAS  /tmp/cc1QW4OW.s 			page 5
+
+
+ 155 0088 E5EE057A 		vfma.f32	s15, s10, s10
+ 156              	.LBB22:
+ 157              	.LBB13:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 158              		.loc 1 14 16 view .LVU50
+ 159 008c B7EE086A 		vmov.f32	s12, #1.5e+0
+ 160              	.LBE13:
+ 161              	.LBE22:
+ 162              	.LBB23:
+ 163              	.LBB24:
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 164              		.loc 1 13 6 view .LVU51
+ 165 0090 17EE902A 		vmov	r2, s15	@ int
+ 166 0094 A3EB6202 		sub	r2, r3, r2, asr #1
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 167              		.loc 1 9 8 view .LVU52
+ 168 0098 67EEAA6A 		vmul.f32	s13, s15, s21
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 169              		.loc 1 13 6 view .LVU53
+ 170 009c 07EE902A 		vmov	s15, r2	@ int
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 171              		.loc 1 14 25 view .LVU54
+ 172 00a0 26EEA72A 		vmul.f32	s4, s13, s15
+ 173              	.LVL7:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 174              		.loc 1 14 16 view .LVU55
+ 175 00a4 F0EE465A 		vmov.f32	s11, s12
+ 176 00a8 E7EEC25A 		vfms.f32	s11, s15, s4
+ 177              	.LBE24:
+ 178              	.LBE23:
+  54:application/src/imu/madgwick.c **** 		mx *= recipNorm;
+  55:application/src/imu/madgwick.c **** 		my *= recipNorm;
+  56:application/src/imu/madgwick.c **** 		mz *= recipNorm;
+  57:application/src/imu/madgwick.c **** 
+  58:application/src/imu/madgwick.c **** 		// Auxiliary variables to avoid repeated arithmetic
+  59:application/src/imu/madgwick.c **** 		_2q0mx = 2.0f * q0 * mx;
+ 179              		.loc 1 59 17 view .LVU56
+ 180 00ac 3AEE0AFA 		vadd.f32	s30, s20, s20
+ 181              	.LBB29:
+ 182              	.LBB25:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 183              		.loc 1 14 8 view .LVU57
+ 184 00b0 67EEA57A 		vmul.f32	s15, s15, s11
+  15:application/src/imu/madgwick.c **** 	return y;
+ 185              		.loc 1 15 16 view .LVU58
+ 186 00b4 F0EE465A 		vmov.f32	s11, s12
+  15:application/src/imu/madgwick.c **** 	return y;
+ 187              		.loc 1 15 25 view .LVU59
+ 188 00b8 66EEA76A 		vmul.f32	s13, s13, s15
+ 189              	.LBE25:
+ 190              	.LBE29:
+  60:application/src/imu/madgwick.c **** 		_2q0my = 2.0f * q0 * my;
+  61:application/src/imu/madgwick.c **** 		_2q0mz = 2.0f * q0 * mz;
+  62:application/src/imu/madgwick.c **** 		_2q1mx = 2.0f * q1 * mx;
+  63:application/src/imu/madgwick.c **** 		_2q0 = 2.0f * q0;
+  64:application/src/imu/madgwick.c **** 		_2q1 = 2.0f * q1;
+  65:application/src/imu/madgwick.c **** 		_2q2 = 2.0f * q2;
+ARM GAS  /tmp/cc1QW4OW.s 			page 6
+
+
+  66:application/src/imu/madgwick.c **** 		_2q3 = 2.0f * q3;
+  67:application/src/imu/madgwick.c **** 		_2q0q2 = 2.0f * q0 * q2;
+  68:application/src/imu/madgwick.c **** 		_2q2q3 = 2.0f * q2 * q3;
+  69:application/src/imu/madgwick.c **** 		q0q0 = q0 * q0;
+ 191              		.loc 1 69 8 view .LVU60
+ 192 00bc 2AEE0A2A 		vmul.f32	s4, s20, s20
+ 193              	.LBB30:
+ 194              	.LBB26:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 195              		.loc 1 15 16 view .LVU61
+ 196 00c0 E7EEE65A 		vfms.f32	s11, s15, s13
+ 197              	.LBE26:
+ 198              	.LBE30:
+  70:application/src/imu/madgwick.c **** 		q0q1 = q0 * q1;
+  71:application/src/imu/madgwick.c **** 		q0q2 = q0 * q2;
+  72:application/src/imu/madgwick.c **** 		q0q3 = q0 * q3;
+  73:application/src/imu/madgwick.c **** 		q1q1 = q1 * q1;
+ 199              		.loc 1 73 8 view .LVU62
+ 200 00c4 29EEA9BA 		vmul.f32	s22, s19, s19
+ 201              	.LBB31:
+ 202              	.LBB27:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 203              		.loc 1 15 8 view .LVU63
+ 204 00c8 67EEA57A 		vmul.f32	s15, s15, s11
+ 205              	.LBE27:
+ 206              	.LBE31:
+  62:application/src/imu/madgwick.c **** 		_2q0 = 2.0f * q0;
+ 207              		.loc 1 62 17 view .LVU64
+ 208 00cc 79EEA9FA 		vadd.f32	s31, s19, s19
+  55:application/src/imu/madgwick.c **** 		mz *= recipNorm;
+ 209              		.loc 1 55 6 view .LVU65
+ 210 00d0 64EEA74A 		vmul.f32	s9, s9, s15
+ 211              	.LVL8:
+  54:application/src/imu/madgwick.c **** 		my *= recipNorm;
+ 212              		.loc 1 54 6 view .LVU66
+ 213 00d4 24EE274A 		vmul.f32	s8, s8, s15
+ 214              	.LVL9:
+  60:application/src/imu/madgwick.c **** 		_2q0mz = 2.0f * q0 * mz;
+ 215              		.loc 1 60 10 view .LVU67
+ 216 00d8 2FEE249A 		vmul.f32	s18, s30, s9
+  56:application/src/imu/madgwick.c **** 
+ 217              		.loc 1 56 6 view .LVU68
+ 218 00dc 25EE275A 		vmul.f32	s10, s10, s15
+ 219              	.LVL10:
+  59:application/src/imu/madgwick.c **** 		_2q0my = 2.0f * q0 * my;
+ 220              		.loc 1 59 10 view .LVU69
+ 221 00e0 2FEE041A 		vmul.f32	s2, s30, s8
+ 222              	.LVL11:
+  74:application/src/imu/madgwick.c **** 		q1q2 = q1 * q2;
+  75:application/src/imu/madgwick.c **** 		q1q3 = q1 * q3;
+  76:application/src/imu/madgwick.c **** 		q2q2 = q2 * q2;
+  77:application/src/imu/madgwick.c **** 		q2q3 = q2 * q3;
+  78:application/src/imu/madgwick.c **** 		q3q3 = q3 * q3;
+  79:application/src/imu/madgwick.c **** 
+  80:application/src/imu/madgwick.c **** 		// Reference direction of Earth's magnetic field
+  81:application/src/imu/madgwick.c **** 		hx = mx * q0q0 - _2q0my * q3 + _2q0mz * q2 + mx * q1q1 +
+  82:application/src/imu/madgwick.c **** 		     _2q1 * my * q2 + _2q1 * mz * q3 - mx * q2q2 - mx * q3q3;
+ARM GAS  /tmp/cc1QW4OW.s 			page 7
+
+
+  83:application/src/imu/madgwick.c **** 		hy = _2q0mx * q3 + my * q0q0 - _2q0mz * q1 + _2q1mx * q2 - my * q1q1 +
+ 223              		.loc 1 83 25 view .LVU70
+ 224 00e4 64EE827A 		vmul.f32	s15, s9, s4
+  81:application/src/imu/madgwick.c **** 		     _2q1 * my * q2 + _2q1 * mz * q3 - mx * q2q2 - mx * q3q3;
+ 225              		.loc 1 81 18 view .LVU71
+ 226 00e8 69EE486A 		vnmul.f32	s13, s18, s16
+ 227              		.loc 1 83 20 view .LVU72
+ 228 00ec E8EE017A 		vfma.f32	s15, s16, s2
+  81:application/src/imu/madgwick.c **** 		     _2q1 * my * q2 + _2q1 * mz * q3 - mx * q2q2 - mx * q3q3;
+ 229              		.loc 1 81 18 view .LVU73
+ 230 00f0 E4EE026A 		vfma.f32	s13, s8, s4
+  61:application/src/imu/madgwick.c **** 		_2q1mx = 2.0f * q1 * mx;
+ 231              		.loc 1 61 10 view .LVU74
+ 232 00f4 6FEE055A 		vmul.f32	s11, s30, s10
+  82:application/src/imu/madgwick.c **** 		hy = _2q0mx * q3 + my * q0q0 - _2q0mz * q1 + _2q1mx * q2 - my * q1q1 +
+ 233              		.loc 1 82 30 view .LVU75
+ 234 00f8 2FEE850A 		vmul.f32	s0, s31, s10
+ 235              	.LVL12:
+ 236              		.loc 1 83 32 view .LVU76
+ 237 00fc E7EE257A 		vfma.f32	s15, s14, s11
+  81:application/src/imu/madgwick.c **** 		     _2q1 * my * q2 + _2q1 * mz * q3 - mx * q2q2 - mx * q3q3;
+ 238              		.loc 1 81 32 view .LVU77
+ 239 0100 E8EEA56A 		vfma.f32	s13, s17, s11
+  47:application/src/imu/madgwick.c **** 		ax *= recipNorm;
+ 240              		.loc 1 47 36 view .LVU78
+ 241 0104 63EE035A 		vmul.f32	s11, s6, s6
+  81:application/src/imu/madgwick.c **** 		     _2q1 * my * q2 + _2q1 * mz * q3 - mx * q2q2 - mx * q3q3;
+ 242              		.loc 1 81 46 view .LVU79
+ 243 0108 E4EE0B6A 		vfma.f32	s13, s8, s22
+  47:application/src/imu/madgwick.c **** 		ax *= recipNorm;
+ 244              		.loc 1 47 31 view .LVU80
+ 245 010c E2EEA25A 		vfma.f32	s11, s5, s5
+  82:application/src/imu/madgwick.c **** 		hy = _2q0mx * q3 + my * q0q0 - _2q0mz * q1 + _2q1mx * q2 - my * q1q1 +
+ 246              		.loc 1 82 13 view .LVU81
+ 247 0110 2FEEA47A 		vmul.f32	s14, s31, s9
+  47:application/src/imu/madgwick.c **** 		ax *= recipNorm;
+ 248              		.loc 1 47 15 view .LVU82
+ 249 0114 E3EEA35A 		vfma.f32	s11, s7, s7
+ 250              	.LVL13:
+ 251              	.LBB32:
+ 252              	.LBI10:
+   8:application/src/imu/madgwick.c **** 	float halfx = 0.5f * x;
+ 253              		.loc 1 8 14 is_stmt 1 view .LVU83
+ 254              	.LBB14:
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 255              		.loc 1 9 2 view .LVU84
+ 256              	.LBE14:
+ 257              	.LBE32:
+  81:application/src/imu/madgwick.c **** 		     _2q1 * my * q2 + _2q1 * mz * q3 - mx * q2q2 - mx * q3q3;
+ 258              		.loc 1 81 58 is_stmt 0 view .LVU85
+ 259 0118 E7EE286A 		vfma.f32	s13, s14, s17
+ 260              	.LBB33:
+ 261              	.LBB15:
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 262              		.loc 1 13 6 view .LVU86
+ 263 011c 15EE902A 		vmov	r2, s11	@ int
+ 264 0120 A3EB6203 		sub	r3, r3, r2, asr #1
+ARM GAS  /tmp/cc1QW4OW.s 			page 8
+
+
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 265              		.loc 1 9 8 view .LVU87
+ 266 0124 65EEAAAA 		vmul.f32	s21, s11, s21
+ 267              	.LVL14:
+  10:application/src/imu/madgwick.c **** 	long i = *(long *)&y;
+ 268              		.loc 1 10 2 is_stmt 1 view .LVU88
+  11:application/src/imu/madgwick.c **** 	i = 0x5f3759df - (i >> 1);
+ 269              		.loc 1 11 2 view .LVU89
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 270              		.loc 1 12 2 view .LVU90
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 271              		.loc 1 13 2 view .LVU91
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 272              		.loc 1 13 6 is_stmt 0 view .LVU92
+ 273 0128 05EE903A 		vmov	s11, r3	@ int
+ 274              	.LVL15:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 275              		.loc 1 14 2 is_stmt 1 view .LVU93
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 276              		.loc 1 14 25 is_stmt 0 view .LVU94
+ 277 012c 6AEEA5BA 		vmul.f32	s23, s21, s11
+ 278              	.LBE15:
+ 279              	.LBE33:
+  82:application/src/imu/madgwick.c **** 		hy = _2q0mx * q3 + my * q0q0 - _2q0mz * q1 + _2q1mx * q2 - my * q1q1 +
+ 280              		.loc 1 82 23 view .LVU95
+ 281 0130 E0EE086A 		vfma.f32	s13, s0, s16
+ 282              	.LBB34:
+ 283              	.LBB16:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 284              		.loc 1 14 16 view .LVU96
+ 285 0134 B0EE460A 		vmov.f32	s0, s12
+ 286 0138 A5EEEB0A 		vfms.f32	s0, s11, s23
+ 287              	.LBE16:
+ 288              	.LBE34:
+  62:application/src/imu/madgwick.c **** 		_2q0 = 2.0f * q0;
+ 289              		.loc 1 62 10 view .LVU97
+ 290 013c 6FEE841A 		vmul.f32	s3, s31, s8
+ 291              	.LVL16:
+ 292              	.LBB35:
+ 293              	.LBB17:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 294              		.loc 1 14 8 view .LVU98
+ 295 0140 65EE805A 		vmul.f32	s11, s11, s0
+ 296              	.LVL17:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 297              		.loc 1 15 2 is_stmt 1 view .LVU99
+ 298              	.LBE17:
+ 299              	.LBE35:
+ 300              		.loc 1 83 46 is_stmt 0 view .LVU100
+ 301 0144 E8EEA17A 		vfma.f32	s15, s17, s3
+ 302              	.LBB36:
+ 303              	.LBB18:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 304              		.loc 1 15 25 view .LVU101
+ 305 0148 6AEEA5AA 		vmul.f32	s21, s21, s11
+ 306              	.LVL18:
+  15:application/src/imu/madgwick.c **** 	return y;
+ARM GAS  /tmp/cc1QW4OW.s 			page 9
+
+
+ 307              		.loc 1 15 25 view .LVU102
+ 308              	.LBE18:
+ 309              	.LBE36:
+ 310              		.loc 1 83 60 view .LVU103
+ 311 014c E4EECB7A 		vfms.f32	s15, s9, s22
+ 312              	.LBB37:
+ 313              	.LBB19:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 314              		.loc 1 15 16 view .LVU104
+ 315 0150 A5EEEA6A 		vfms.f32	s12, s11, s21
+ 316              	.LBE19:
+ 317              	.LBE37:
+  76:application/src/imu/madgwick.c **** 		q2q3 = q2 * q3;
+ 318              		.loc 1 76 8 view .LVU105
+ 319 0154 28EEA8EA 		vmul.f32	s28, s17, s17
+ 320              	.LBB38:
+ 321              	.LBB20:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 322              		.loc 1 15 8 view .LVU106
+ 323 0158 25EE866A 		vmul.f32	s12, s11, s12
+ 324              	.LVL19:
+  16:application/src/imu/madgwick.c **** }
+ 325              		.loc 1 16 2 is_stmt 1 view .LVU107
+  16:application/src/imu/madgwick.c **** }
+ 326              		.loc 1 16 2 is_stmt 0 view .LVU108
+ 327              	.LBE20:
+ 328              	.LBE38:
+  48:application/src/imu/madgwick.c **** 		ay *= recipNorm;
+ 329              		.loc 1 48 3 is_stmt 1 view .LVU109
+  65:application/src/imu/madgwick.c **** 		_2q3 = 2.0f * q3;
+ 330              		.loc 1 65 8 is_stmt 0 view .LVU110
+ 331 015c 38EEA87A 		vadd.f32	s14, s17, s17
+  48:application/src/imu/madgwick.c **** 		ay *= recipNorm;
+ 332              		.loc 1 48 6 view .LVU111
+ 333 0160 62EE865A 		vmul.f32	s11, s5, s12
+ 334              		.loc 1 83 72 view .LVU112
+ 335 0164 E4EE8E7A 		vfma.f32	s15, s9, s28
+  48:application/src/imu/madgwick.c **** 		ay *= recipNorm;
+ 336              		.loc 1 48 6 view .LVU113
+ 337 0168 CDED015A 		vstr.32	s11, [sp, #4]
+ 338              	.LVL20:
+  49:application/src/imu/madgwick.c **** 		az *= recipNorm;
+ 339              		.loc 1 49 3 is_stmt 1 view .LVU114
+  49:application/src/imu/madgwick.c **** 		az *= recipNorm;
+ 340              		.loc 1 49 6 is_stmt 0 view .LVU115
+ 341 016c 63EE065A 		vmul.f32	s11, s6, s12
+ 342              	.LVL21:
+  50:application/src/imu/madgwick.c **** 
+ 343              		.loc 1 50 6 view .LVU116
+ 344 0170 23EE866A 		vmul.f32	s12, s7, s12
+ 345              	.LVL22:
+  82:application/src/imu/madgwick.c **** 		hy = _2q0mx * q3 + my * q0q0 - _2q0mz * q1 + _2q1mx * q2 - my * q1q1 +
+ 346              		.loc 1 82 40 view .LVU117
+ 347 0174 E4EE4E6A 		vfms.f32	s13, s8, s28
+  50:application/src/imu/madgwick.c **** 
+ 348              		.loc 1 50 6 view .LVU118
+ 349 0178 8DED036A 		vstr.32	s12, [sp, #12]
+ARM GAS  /tmp/cc1QW4OW.s 			page 10
+
+
+  84:application/src/imu/madgwick.c **** 		     my * q2q2 + _2q2 * mz * q3 - my * q3q3;
+ 350              		.loc 1 84 25 view .LVU119
+ 351 017c 25EE076A 		vmul.f32	s12, s10, s14
+  49:application/src/imu/madgwick.c **** 		az *= recipNorm;
+ 352              		.loc 1 49 6 view .LVU120
+ 353 0180 CDED025A 		vstr.32	s11, [sp, #8]
+ 354              	.LVL23:
+  50:application/src/imu/madgwick.c **** 
+ 355              		.loc 1 50 3 is_stmt 1 view .LVU121
+  53:application/src/imu/madgwick.c **** 		mx *= recipNorm;
+ 356              		.loc 1 53 3 view .LVU122
+ 357              	.LBB39:
+ 358              	.LBI23:
+   8:application/src/imu/madgwick.c **** 	float halfx = 0.5f * x;
+ 359              		.loc 1 8 14 view .LVU123
+ 360              	.LBB28:
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 361              		.loc 1 9 2 view .LVU124
+  10:application/src/imu/madgwick.c **** 	long i = *(long *)&y;
+ 362              		.loc 1 10 2 view .LVU125
+  11:application/src/imu/madgwick.c **** 	i = 0x5f3759df - (i >> 1);
+ 363              		.loc 1 11 2 view .LVU126
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 364              		.loc 1 12 2 view .LVU127
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 365              		.loc 1 13 2 view .LVU128
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 366              		.loc 1 14 2 view .LVU129
+  15:application/src/imu/madgwick.c **** 	return y;
+ 367              		.loc 1 15 2 view .LVU130
+  16:application/src/imu/madgwick.c **** }
+ 368              		.loc 1 16 2 view .LVU131
+  16:application/src/imu/madgwick.c **** }
+ 369              		.loc 1 16 2 is_stmt 0 view .LVU132
+ 370              	.LBE28:
+ 371              	.LBE39:
+  54:application/src/imu/madgwick.c **** 		my *= recipNorm;
+ 372              		.loc 1 54 3 is_stmt 1 view .LVU133
+  55:application/src/imu/madgwick.c **** 		mz *= recipNorm;
+ 373              		.loc 1 55 3 view .LVU134
+  56:application/src/imu/madgwick.c **** 
+ 374              		.loc 1 56 3 view .LVU135
+  59:application/src/imu/madgwick.c **** 		_2q0my = 2.0f * q0 * my;
+ 375              		.loc 1 59 3 view .LVU136
+  60:application/src/imu/madgwick.c **** 		_2q0mz = 2.0f * q0 * mz;
+ 376              		.loc 1 60 3 view .LVU137
+  61:application/src/imu/madgwick.c **** 		_2q1mx = 2.0f * q1 * mx;
+ 377              		.loc 1 61 3 view .LVU138
+  62:application/src/imu/madgwick.c **** 		_2q0 = 2.0f * q0;
+ 378              		.loc 1 62 3 view .LVU139
+  63:application/src/imu/madgwick.c **** 		_2q1 = 2.0f * q1;
+ 379              		.loc 1 63 3 view .LVU140
+  64:application/src/imu/madgwick.c **** 		_2q2 = 2.0f * q2;
+ 380              		.loc 1 64 3 view .LVU141
+  65:application/src/imu/madgwick.c **** 		_2q3 = 2.0f * q3;
+ 381              		.loc 1 65 3 view .LVU142
+  66:application/src/imu/madgwick.c **** 		_2q0q2 = 2.0f * q0 * q2;
+ARM GAS  /tmp/cc1QW4OW.s 			page 11
+
+
+ 382              		.loc 1 66 3 view .LVU143
+ 383              		.loc 1 84 18 is_stmt 0 view .LVU144
+ 384 0184 E6EE087A 		vfma.f32	s15, s12, s16
+  78:application/src/imu/madgwick.c **** 
+ 385              		.loc 1 78 8 view .LVU145
+ 386 0188 28EE086A 		vmul.f32	s12, s16, s16
+  74:application/src/imu/madgwick.c **** 		q1q3 = q1 * q3;
+ 387              		.loc 1 74 8 view .LVU146
+ 388 018c 69EEA85A 		vmul.f32	s11, s19, s17
+ 389              	.LVL24:
+  83:application/src/imu/madgwick.c **** 		     my * q2q2 + _2q2 * mz * q3 - my * q3q3;
+ 390              		.loc 1 83 6 view .LVU147
+ 391 0190 E4EEC67A 		vfms.f32	s15, s9, s12
+  81:application/src/imu/madgwick.c **** 		     _2q1 * my * q2 + _2q1 * mz * q3 - mx * q2q2 - mx * q3q3;
+ 392              		.loc 1 81 6 view .LVU148
+ 393 0194 E4EE466A 		vfms.f32	s13, s8, s12
+  85:application/src/imu/madgwick.c **** 		_2bx = sqrtf(hx * hx + hy * hy);
+ 394              		.loc 1 85 29 view .LVU149
+ 395 0198 67EEA77A 		vmul.f32	s15, s15, s15
+  74:application/src/imu/madgwick.c **** 		q1q3 = q1 * q3;
+ 396              		.loc 1 74 8 view .LVU150
+ 397 019c CDED055A 		vstr.32	s11, [sp, #20]
+ 398              		.loc 1 85 10 view .LVU151
+ 399 01a0 E6EEA67A 		vfma.f32	s15, s13, s13
+  68:application/src/imu/madgwick.c **** 		q0q0 = q0 * q0;
+ 400              		.loc 1 68 10 view .LVU152
+ 401 01a4 68EE076A 		vmul.f32	s13, s16, s14
+ 402 01a8 F5EE407A 		vcmp.f32	s15, #0
+ 403 01ac F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 404 01b0 CDED046A 		vstr.32	s13, [sp, #16]
+  66:application/src/imu/madgwick.c **** 		_2q0q2 = 2.0f * q0 * q2;
+ 405              		.loc 1 66 8 view .LVU153
+ 406 01b4 78EE08AA 		vadd.f32	s21, s16, s16
+ 407              	.LVL25:
+  67:application/src/imu/madgwick.c **** 		_2q2q3 = 2.0f * q2 * q3;
+ 408              		.loc 1 67 3 is_stmt 1 view .LVU154
+  67:application/src/imu/madgwick.c **** 		_2q2q3 = 2.0f * q2 * q3;
+ 409              		.loc 1 67 10 is_stmt 0 view .LVU155
+ 410 01b8 6FEE282A 		vmul.f32	s5, s30, s17
+ 411              	.LVL26:
+  68:application/src/imu/madgwick.c **** 		q0q0 = q0 * q0;
+ 412              		.loc 1 68 3 is_stmt 1 view .LVU156
+  69:application/src/imu/madgwick.c **** 		q0q1 = q0 * q1;
+ 413              		.loc 1 69 3 view .LVU157
+  70:application/src/imu/madgwick.c **** 		q0q2 = q0 * q2;
+ 414              		.loc 1 70 3 view .LVU158
+  70:application/src/imu/madgwick.c **** 		q0q2 = q0 * q2;
+ 415              		.loc 1 70 8 is_stmt 0 view .LVU159
+ 416 01bc 2AEE293A 		vmul.f32	s6, s20, s19
+ 417              	.LVL27:
+  71:application/src/imu/madgwick.c **** 		q0q3 = q0 * q3;
+ 418              		.loc 1 71 3 is_stmt 1 view .LVU160
+  71:application/src/imu/madgwick.c **** 		q0q3 = q0 * q3;
+ 419              		.loc 1 71 8 is_stmt 0 view .LVU161
+ 420 01c0 6AEE286A 		vmul.f32	s13, s20, s17
+ 421              	.LVL28:
+  72:application/src/imu/madgwick.c **** 		q1q1 = q1 * q1;
+ARM GAS  /tmp/cc1QW4OW.s 			page 12
+
+
+ 422              		.loc 1 72 3 is_stmt 1 view .LVU162
+  72:application/src/imu/madgwick.c **** 		q1q1 = q1 * q1;
+ 423              		.loc 1 72 8 is_stmt 0 view .LVU163
+ 424 01c4 6AEE083A 		vmul.f32	s7, s20, s16
+ 425              	.LVL29:
+  73:application/src/imu/madgwick.c **** 		q1q2 = q1 * q2;
+ 426              		.loc 1 73 3 is_stmt 1 view .LVU164
+  74:application/src/imu/madgwick.c **** 		q1q3 = q1 * q3;
+ 427              		.loc 1 74 3 view .LVU165
+  75:application/src/imu/madgwick.c **** 		q2q2 = q2 * q2;
+ 428              		.loc 1 75 3 view .LVU166
+  75:application/src/imu/madgwick.c **** 		q2q2 = q2 * q2;
+ 429              		.loc 1 75 8 is_stmt 0 view .LVU167
+ 430 01c8 69EE885A 		vmul.f32	s11, s19, s16
+ 431              	.LVL30:
+  76:application/src/imu/madgwick.c **** 		q2q3 = q2 * q3;
+ 432              		.loc 1 76 3 is_stmt 1 view .LVU168
+  77:application/src/imu/madgwick.c **** 		q3q3 = q3 * q3;
+ 433              		.loc 1 77 3 view .LVU169
+  77:application/src/imu/madgwick.c **** 		q3q3 = q3 * q3;
+ 434              		.loc 1 77 8 is_stmt 0 view .LVU170
+ 435 01cc 68EE88BA 		vmul.f32	s23, s17, s16
+ 436              	.LVL31:
+  78:application/src/imu/madgwick.c **** 
+ 437              		.loc 1 78 3 is_stmt 1 view .LVU171
+  81:application/src/imu/madgwick.c **** 		     _2q1 * my * q2 + _2q1 * mz * q3 - mx * q2q2 - mx * q3q3;
+ 438              		.loc 1 81 3 view .LVU172
+  83:application/src/imu/madgwick.c **** 		     my * q2q2 + _2q2 * mz * q3 - my * q3q3;
+ 439              		.loc 1 83 3 view .LVU173
+ 440              		.loc 1 85 3 view .LVU174
+ 441 01d0 00F12C81 		bmi	.L8
+ 442              		.loc 1 85 10 is_stmt 0 view .LVU175
+ 443 01d4 B1EEE70A 		vsqrt.f32	s0, s15
+ 444              	.LVL32:
+ 445              	.L6:
+  86:application/src/imu/madgwick.c **** 		_2bz = -_2q0mx * q2 + _2q0my * q1 + mz * q0q0 + _2q1mx * q3 -
+ 446              		.loc 1 86 3 is_stmt 1 view .LVU176
+ 447              	.LBB40:
+ 448              	.LBB41:
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 449              		.loc 1 12 17 is_stmt 0 view .LVU177
+ 450 01d8 934B     		ldr	r3, .L12
+ 451              	.LBE41:
+ 452              	.LBE40:
+ 453              		.loc 1 86 32 view .LVU178
+ 454 01da 29EE899A 		vmul.f32	s18, s19, s18
+ 455              	.LVL33:
+  87:application/src/imu/madgwick.c **** 		       mz * q1q1 + _2q2 * my * q3 - mz * q2q2 + mz * q3q3;
+  88:application/src/imu/madgwick.c **** 		_4bx = 2.0f * _2bx;
+  89:application/src/imu/madgwick.c **** 		_4bz = 2.0f * _2bz;
+  90:application/src/imu/madgwick.c **** 
+  91:application/src/imu/madgwick.c **** 		// Gradient decent algorithm corrective step
+  92:application/src/imu/madgwick.c **** 		s0 = -_2q2 * (2.0f * q1q3 - _2q0q2 - ax) +
+  93:application/src/imu/madgwick.c **** 		     _2q1 * (2.0f * q0q1 + _2q2q3 - ay) -
+  94:application/src/imu/madgwick.c **** 		     _2bz * q2 *
+  95:application/src/imu/madgwick.c **** 		         (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) +
+  96:application/src/imu/madgwick.c **** 		     (-_2bx * q3 + _2bz * q1) *
+ARM GAS  /tmp/cc1QW4OW.s 			page 13
+
+
+  97:application/src/imu/madgwick.c **** 		         (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) +
+ 456              		.loc 1 97 26 view .LVU179
+ 457 01de 69EEA87A 		vmul.f32	s15, s19, s17
+  86:application/src/imu/madgwick.c **** 		       mz * q1q1 + _2q2 * my * q3 - mz * q2q2 + mz * q3q3;
+ 458              		.loc 1 86 23 view .LVU180
+ 459 01e2 A1EE689A 		vfms.f32	s18, s2, s17
+ 460              		.loc 1 97 26 view .LVU181
+ 461 01e6 77EEE33A 		vsub.f32	s7, s15, s7
+  86:application/src/imu/madgwick.c **** 		       mz * q1q1 + _2q2 * my * q3 - mz * q2q2 + mz * q3q3;
+ 462              		.loc 1 86 37 view .LVU182
+ 463 01ea A5EE029A 		vfma.f32	s18, s10, s4
+  87:application/src/imu/madgwick.c **** 		       mz * q1q1 + _2q2 * my * q3 - mz * q2q2 + mz * q3q3;
+ 464              		.loc 1 87 27 view .LVU183
+ 465 01ee 64EE877A 		vmul.f32	s15, s9, s14
+  86:application/src/imu/madgwick.c **** 		       mz * q1q1 + _2q2 * my * q3 - mz * q2q2 + mz * q3q3;
+ 466              		.loc 1 86 49 view .LVU184
+ 467 01f2 A8EE219A 		vfma.f32	s18, s16, s3
+ 468              		.loc 1 97 49 view .LVU185
+ 469 01f6 73EE2BBA 		vadd.f32	s23, s6, s23
+ 470              	.LVL34:
+  86:application/src/imu/madgwick.c **** 		       mz * q1q1 + _2q2 * my * q3 - mz * q2q2 + mz * q3q3;
+ 471              		.loc 1 86 63 view .LVU186
+ 472 01fa A5EE4B9A 		vfms.f32	s18, s10, s22
+  95:application/src/imu/madgwick.c **** 		     (-_2bx * q3 + _2bz * q1) *
+ 473              		.loc 1 95 26 view .LVU187
+ 474 01fe B6EE002A 		vmov.f32	s4, #5.0e-1
+  87:application/src/imu/madgwick.c **** 		       mz * q1q1 + _2q2 * my * q3 - mz * q2q2 + mz * q3q3;
+ 475              		.loc 1 87 20 view .LVU188
+ 476 0202 A7EE889A 		vfma.f32	s18, s15, s16
+  92:application/src/imu/madgwick.c **** 		     _2q1 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 477              		.loc 1 92 29 view .LVU189
+ 478 0206 F0EE007A 		vmov.f32	s15, #2.0e+0
+  87:application/src/imu/madgwick.c **** 		_4bx = 2.0f * _2bx;
+ 479              		.loc 1 87 37 view .LVU190
+ 480 020a A5EE4E9A 		vfms.f32	s18, s10, s28
+  92:application/src/imu/madgwick.c **** 		     _2q1 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 481              		.loc 1 92 29 view .LVU191
+ 482 020e D5EEA72A 		vfnms.f32	s5, s11, s15
+  86:application/src/imu/madgwick.c **** 		       mz * q1q1 + _2q2 * my * q3 - mz * q2q2 + mz * q3q3;
+ 483              		.loc 1 86 8 view .LVU192
+ 484 0212 A5EE069A 		vfma.f32	s18, s10, s12
+ 485              	.LVL35:
+  88:application/src/imu/madgwick.c **** 		_4bz = 2.0f * _2bz;
+ 486              		.loc 1 88 3 is_stmt 1 view .LVU193
+  89:application/src/imu/madgwick.c **** 
+ 487              		.loc 1 89 3 view .LVU194
+  88:application/src/imu/madgwick.c **** 		_4bz = 2.0f * _2bz;
+ 488              		.loc 1 88 8 is_stmt 0 view .LVU195
+ 489 0216 30EE001A 		vadd.f32	s2, s0, s0
+ 490              	.LVL36:
+ 491              		.loc 1 97 41 view .LVU196
+ 492 021a 6BEE89BA 		vmul.f32	s23, s23, s18
+ 493              		.loc 1 97 34 view .LVU197
+ 494 021e E3EE80BA 		vfma.f32	s23, s7, s0
+  93:application/src/imu/madgwick.c **** 		     _2bz * q2 *
+ 495              		.loc 1 93 28 view .LVU198
+ 496 0222 DDED043A 		vldr.32	s7, [sp, #16]
+ARM GAS  /tmp/cc1QW4OW.s 			page 14
+
+
+ 497 0226 E3EE273A 		vfma.f32	s7, s6, s15
+  93:application/src/imu/madgwick.c **** 		     _2bz * q2 *
+ 498              		.loc 1 93 37 view .LVU199
+ 499 022a 9DED023A 		vldr.32	s6, [sp, #8]
+ 500 022e 33EEC33A 		vsub.f32	s6, s7, s6
+  92:application/src/imu/madgwick.c **** 		     _2q1 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 501              		.loc 1 92 38 view .LVU200
+ 502 0232 DDED013A 		vldr.32	s7, [sp, #4]
+ 503 0236 72EEE32A 		vsub.f32	s5, s5, s7
+  98:application/src/imu/madgwick.c **** 		     _2bx * q2 *
+  99:application/src/imu/madgwick.c **** 		         (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+ 100:application/src/imu/madgwick.c **** 		s1 = _2q3 * (2.0f * q1q3 - _2q0q2 - ax) +
+ 101:application/src/imu/madgwick.c **** 		     _2q0 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 102:application/src/imu/madgwick.c **** 		     4.0f * q1 * (1 - 2.0f * q1q1 - 2.0f * q2q2 - az) +
+ 504              		.loc 1 102 23 view .LVU201
+ 505 023a F7EE003A 		vmov.f32	s7, #1.0e+0
+ 506 023e EBEE673A 		vfms.f32	s7, s22, s15
+  99:application/src/imu/madgwick.c **** 		s1 = _2q3 * (2.0f * q1q3 - _2q0q2 - ax) +
+ 507              		.loc 1 99 49 view .LVU202
+ 508 0242 32EE4BBA 		vsub.f32	s22, s4, s22
+ 509              	.LVL37:
+ 510              		.loc 1 102 37 view .LVU203
+ 511 0246 EEEE673A 		vfms.f32	s7, s28, s15
+ 512              		.loc 1 102 51 view .LVU204
+ 513 024a DDED037A 		vldr.32	s15, [sp, #12]
+  99:application/src/imu/madgwick.c **** 		s1 = _2q3 * (2.0f * q1q3 - _2q0q2 - ax) +
+ 514              		.loc 1 99 56 view .LVU205
+ 515 024e 3BEE4EBA 		vsub.f32	s22, s22, s28
+ 516              		.loc 1 102 51 view .LVU206
+ 517 0252 73EEE73A 		vsub.f32	s7, s7, s15
+  95:application/src/imu/madgwick.c **** 		     (-_2bx * q3 + _2bz * q1) *
+ 518              		.loc 1 95 26 view .LVU207
+ 519 0256 32EE4EEA 		vsub.f32	s28, s4, s28
+ 520              	.LVL38:
+  95:application/src/imu/madgwick.c **** 		     (-_2bx * q3 + _2bz * q1) *
+ 521              		.loc 1 95 56 view .LVU208
+ 522 025a 75EEE67A 		vsub.f32	s15, s11, s13
+  99:application/src/imu/madgwick.c **** 		s1 = _2q3 * (2.0f * q1q3 - _2q0q2 - ax) +
+ 523              		.loc 1 99 41 view .LVU209
+ 524 025e 2BEE09BA 		vmul.f32	s22, s22, s18
+  99:application/src/imu/madgwick.c **** 		s1 = _2q3 * (2.0f * q1q3 - _2q0q2 - ax) +
+ 525              		.loc 1 99 26 view .LVU210
+ 526 0262 76EEA56A 		vadd.f32	s13, s13, s11
+  95:application/src/imu/madgwick.c **** 		     (-_2bx * q3 + _2bz * q1) *
+ 527              		.loc 1 95 33 view .LVU211
+ 528 0266 3EEE46EA 		vsub.f32	s28, s28, s12
+  95:application/src/imu/madgwick.c **** 		     (-_2bx * q3 + _2bz * q1) *
+ 529              		.loc 1 95 48 view .LVU212
+ 530 026a 67EE897A 		vmul.f32	s15, s15, s18
+  99:application/src/imu/madgwick.c **** 		s1 = _2q3 * (2.0f * q1q3 - _2q0q2 - ax) +
+ 531              		.loc 1 99 34 view .LVU213
+ 532 026e A6EE80BA 		vfma.f32	s22, s13, s0
+ 101:application/src/imu/madgwick.c **** 		     4.0f * q1 * (1 - 2.0f * q1q1 - 2.0f * q2q2 - az) +
+ 533              		.loc 1 101 13 view .LVU214
+ 534 0272 6FEE036A 		vmul.f32	s13, s30, s6
+  95:application/src/imu/madgwick.c **** 		     (-_2bx * q3 + _2bz * q1) *
+ 535              		.loc 1 95 41 view .LVU215
+ARM GAS  /tmp/cc1QW4OW.s 			page 15
+
+
+ 536 0276 EEEE007A 		vfma.f32	s15, s28, s0
+ 100:application/src/imu/madgwick.c **** 		     _2q0 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 537              		.loc 1 100 43 view .LVU216
+ 538 027a E2EEAA6A 		vfma.f32	s13, s5, s21
+ 103:application/src/imu/madgwick.c **** 		     _2bz * q3 *
+ 104:application/src/imu/madgwick.c **** 		         (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) +
+ 105:application/src/imu/madgwick.c **** 		     (_2bx * q2 + _2bz * q0) *
+ 106:application/src/imu/madgwick.c **** 		         (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) +
+ 107:application/src/imu/madgwick.c **** 		     (_2bx * q3 - _4bz * q1) *
+ 108:application/src/imu/madgwick.c **** 		         (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+ 109:application/src/imu/madgwick.c **** 		s2 = -_2q0 * (2.0f * q1q3 - _2q0q2 - ax) +
+ 110:application/src/imu/madgwick.c **** 		     _2q3 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 539              		.loc 1 110 13 view .LVU217
+ 540 027e 63EE2AAA 		vmul.f32	s21, s6, s21
+ 541              	.LVL39:
+ 102:application/src/imu/madgwick.c **** 		     _2bz * q3 *
+ 542              		.loc 1 102 13 view .LVU218
+ 543 0282 B1EE006A 		vmov.f32	s12, #4.0e+0
+ 109:application/src/imu/madgwick.c **** 		     _2q3 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 544              		.loc 1 109 44 view .LVU219
+ 545 0286 EFEE62AA 		vfms.f32	s21, s30, s5
+  95:application/src/imu/madgwick.c **** 		     (-_2bx * q3 + _2bz * q1) *
+ 546              		.loc 1 95 64 view .LVU220
+ 547 028a 77EEC41A 		vsub.f32	s3, s15, s8
+ 101:application/src/imu/madgwick.c **** 		     4.0f * q1 * (1 - 2.0f * q1q1 - 2.0f * q2q2 - az) +
+ 548              		.loc 1 101 43 view .LVU221
+ 549 028e 66EE697A 		vnmul.f32	s15, s12, s19
+ 111:application/src/imu/madgwick.c **** 		     4.0f * q2 * (1 - 2.0f * q1q1 - 2.0f * q2q2 - az) +
+ 550              		.loc 1 111 13 view .LVU222
+ 551 0292 28EE866A 		vmul.f32	s12, s17, s12
+ 101:application/src/imu/madgwick.c **** 		     4.0f * q1 * (1 - 2.0f * q1q1 - 2.0f * q2q2 - az) +
+ 552              		.loc 1 101 43 view .LVU223
+ 553 0296 E7EEA36A 		vfma.f32	s13, s15, s7
+ 110:application/src/imu/madgwick.c **** 		     4.0f * q2 * (1 - 2.0f * q1q1 - 2.0f * q2q2 - az) +
+ 554              		.loc 1 110 43 view .LVU224
+ 555 029a E3EEC6AA 		vfms.f32	s21, s7, s12
+ 112:application/src/imu/madgwick.c **** 		     (-_4bx * q2 - _2bz * q0) *
+ 113:application/src/imu/madgwick.c **** 		         (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) +
+ 114:application/src/imu/madgwick.c **** 		     (_2bx * q1 + _2bz * q3) *
+ 115:application/src/imu/madgwick.c **** 		         (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) +
+ 116:application/src/imu/madgwick.c **** 		     (_2bx * q0 - _4bz * q2) *
+ 117:application/src/imu/madgwick.c **** 		         (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+ 118:application/src/imu/madgwick.c **** 		s3 = _2q1 * (2.0f * q1q3 - _2q0q2 - ax) +
+ 119:application/src/imu/madgwick.c **** 		     _2q2 * (2.0f * q0q1 + _2q2q3 - ay) +
+ 556              		.loc 1 119 13 view .LVU225
+ 557 029e 63EE077A 		vmul.f32	s15, s6, s14
+  93:application/src/imu/madgwick.c **** 		     _2bz * q2 *
+ 558              		.loc 1 93 13 view .LVU226
+ 559 02a2 2FEE836A 		vmul.f32	s12, s31, s6
+  98:application/src/imu/madgwick.c **** 		         (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+ 560              		.loc 1 98 13 view .LVU227
+ 561 02a6 28EE803A 		vmul.f32	s6, s17, s0
+ 103:application/src/imu/madgwick.c **** 		         (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) +
+ 562              		.loc 1 103 13 view .LVU228
+ 563 02aa 68EE095A 		vmul.f32	s11, s16, s18
+ 105:application/src/imu/madgwick.c **** 		         (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) +
+ 564              		.loc 1 105 19 view .LVU229
+ARM GAS  /tmp/cc1QW4OW.s 			page 16
+
+
+ 565 02ae F0EE433A 		vmov.f32	s7, s6
+  92:application/src/imu/madgwick.c **** 		     _2q1 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 566              		.loc 1 92 44 view .LVU230
+ 567 02b2 A7EE626A 		vfms.f32	s12, s14, s5
+ 102:application/src/imu/madgwick.c **** 		     _2bz * q3 *
+ 568              		.loc 1 102 57 view .LVU231
+ 569 02b6 E1EEA56A 		vfma.f32	s13, s3, s11
+ 105:application/src/imu/madgwick.c **** 		         (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) +
+ 570              		.loc 1 105 19 view .LVU232
+ 571 02ba EAEE093A 		vfma.f32	s7, s20, s18
+  97:application/src/imu/madgwick.c **** 		     _2bx * q2 *
+ 572              		.loc 1 97 57 view .LVU233
+ 573 02be 7BEEE44A 		vsub.f32	s9, s23, s9
+  94:application/src/imu/madgwick.c **** 		         (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) +
+ 574              		.loc 1 94 13 view .LVU234
+ 575 02c2 28EE894A 		vmul.f32	s8, s17, s18
+ 104:application/src/imu/madgwick.c **** 		     (_2bx * q2 + _2bz * q0) *
+ 576              		.loc 1 104 70 view .LVU235
+ 577 02c6 E4EEA36A 		vfma.f32	s13, s9, s7
+  93:application/src/imu/madgwick.c **** 		     _2bz * q2 *
+ 578              		.loc 1 93 43 view .LVU236
+ 579 02ca A4EE616A 		vfms.f32	s12, s8, s3
+ 112:application/src/imu/madgwick.c **** 		         (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) +
+ 580              		.loc 1 112 15 view .LVU237
+ 581 02ce 61EE683A 		vnmul.f32	s7, s2, s17
+ 120:application/src/imu/madgwick.c **** 		     (-_4bx * q3 + _2bz * q1) *
+ 121:application/src/imu/madgwick.c **** 		         (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) +
+ 122:application/src/imu/madgwick.c **** 		     (-_2bx * q0 + _2bz * q2) *
+ 582              		.loc 1 122 20 view .LVU238
+ 583 02d2 A0EE4A4A 		vfms.f32	s8, s0, s20
+ 112:application/src/imu/madgwick.c **** 		         (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) +
+ 584              		.loc 1 112 20 view .LVU239
+ 585 02d6 EAEE493A 		vfms.f32	s7, s20, s18
+ 118:application/src/imu/madgwick.c **** 		     _2q2 * (2.0f * q0q1 + _2q2q3 - ay) +
+ 586              		.loc 1 118 43 view .LVU240
+ 587 02da EFEEA27A 		vfma.f32	s15, s31, s5
+ 588              		.loc 1 122 20 view .LVU241
+ 589 02de F0EE442A 		vmov.f32	s5, s8
+  96:application/src/imu/madgwick.c **** 		         (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) +
+ 590              		.loc 1 96 27 view .LVU242
+ 591 02e2 29EE894A 		vmul.f32	s8, s19, s18
+ 111:application/src/imu/madgwick.c **** 		     (-_4bx * q2 - _2bz * q0) *
+ 592              		.loc 1 111 57 view .LVU243
+ 593 02e6 E1EEA3AA 		vfma.f32	s21, s3, s7
+ 120:application/src/imu/madgwick.c **** 		         (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) +
+ 594              		.loc 1 120 20 view .LVU244
+ 595 02ea F0EE443A 		vmov.f32	s7, s8
+  96:application/src/imu/madgwick.c **** 		         (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) +
+ 596              		.loc 1 96 20 view .LVU245
+ 597 02ee A0EE484A 		vfms.f32	s8, s0, s16
+  89:application/src/imu/madgwick.c **** 
+ 598              		.loc 1 89 8 view .LVU246
+ 599 02f2 39EE097A 		vadd.f32	s14, s18, s18
+ 600              	.LVL40:
+  92:application/src/imu/madgwick.c **** 		     _2q1 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 601              		.loc 1 92 3 is_stmt 1 view .LVU247
+  95:application/src/imu/madgwick.c **** 		     (-_2bx * q3 + _2bz * q1) *
+ARM GAS  /tmp/cc1QW4OW.s 			page 17
+
+
+ 602              		.loc 1 95 70 is_stmt 0 view .LVU248
+ 603 02f6 A4EE246A 		vfma.f32	s12, s8, s9
+ 107:application/src/imu/madgwick.c **** 		         (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+ 604              		.loc 1 107 19 view .LVU249
+ 605 02fa 27EE694A 		vnmul.f32	s8, s14, s19
+ 116:application/src/imu/madgwick.c **** 		         (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+ 606              		.loc 1 116 19 view .LVU250
+ 607 02fe 27EE687A 		vnmul.f32	s14, s14, s17
+ 608              	.LVL41:
+ 107:application/src/imu/madgwick.c **** 		         (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+ 609              		.loc 1 107 19 view .LVU251
+ 610 0302 A8EE004A 		vfma.f32	s8, s16, s0
+ 116:application/src/imu/madgwick.c **** 		         (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+ 611              		.loc 1 116 19 view .LVU252
+ 612 0306 AAEE007A 		vfma.f32	s14, s20, s0
+ 114:application/src/imu/madgwick.c **** 		         (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) +
+ 613              		.loc 1 114 14 view .LVU253
+ 614 030a 29EE800A 		vmul.f32	s0, s19, s0
+  99:application/src/imu/madgwick.c **** 		s1 = _2q3 * (2.0f * q1q3 - _2q0q2 - ax) +
+ 615              		.loc 1 99 64 view .LVU254
+ 616 030e 3BEE455A 		vsub.f32	s10, s22, s10
+ 114:application/src/imu/madgwick.c **** 		         (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) +
+ 617              		.loc 1 114 19 view .LVU255
+ 618 0312 75EE805A 		vadd.f32	s11, s11, s0
+ 120:application/src/imu/madgwick.c **** 		         (_2bx * (0.5f - q2q2 - q3q3) + _2bz * (q1q3 - q0q2) - mx) +
+ 619              		.loc 1 120 20 view .LVU256
+ 620 0316 E1EE483A 		vfms.f32	s7, s2, s16
+ 100:application/src/imu/madgwick.c **** 		     _2q0 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 621              		.loc 1 100 6 view .LVU257
+ 622 031a E5EE046A 		vfma.f32	s13, s10, s8
+ 113:application/src/imu/madgwick.c **** 		     (_2bx * q1 + _2bz * q3) *
+ 623              		.loc 1 113 70 view .LVU258
+ 624 031e E4EEA5AA 		vfma.f32	s21, s9, s11
+  92:application/src/imu/madgwick.c **** 		     _2q1 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 625              		.loc 1 92 6 view .LVU259
+ 626 0322 A3EE056A 		vfma.f32	s12, s6, s10
+ 627              	.LVL42:
+ 100:application/src/imu/madgwick.c **** 		     _2q0 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 628              		.loc 1 100 3 is_stmt 1 view .LVU260
+ 109:application/src/imu/madgwick.c **** 		     _2q3 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 629              		.loc 1 109 3 view .LVU261
+ 119:application/src/imu/madgwick.c **** 		     (-_4bx * q3 + _2bz * q1) *
+ 630              		.loc 1 119 43 is_stmt 0 view .LVU262
+ 631 0326 E1EEA37A 		vfma.f32	s15, s3, s7
+ 109:application/src/imu/madgwick.c **** 		     _2q3 * (2.0f * q0q1 + _2q2q3 - ay) -
+ 632              		.loc 1 109 6 view .LVU263
+ 633 032a E5EE07AA 		vfma.f32	s21, s10, s14
+ 634              	.LVL43:
+ 118:application/src/imu/madgwick.c **** 		     _2q2 * (2.0f * q0q1 + _2q2q3 - ay) +
+ 635              		.loc 1 118 3 is_stmt 1 view .LVU264
+ 123:application/src/imu/madgwick.c **** 		         (_2bx * (q1q2 - q0q3) + _2bz * (q0q1 + q2q3) - my) +
+ 124:application/src/imu/madgwick.c **** 		     _2bx * q1 *
+ 125:application/src/imu/madgwick.c **** 		         (_2bx * (q0q2 + q1q3) + _2bz * (0.5f - q1q1 - q2q2) - mz);
+ 126:application/src/imu/madgwick.c **** 		recipNorm = invSqrt(s0 * s0 + s1 * s1 + s2 * s2 +
+ 636              		.loc 1 126 36 is_stmt 0 view .LVU265
+ 637 032e 26EEA67A 		vmul.f32	s14, s13, s13
+ 121:application/src/imu/madgwick.c **** 		     (-_2bx * q0 + _2bz * q2) *
+ARM GAS  /tmp/cc1QW4OW.s 			page 18
+
+
+ 638              		.loc 1 121 70 view .LVU266
+ 639 0332 E4EEA27A 		vfma.f32	s15, s9, s5
+ 640              		.loc 1 126 31 view .LVU267
+ 641 0336 A6EE067A 		vfma.f32	s14, s12, s12
+ 118:application/src/imu/madgwick.c **** 		     _2q2 * (2.0f * q0q1 + _2q2q3 - ay) +
+ 642              		.loc 1 118 6 view .LVU268
+ 643 033a E5EE007A 		vfma.f32	s15, s10, s0
+ 644              	.LVL44:
+ 645              		.loc 1 126 3 is_stmt 1 view .LVU269
+ 646              		.loc 1 126 41 is_stmt 0 view .LVU270
+ 647 033e AAEEAA7A 		vfma.f32	s14, s21, s21
+ 118:application/src/imu/madgwick.c **** 		     _2q2 * (2.0f * q0q1 + _2q2q3 - ay) +
+ 648              		.loc 1 118 6 view .LVU271
+ 649 0342 B0EE673A 		vmov.f32	s6, s15
+ 650              		.loc 1 126 15 view .LVU272
+ 651 0346 A7EEA77A 		vfma.f32	s14, s15, s15
+ 652              	.LVL45:
+ 653              	.LBB43:
+ 654              	.LBI40:
+   8:application/src/imu/madgwick.c **** 	float halfx = 0.5f * x;
+ 655              		.loc 1 8 14 is_stmt 1 view .LVU273
+ 656              	.LBB42:
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 657              		.loc 1 9 2 view .LVU274
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 658              		.loc 1 14 16 is_stmt 0 view .LVU275
+ 659 034a F7EE087A 		vmov.f32	s15, #1.5e+0
+ 660              	.LVL46:
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 661              		.loc 1 13 6 view .LVU276
+ 662 034e 17EE102A 		vmov	r2, s14	@ int
+ 663 0352 A3EB6203 		sub	r3, r3, r2, asr #1
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 664              		.loc 1 9 8 view .LVU277
+ 665 0356 27EE022A 		vmul.f32	s4, s14, s4
+ 666              	.LVL47:
+  10:application/src/imu/madgwick.c **** 	long i = *(long *)&y;
+ 667              		.loc 1 10 2 is_stmt 1 view .LVU278
+  11:application/src/imu/madgwick.c **** 	i = 0x5f3759df - (i >> 1);
+ 668              		.loc 1 11 2 view .LVU279
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 669              		.loc 1 12 2 view .LVU280
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 670              		.loc 1 13 2 view .LVU281
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 671              		.loc 1 13 6 is_stmt 0 view .LVU282
+ 672 035a 07EE103A 		vmov	s14, r3	@ int
+ 673              	.LVL48:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 674              		.loc 1 14 2 is_stmt 1 view .LVU283
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 675              		.loc 1 14 25 is_stmt 0 view .LVU284
+ 676 035e 22EE075A 		vmul.f32	s10, s4, s14
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 677              		.loc 1 14 16 view .LVU285
+ 678 0362 F0EE675A 		vmov.f32	s11, s15
+ 679 0366 E7EE455A 		vfms.f32	s11, s14, s10
+ARM GAS  /tmp/cc1QW4OW.s 			page 19
+
+
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 680              		.loc 1 14 8 view .LVU286
+ 681 036a 27EE257A 		vmul.f32	s14, s14, s11
+ 682              	.LVL49:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 683              		.loc 1 15 2 is_stmt 1 view .LVU287
+  15:application/src/imu/madgwick.c **** 	return y;
+ 684              		.loc 1 15 25 is_stmt 0 view .LVU288
+ 685 036e 22EE072A 		vmul.f32	s4, s4, s14
+ 686              	.LVL50:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 687              		.loc 1 15 16 view .LVU289
+ 688 0372 E7EE427A 		vfms.f32	s15, s14, s4
+  15:application/src/imu/madgwick.c **** 	return y;
+ 689              		.loc 1 15 8 view .LVU290
+ 690 0376 67EE277A 		vmul.f32	s15, s14, s15
+ 691              	.LVL51:
+  16:application/src/imu/madgwick.c **** }
+ 692              		.loc 1 16 2 is_stmt 1 view .LVU291
+  16:application/src/imu/madgwick.c **** }
+ 693              		.loc 1 16 2 is_stmt 0 view .LVU292
+ 694              	.LBE42:
+ 695              	.LBE43:
+ 127:application/src/imu/madgwick.c **** 		                    s3 * s3); // normalise step magnitude
+ 128:application/src/imu/madgwick.c **** 		s0 *= recipNorm;
+ 696              		.loc 1 128 3 is_stmt 1 view .LVU293
+ 129:application/src/imu/madgwick.c **** 		s1 *= recipNorm;
+ 697              		.loc 1 129 3 view .LVU294
+ 130:application/src/imu/madgwick.c **** 		s2 *= recipNorm;
+ 698              		.loc 1 130 3 view .LVU295
+ 131:application/src/imu/madgwick.c **** 		s3 *= recipNorm;
+ 699              		.loc 1 131 3 view .LVU296
+ 132:application/src/imu/madgwick.c **** 
+ 133:application/src/imu/madgwick.c **** 		// Apply feedback step
+ 134:application/src/imu/madgwick.c **** 		qDot1 -= beta * s0;
+ 700              		.loc 1 134 3 view .LVU297
+ 701              		.loc 1 134 9 is_stmt 0 view .LVU298
+ 702 037a 27EEC66A 		vnmul.f32	s12, s15, s12
+ 703              	.LVL52:
+ 135:application/src/imu/madgwick.c **** 		qDot2 -= beta * s1;
+ 704              		.loc 1 135 9 view .LVU299
+ 705 037e 67EEE66A 		vnmul.f32	s13, s15, s13
+ 706              	.LVL53:
+ 136:application/src/imu/madgwick.c **** 		qDot3 -= beta * s2;
+ 707              		.loc 1 136 9 view .LVU300
+ 708 0382 67EEEAAA 		vnmul.f32	s21, s15, s21
+ 709              	.LVL54:
+ 137:application/src/imu/madgwick.c **** 		qDot4 -= beta * s3;
+ 710              		.loc 1 137 9 view .LVU301
+ 711 0386 67EEC37A 		vnmul.f32	s15, s15, s6
+ 712              	.LVL55:
+ 134:application/src/imu/madgwick.c **** 		qDot2 -= beta * s1;
+ 713              		.loc 1 134 9 view .LVU302
+ 714 038a A6EE2EDA 		vfma.f32	s26, s12, s29
+ 715              	.LVL56:
+ 135:application/src/imu/madgwick.c **** 		qDot3 -= beta * s2;
+ 716              		.loc 1 135 3 is_stmt 1 view .LVU303
+ARM GAS  /tmp/cc1QW4OW.s 			page 20
+
+
+ 135:application/src/imu/madgwick.c **** 		qDot3 -= beta * s2;
+ 717              		.loc 1 135 9 is_stmt 0 view .LVU304
+ 718 038e E6EEAEDA 		vfma.f32	s27, s13, s29
+ 719              	.LVL57:
+ 136:application/src/imu/madgwick.c **** 		qDot4 -= beta * s3;
+ 720              		.loc 1 136 3 is_stmt 1 view .LVU305
+ 136:application/src/imu/madgwick.c **** 		qDot4 -= beta * s3;
+ 721              		.loc 1 136 9 is_stmt 0 view .LVU306
+ 722 0392 EAEEAECA 		vfma.f32	s25, s21, s29
+ 723              	.LVL58:
+ 724              		.loc 1 137 3 is_stmt 1 view .LVU307
+ 725              		.loc 1 137 9 is_stmt 0 view .LVU308
+ 726 0396 A7EEAECA 		vfma.f32	s24, s15, s29
+ 727              	.LVL59:
+ 728              	.L3:
+ 138:application/src/imu/madgwick.c **** 	}
+ 139:application/src/imu/madgwick.c **** 
+ 140:application/src/imu/madgwick.c **** 	// Integrate rate of change of quaternion to yield quaternion
+ 141:application/src/imu/madgwick.c **** 	q0 += qDot1 * dt;
+ 729              		.loc 1 141 2 is_stmt 1 view .LVU309
+ 730              	.LBB44:
+ 731              	.LBB45:
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 732              		.loc 1 12 17 is_stmt 0 view .LVU310
+ 733 039a 234B     		ldr	r3, .L12
+ 734              	.LBE45:
+ 735              	.LBE44:
+ 142:application/src/imu/madgwick.c **** 	q1 += qDot2 * dt;
+ 736              		.loc 1 142 5 view .LVU311
+ 737 039c EDEEA09A 		vfma.f32	s19, s27, s1
+ 738              	.LVL60:
+ 141:application/src/imu/madgwick.c **** 	q1 += qDot2 * dt;
+ 739              		.loc 1 141 5 view .LVU312
+ 740 03a0 ADEE20AA 		vfma.f32	s20, s26, s1
+ 741              	.LVL61:
+ 742              		.loc 1 142 2 is_stmt 1 view .LVU313
+ 143:application/src/imu/madgwick.c **** 	q2 += qDot3 * dt;
+ 743              		.loc 1 143 2 view .LVU314
+ 144:application/src/imu/madgwick.c **** 	q3 += qDot4 * dt;
+ 145:application/src/imu/madgwick.c **** 
+ 146:application/src/imu/madgwick.c **** 	// Normalise quaternion
+ 147:application/src/imu/madgwick.c **** 	recipNorm = invSqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+ 744              		.loc 1 147 35 is_stmt 0 view .LVU315
+ 745 03a4 29EEA97A 		vmul.f32	s14, s19, s19
+ 143:application/src/imu/madgwick.c **** 	q2 += qDot3 * dt;
+ 746              		.loc 1 143 5 view .LVU316
+ 747 03a8 ECEEA08A 		vfma.f32	s17, s25, s1
+ 748              	.LVL62:
+ 144:application/src/imu/madgwick.c **** 	q3 += qDot4 * dt;
+ 749              		.loc 1 144 2 is_stmt 1 view .LVU317
+ 750              		.loc 1 147 30 is_stmt 0 view .LVU318
+ 751 03ac AAEE0A7A 		vfma.f32	s14, s20, s20
+ 144:application/src/imu/madgwick.c **** 	q3 += qDot4 * dt;
+ 752              		.loc 1 144 5 view .LVU319
+ 753 03b0 ACEE208A 		vfma.f32	s16, s24, s1
+ 754              	.LVL63:
+ 755              		.loc 1 147 2 is_stmt 1 view .LVU320
+ARM GAS  /tmp/cc1QW4OW.s 			page 21
+
+
+ 756              		.loc 1 147 40 is_stmt 0 view .LVU321
+ 757 03b4 A8EEA87A 		vfma.f32	s14, s17, s17
+ 758              	.LBB48:
+ 759              	.LBB46:
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 760              		.loc 1 9 8 view .LVU322
+ 761 03b8 F6EE006A 		vmov.f32	s13, #5.0e-1
+ 762              	.LBE46:
+ 763              	.LBE48:
+ 764              		.loc 1 147 14 view .LVU323
+ 765 03bc A8EE087A 		vfma.f32	s14, s16, s16
+ 766              	.LVL64:
+ 767              	.LBB49:
+ 768              	.LBI44:
+   8:application/src/imu/madgwick.c **** 	float halfx = 0.5f * x;
+ 769              		.loc 1 8 14 is_stmt 1 view .LVU324
+ 770              	.LBB47:
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 771              		.loc 1 9 2 view .LVU325
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 772              		.loc 1 14 16 is_stmt 0 view .LVU326
+ 773 03c0 F7EE087A 		vmov.f32	s15, #1.5e+0
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 774              		.loc 1 13 6 view .LVU327
+ 775 03c4 17EE102A 		vmov	r2, s14	@ int
+ 776 03c8 A3EB6203 		sub	r3, r3, r2, asr #1
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 777              		.loc 1 9 8 view .LVU328
+ 778 03cc 67EE266A 		vmul.f32	s13, s14, s13
+ 779              	.LVL65:
+  10:application/src/imu/madgwick.c **** 	long i = *(long *)&y;
+ 780              		.loc 1 10 2 is_stmt 1 view .LVU329
+  11:application/src/imu/madgwick.c **** 	i = 0x5f3759df - (i >> 1);
+ 781              		.loc 1 11 2 view .LVU330
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 782              		.loc 1 12 2 view .LVU331
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 783              		.loc 1 13 2 view .LVU332
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 784              		.loc 1 13 6 is_stmt 0 view .LVU333
+ 785 03d0 07EE103A 		vmov	s14, r3	@ int
+ 786              	.LVL66:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 787              		.loc 1 14 2 is_stmt 1 view .LVU334
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 788              		.loc 1 14 25 is_stmt 0 view .LVU335
+ 789 03d4 66EE875A 		vmul.f32	s11, s13, s14
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 790              		.loc 1 14 16 view .LVU336
+ 791 03d8 B0EE676A 		vmov.f32	s12, s15
+ 792 03dc A7EE656A 		vfms.f32	s12, s14, s11
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 793              		.loc 1 14 8 view .LVU337
+ 794 03e0 27EE067A 		vmul.f32	s14, s14, s12
+ 795              	.LVL67:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 796              		.loc 1 15 2 is_stmt 1 view .LVU338
+ARM GAS  /tmp/cc1QW4OW.s 			page 22
+
+
+  15:application/src/imu/madgwick.c **** 	return y;
+ 797              		.loc 1 15 25 is_stmt 0 view .LVU339
+ 798 03e4 66EE876A 		vmul.f32	s13, s13, s14
+ 799              	.LVL68:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 800              		.loc 1 15 16 view .LVU340
+ 801 03e8 E7EE667A 		vfms.f32	s15, s14, s13
+  15:application/src/imu/madgwick.c **** 	return y;
+ 802              		.loc 1 15 8 view .LVU341
+ 803 03ec 67EE277A 		vmul.f32	s15, s14, s15
+ 804              	.LVL69:
+  16:application/src/imu/madgwick.c **** }
+ 805              		.loc 1 16 2 is_stmt 1 view .LVU342
+  16:application/src/imu/madgwick.c **** }
+ 806              		.loc 1 16 2 is_stmt 0 view .LVU343
+ 807              	.LBE47:
+ 808              	.LBE49:
+ 148:application/src/imu/madgwick.c **** 	q0 *= recipNorm;
+ 809              		.loc 1 148 2 is_stmt 1 view .LVU344
+ 149:application/src/imu/madgwick.c **** 	q1 *= recipNorm;
+ 810              		.loc 1 149 2 view .LVU345
+ 150:application/src/imu/madgwick.c **** 	q2 *= recipNorm;
+ 811              		.loc 1 150 2 view .LVU346
+ 151:application/src/imu/madgwick.c **** 	q3 *= recipNorm;
+ 812              		.loc 1 151 2 view .LVU347
+ 152:application/src/imu/madgwick.c **** 
+ 153:application/src/imu/madgwick.c **** 	q->w = q0;
+ 813              		.loc 1 153 2 view .LVU348
+ 148:application/src/imu/madgwick.c **** 	q1 *= recipNorm;
+ 814              		.loc 1 148 5 is_stmt 0 view .LVU349
+ 815 03f0 2AEE27AA 		vmul.f32	s20, s20, s15
+ 816              	.LVL70:
+ 149:application/src/imu/madgwick.c **** 	q2 *= recipNorm;
+ 817              		.loc 1 149 5 view .LVU350
+ 818 03f4 69EEA79A 		vmul.f32	s19, s19, s15
+ 819              	.LVL71:
+ 150:application/src/imu/madgwick.c **** 	q3 *= recipNorm;
+ 820              		.loc 1 150 5 view .LVU351
+ 821 03f8 68EEA78A 		vmul.f32	s17, s17, s15
+ 822              	.LVL72:
+ 151:application/src/imu/madgwick.c **** 
+ 823              		.loc 1 151 5 view .LVU352
+ 824 03fc 28EE278A 		vmul.f32	s16, s16, s15
+ 825              	.LVL73:
+ 826              		.loc 1 153 7 view .LVU353
+ 827 0400 80ED00AA 		vstr.32	s20, [r0]
+ 154:application/src/imu/madgwick.c **** 	q->x = q1;
+ 828              		.loc 1 154 2 is_stmt 1 view .LVU354
+ 829              		.loc 1 154 7 is_stmt 0 view .LVU355
+ 830 0404 C0ED019A 		vstr.32	s19, [r0, #4]
+ 155:application/src/imu/madgwick.c **** 	q->y = q2;
+ 831              		.loc 1 155 2 is_stmt 1 view .LVU356
+ 832              		.loc 1 155 7 is_stmt 0 view .LVU357
+ 833 0408 C0ED028A 		vstr.32	s17, [r0, #8]
+ 156:application/src/imu/madgwick.c **** 	q->z = q3;
+ 834              		.loc 1 156 2 is_stmt 1 view .LVU358
+ 835              		.loc 1 156 7 is_stmt 0 view .LVU359
+ARM GAS  /tmp/cc1QW4OW.s 			page 23
+
+
+ 836 040c 80ED038A 		vstr.32	s16, [r0, #12]
+ 157:application/src/imu/madgwick.c **** }
+ 837              		.loc 1 157 1 view .LVU360
+ 838 0410 15B0     		add	sp, sp, #84
+ 839              		.cfi_remember_state
+ 840              		.cfi_def_cfa_offset 68
+ 841              		@ sp needed
+ 842 0412 BDEC108B 		vldm	sp!, {d8-d15}
+ 843              		.cfi_restore 94
+ 844              		.cfi_restore 95
+ 845              		.cfi_restore 92
+ 846              		.cfi_restore 93
+ 847              		.cfi_restore 90
+ 848              		.cfi_restore 91
+ 849              		.cfi_restore 88
+ 850              		.cfi_restore 89
+ 851              		.cfi_restore 86
+ 852              		.cfi_restore 87
+ 853              		.cfi_restore 84
+ 854              		.cfi_restore 85
+ 855              		.cfi_restore 82
+ 856              		.cfi_restore 83
+ 857              		.cfi_restore 80
+ 858              		.cfi_restore 81
+ 859              		.cfi_def_cfa_offset 4
+ 860              	.LVL74:
+ 861              		.loc 1 157 1 view .LVU361
+ 862 0416 5DF804FB 		ldr	pc, [sp], #4
+ 863              	.LVL75:
+ 864              	.L11:
+ 865              		.cfi_restore_state
+  44:application/src/imu/madgwick.c **** 
+ 866              		.loc 1 44 6 discriminator 2 view .LVU362
+ 867 041a F5EE403A 		vcmp.f32	s7, #0
+ 868 041e F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 869 0422 BAD0     		beq	.L3
+ 870 0424 29E6     		b	.L2
+ 871              	.L13:
+ 872 0426 00BF     		.align	2
+ 873              	.L12:
+ 874 0428 DF59375F 		.word	1597463007
+ 875              	.LVL76:
+ 876              	.L8:
+  85:application/src/imu/madgwick.c **** 		_2bz = -_2q0mx * q2 + _2q0my * q1 + mz * q0q0 + _2q1mx * q3 -
+ 877              		.loc 1 85 10 view .LVU363
+ 878 042c B0EE670A 		vmov.f32	s0, s15
+ 879 0430 CDED130A 		vstr.32	s1, [sp, #76]	@ int
+ 880 0434 1290     		str	r0, [sp, #72]
+ 881 0436 8DED116A 		vstr.32	s12, [sp, #68]	@ int
+ 882 043a CDED105A 		vstr.32	s11, [sp, #64]	@ int
+ 883 043e CDED0F3A 		vstr.32	s7, [sp, #60]	@ int
+ 884 0442 CDED0E6A 		vstr.32	s13, [sp, #56]	@ int
+ 885 0446 8DED0D3A 		vstr.32	s6, [sp, #52]	@ int
+ 886 044a 8DED0C2A 		vstr.32	s4, [sp, #48]	@ int
+ 887 044e CDED0B2A 		vstr.32	s5, [sp, #44]	@ int
+ 888 0452 8DED0A7A 		vstr.32	s14, [sp, #40]	@ int
+ 889 0456 CDED091A 		vstr.32	s3, [sp, #36]	@ int
+ARM GAS  /tmp/cc1QW4OW.s 			page 24
+
+
+ 890 045a 8DED081A 		vstr.32	s2, [sp, #32]	@ int
+ 891 045e 8DED075A 		vstr.32	s10, [sp, #28]	@ int
+ 892 0462 CDED064A 		vstr.32	s9, [sp, #24]	@ int
+ 893 0466 8DED054A 		vstr.32	s8, [sp, #20]	@ int
+ 894              	.LVL77:
+  85:application/src/imu/madgwick.c **** 		_2bz = -_2q0mx * q2 + _2q0my * q1 + mz * q0q0 + _2q1mx * q3 -
+ 895              		.loc 1 85 10 view .LVU364
+ 896 046a FFF7FEFF 		bl	sqrtf
+ 897              	.LVL78:
+  85:application/src/imu/madgwick.c **** 		_2bz = -_2q0mx * q2 + _2q0my * q1 + mz * q0q0 + _2q1mx * q3 -
+ 898              		.loc 1 85 10 view .LVU365
+ 899 046e DDED130A 		vldr.32	s1, [sp, #76]	@ int
+ 900 0472 1298     		ldr	r0, [sp, #72]
+ 901 0474 9DED116A 		vldr.32	s12, [sp, #68]	@ int
+ 902 0478 DDED105A 		vldr.32	s11, [sp, #64]	@ int
+ 903 047c DDED0F3A 		vldr.32	s7, [sp, #60]	@ int
+ 904 0480 DDED0E6A 		vldr.32	s13, [sp, #56]	@ int
+ 905 0484 9DED0D3A 		vldr.32	s6, [sp, #52]	@ int
+ 906 0488 9DED0C2A 		vldr.32	s4, [sp, #48]	@ int
+ 907 048c DDED0B2A 		vldr.32	s5, [sp, #44]	@ int
+ 908 0490 9DED0A7A 		vldr.32	s14, [sp, #40]	@ int
+ 909 0494 DDED091A 		vldr.32	s3, [sp, #36]	@ int
+ 910 0498 9DED081A 		vldr.32	s2, [sp, #32]	@ int
+ 911 049c 9DED075A 		vldr.32	s10, [sp, #28]	@ int
+ 912 04a0 DDED064A 		vldr.32	s9, [sp, #24]	@ int
+ 913 04a4 9DED054A 		vldr.32	s8, [sp, #20]	@ int
+ 914 04a8 96E6     		b	.L6
+ 915              		.cfi_endproc
+ 916              	.LFE1:
+ 918 04aa 00BF     		.section	.text.madgwick_update_6d,"ax",%progbits
+ 919              		.align	1
+ 920              		.p2align 2,,3
+ 921              		.global	madgwick_update_6d
+ 922              		.syntax unified
+ 923              		.thumb
+ 924              		.thumb_func
+ 926              	madgwick_update_6d:
+ 927              	.LVL79:
+ 928              	.LFB2:
+ 158:application/src/imu/madgwick.c **** 
+ 159:application/src/imu/madgwick.c **** void madgwick_update_6d(quaternion_t *q, float beta, float dt, float gx,
+ 160:application/src/imu/madgwick.c ****                         float gy, float gz, float ax, float ay, float az) {
+ 929              		.loc 1 160 75 is_stmt 1 view -0
+ 930              		.cfi_startproc
+ 931              		@ args = 0, pretend = 0, frame = 0
+ 932              		@ frame_needed = 0, uses_anonymous_args = 0
+ 933              		@ link register save eliminated.
+ 161:application/src/imu/madgwick.c **** 	float recipNorm;
+ 934              		.loc 1 161 2 view .LVU367
+ 162:application/src/imu/madgwick.c **** 	float s0, s1, s2, s3;
+ 935              		.loc 1 162 2 view .LVU368
+ 163:application/src/imu/madgwick.c **** 	float qDot1, qDot2, qDot3, qDot4;
+ 936              		.loc 1 163 2 view .LVU369
+ 164:application/src/imu/madgwick.c **** 	float _2q0, _2q1, _2q2, _2q3, _4q0, _4q1, _4q2, _8q1, _8q2, q0q0, q1q1,
+ 937              		.loc 1 164 2 view .LVU370
+ 165:application/src/imu/madgwick.c **** 	    q2q2, q3q3;
+ 166:application/src/imu/madgwick.c **** 	float q0 = q->w;
+ARM GAS  /tmp/cc1QW4OW.s 			page 25
+
+
+ 938              		.loc 1 166 2 view .LVU371
+ 167:application/src/imu/madgwick.c **** 	float q1 = q->x;
+ 939              		.loc 1 167 8 is_stmt 0 view .LVU372
+ 940 0000 90ED017A 		vldr.32	s14, [r0, #4]
+ 168:application/src/imu/madgwick.c **** 	float q2 = q->y;
+ 941              		.loc 1 168 8 view .LVU373
+ 942 0004 D0ED025A 		vldr.32	s11, [r0, #8]
+ 166:application/src/imu/madgwick.c **** 	float q1 = q->x;
+ 943              		.loc 1 166 8 view .LVU374
+ 944 0008 90ED004A 		vldr.32	s8, [r0]
+ 945              	.LVL80:
+ 167:application/src/imu/madgwick.c **** 	float q1 = q->x;
+ 946              		.loc 1 167 2 is_stmt 1 view .LVU375
+ 947              		.loc 1 168 2 view .LVU376
+ 169:application/src/imu/madgwick.c **** 	float q3 = q->z;
+ 948              		.loc 1 169 2 view .LVU377
+ 949              		.loc 1 169 8 is_stmt 0 view .LVU378
+ 950 000c 90ED035A 		vldr.32	s10, [r0, #12]
+ 951              	.LVL81:
+ 170:application/src/imu/madgwick.c **** 
+ 171:application/src/imu/madgwick.c **** 	// Rate of change of quaternion from gyroscope
+ 172:application/src/imu/madgwick.c **** 	qDot1 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);
+ 952              		.loc 1 172 2 is_stmt 1 view .LVU379
+ 173:application/src/imu/madgwick.c **** 	qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+ 174:application/src/imu/madgwick.c **** 	qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+ 953              		.loc 1 174 26 is_stmt 0 view .LVU380
+ 954 0010 62EE476A 		vnmul.f32	s13, s4, s14
+ 172:application/src/imu/madgwick.c **** 	qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+ 955              		.loc 1 172 27 view .LVU381
+ 956 0014 21EEE56A 		vnmul.f32	s12, s3, s11
+ 175:application/src/imu/madgwick.c **** 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+ 957              		.loc 1 175 31 view .LVU382
+ 958 0018 67EE217A 		vmul.f32	s15, s14, s3
+ 160:application/src/imu/madgwick.c **** 	float recipNorm;
+ 959              		.loc 1 160 75 view .LVU383
+ 960 001c 2DED0A8B 		vpush.64	{d8, d9, d10, d11, d12}
+ 961              		.cfi_def_cfa_offset 40
+ 962              		.cfi_offset 80, -40
+ 963              		.cfi_offset 81, -36
+ 964              		.cfi_offset 82, -32
+ 965              		.cfi_offset 83, -28
+ 966              		.cfi_offset 84, -24
+ 967              		.cfi_offset 85, -20
+ 968              		.cfi_offset 86, -16
+ 969              		.cfi_offset 87, -12
+ 970              		.cfi_offset 88, -8
+ 971              		.cfi_offset 89, -4
+ 173:application/src/imu/madgwick.c **** 	qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+ 972              		.loc 1 173 31 view .LVU384
+ 973 0020 25EE828A 		vmul.f32	s16, s11, s4
+ 174:application/src/imu/madgwick.c **** 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+ 974              		.loc 1 174 26 view .LVU385
+ 975 0024 E4EE216A 		vfma.f32	s13, s8, s3
+ 172:application/src/imu/madgwick.c **** 	qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+ 976              		.loc 1 172 27 view .LVU386
+ 977 0028 A7EE416A 		vfms.f32	s12, s14, s2
+ 173:application/src/imu/madgwick.c **** 	qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+ARM GAS  /tmp/cc1QW4OW.s 			page 26
+
+
+ 978              		.loc 1 173 26 view .LVU387
+ 979 002c A4EE018A 		vfma.f32	s16, s8, s2
+ 980              		.loc 1 175 26 view .LVU388
+ 981 0030 E4EE027A 		vfma.f32	s15, s8, s4
+ 174:application/src/imu/madgwick.c **** 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+ 982              		.loc 1 174 36 view .LVU389
+ 983 0034 E5EE016A 		vfma.f32	s13, s10, s2
+ 172:application/src/imu/madgwick.c **** 	qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+ 984              		.loc 1 172 37 view .LVU390
+ 985 0038 A5EE426A 		vfms.f32	s12, s10, s4
+ 173:application/src/imu/madgwick.c **** 	qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+ 986              		.loc 1 173 36 view .LVU391
+ 987 003c A5EE618A 		vfms.f32	s16, s10, s3
+ 988              		.loc 1 175 36 view .LVU392
+ 989 0040 E5EEC17A 		vfms.f32	s15, s11, s2
+ 176:application/src/imu/madgwick.c **** 
+ 177:application/src/imu/madgwick.c **** 	// Compute feedback only if accelerometer measurement valid (avoids NaN in
+ 178:application/src/imu/madgwick.c **** 	// accelerometer normalisation)
+ 179:application/src/imu/madgwick.c **** 	if (!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
+ 990              		.loc 1 179 5 view .LVU393
+ 991 0044 F5EE402A 		vcmp.f32	s5, #0
+ 174:application/src/imu/madgwick.c **** 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+ 992              		.loc 1 174 36 view .LVU394
+ 993 0048 F0EE661A 		vmov.f32	s3, s13
+ 994              	.LVL82:
+ 995              		.loc 1 179 5 view .LVU395
+ 996 004c F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 172:application/src/imu/madgwick.c **** 	qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+ 997              		.loc 1 172 8 view .LVU396
+ 998 0050 F6EE006A 		vmov.f32	s13, #5.0e-1
+ 999 0054 26EE261A 		vmul.f32	s2, s12, s13
+ 1000              	.LVL83:
+ 173:application/src/imu/madgwick.c **** 	qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+ 1001              		.loc 1 173 2 is_stmt 1 view .LVU397
+ 173:application/src/imu/madgwick.c **** 	qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+ 1002              		.loc 1 173 8 is_stmt 0 view .LVU398
+ 1003 0058 28EE268A 		vmul.f32	s16, s16, s13
+ 1004              	.LVL84:
+ 174:application/src/imu/madgwick.c **** 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+ 1005              		.loc 1 174 2 is_stmt 1 view .LVU399
+ 174:application/src/imu/madgwick.c **** 	qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+ 1006              		.loc 1 174 8 is_stmt 0 view .LVU400
+ 1007 005c 61EEA61A 		vmul.f32	s3, s3, s13
+ 1008              	.LVL85:
+ 175:application/src/imu/madgwick.c **** 
+ 1009              		.loc 1 175 2 is_stmt 1 view .LVU401
+ 175:application/src/imu/madgwick.c **** 
+ 1010              		.loc 1 175 8 is_stmt 0 view .LVU402
+ 1011 0060 27EEA62A 		vmul.f32	s4, s15, s13
+ 1012              	.LVL86:
+ 1013              		.loc 1 179 2 is_stmt 1 view .LVU403
+ 1014              		.loc 1 179 5 is_stmt 0 view .LVU404
+ 1015 0064 05D1     		bne	.L15
+ 1016              		.loc 1 179 21 discriminator 1 view .LVU405
+ 1017 0066 B5EE403A 		vcmp.f32	s6, #0
+ 1018 006a F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 1019 006e 00F0EF80 		beq	.L18
+ARM GAS  /tmp/cc1QW4OW.s 			page 27
+
+
+ 1020              	.L15:
+ 180:application/src/imu/madgwick.c **** 
+ 181:application/src/imu/madgwick.c **** 		// Normalise accelerometer measurement
+ 182:application/src/imu/madgwick.c **** 		recipNorm = invSqrt(ax * ax + ay * ay + az * az);
+ 1021              		.loc 1 182 3 is_stmt 1 view .LVU406
+ 1022              		.loc 1 182 36 is_stmt 0 view .LVU407
+ 1023 0072 63EE037A 		vmul.f32	s15, s6, s6
+ 1024              	.LBB56:
+ 1025              	.LBB57:
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 1026              		.loc 1 12 17 view .LVU408
+ 1027 0076 794B     		ldr	r3, .L19
+ 1028              	.LBE57:
+ 1029              	.LBE56:
+ 1030              		.loc 1 182 31 view .LVU409
+ 1031 0078 E2EEA27A 		vfma.f32	s15, s5, s5
+ 1032              	.LBB63:
+ 1033              	.LBB58:
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 1034              		.loc 1 9 8 view .LVU410
+ 1035 007c F6EE008A 		vmov.f32	s17, #5.0e-1
+ 1036              	.LBE58:
+ 1037              	.LBE63:
+ 1038              		.loc 1 182 15 view .LVU411
+ 1039 0080 E3EEA37A 		vfma.f32	s15, s7, s7
+ 1040              	.LVL87:
+ 1041              	.LBB64:
+ 1042              	.LBI56:
+   8:application/src/imu/madgwick.c **** 	float halfx = 0.5f * x;
+ 1043              		.loc 1 8 14 is_stmt 1 view .LVU412
+ 1044              	.LBB59:
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 1045              		.loc 1 9 2 view .LVU413
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1046              		.loc 1 14 16 is_stmt 0 view .LVU414
+ 1047 0084 B7EE089A 		vmov.f32	s18, #1.5e+0
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1048              		.loc 1 13 6 view .LVU415
+ 1049 0088 17EE902A 		vmov	r2, s15	@ int
+ 1050 008c A3EB6202 		sub	r2, r3, r2, asr #1
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 1051              		.loc 1 9 8 view .LVU416
+ 1052 0090 67EEA86A 		vmul.f32	s13, s15, s17
+ 1053              	.LVL88:
+  10:application/src/imu/madgwick.c **** 	long i = *(long *)&y;
+ 1054              		.loc 1 10 2 is_stmt 1 view .LVU417
+  11:application/src/imu/madgwick.c **** 	i = 0x5f3759df - (i >> 1);
+ 1055              		.loc 1 11 2 view .LVU418
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 1056              		.loc 1 12 2 view .LVU419
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1057              		.loc 1 13 2 view .LVU420
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1058              		.loc 1 13 6 is_stmt 0 view .LVU421
+ 1059 0094 07EE902A 		vmov	s15, r2	@ int
+ 1060              	.LVL89:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ARM GAS  /tmp/cc1QW4OW.s 			page 28
+
+
+ 1061              		.loc 1 14 2 is_stmt 1 view .LVU422
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1062              		.loc 1 14 25 is_stmt 0 view .LVU423
+ 1063 0098 66EEA74A 		vmul.f32	s9, s13, s15
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1064              		.loc 1 14 16 view .LVU424
+ 1065 009c B0EE496A 		vmov.f32	s12, s18
+ 1066 00a0 A7EEE46A 		vfms.f32	s12, s15, s9
+ 1067              	.LBE59:
+ 1068              	.LBE64:
+ 183:application/src/imu/madgwick.c **** 		ax *= recipNorm;
+ 184:application/src/imu/madgwick.c **** 		ay *= recipNorm;
+ 185:application/src/imu/madgwick.c **** 		az *= recipNorm;
+ 186:application/src/imu/madgwick.c **** 
+ 187:application/src/imu/madgwick.c **** 		// Auxiliary variables to avoid repeated arithmetic
+ 188:application/src/imu/madgwick.c **** 		_2q0 = 2.0f * q0;
+ 189:application/src/imu/madgwick.c **** 		_2q1 = 2.0f * q1;
+ 190:application/src/imu/madgwick.c **** 		_2q2 = 2.0f * q2;
+ 191:application/src/imu/madgwick.c **** 		_2q3 = 2.0f * q3;
+ 1069              		.loc 1 191 8 view .LVU425
+ 1070 00a4 75EE059A 		vadd.f32	s19, s10, s10
+ 1071              	.LBB65:
+ 1072              	.LBB60:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1073              		.loc 1 14 8 view .LVU426
+ 1074 00a8 67EE867A 		vmul.f32	s15, s15, s12
+ 1075              	.LVL90:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1076              		.loc 1 15 2 is_stmt 1 view .LVU427
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1077              		.loc 1 15 16 is_stmt 0 view .LVU428
+ 1078 00ac B0EE496A 		vmov.f32	s12, s18
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1079              		.loc 1 15 25 view .LVU429
+ 1080 00b0 66EEA76A 		vmul.f32	s13, s13, s15
+ 1081              	.LVL91:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1082              		.loc 1 15 25 view .LVU430
+ 1083              	.LBE60:
+ 1084              	.LBE65:
+ 192:application/src/imu/madgwick.c **** 		_4q0 = 4.0f * q0;
+ 1085              		.loc 1 192 8 view .LVU431
+ 1086 00b4 F1EE004A 		vmov.f32	s9, #4.0e+0
+ 1087              	.LBB66:
+ 1088              	.LBB61:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1089              		.loc 1 15 16 view .LVU432
+ 1090 00b8 A7EEE66A 		vfms.f32	s12, s15, s13
+ 1091              	.LBE61:
+ 1092              	.LBE66:
+ 193:application/src/imu/madgwick.c **** 		_4q1 = 4.0f * q1;
+ 194:application/src/imu/madgwick.c **** 		_4q2 = 4.0f * q2;
+ 195:application/src/imu/madgwick.c **** 		_8q1 = 8.0f * q1;
+ 196:application/src/imu/madgwick.c **** 		_8q2 = 8.0f * q2;
+ 197:application/src/imu/madgwick.c **** 		q0q0 = q0 * q0;
+ 198:application/src/imu/madgwick.c **** 		q1q1 = q1 * q1;
+ 199:application/src/imu/madgwick.c **** 		q2q2 = q2 * q2;
+ARM GAS  /tmp/cc1QW4OW.s 			page 29
+
+
+ 200:application/src/imu/madgwick.c **** 		q3q3 = q3 * q3;
+ 1093              		.loc 1 200 8 view .LVU433
+ 1094 00bc 25EE05AA 		vmul.f32	s20, s10, s10
+ 1095              	.LBB67:
+ 1096              	.LBB62:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1097              		.loc 1 15 8 view .LVU434
+ 1098 00c0 67EE867A 		vmul.f32	s15, s15, s12
+ 1099              	.LVL92:
+  16:application/src/imu/madgwick.c **** }
+ 1100              		.loc 1 16 2 is_stmt 1 view .LVU435
+  16:application/src/imu/madgwick.c **** }
+ 1101              		.loc 1 16 2 is_stmt 0 view .LVU436
+ 1102              	.LBE62:
+ 1103              	.LBE67:
+ 183:application/src/imu/madgwick.c **** 		ay *= recipNorm;
+ 1104              		.loc 1 183 3 is_stmt 1 view .LVU437
+ 197:application/src/imu/madgwick.c **** 		q1q1 = q1 * q1;
+ 1105              		.loc 1 197 8 is_stmt 0 view .LVU438
+ 1106 00c4 64EE04AA 		vmul.f32	s21, s8, s8
+ 183:application/src/imu/madgwick.c **** 		ay *= recipNorm;
+ 1107              		.loc 1 183 6 view .LVU439
+ 1108 00c8 62EEA72A 		vmul.f32	s5, s5, s15
+ 1109              	.LVL93:
+ 184:application/src/imu/madgwick.c **** 		az *= recipNorm;
+ 1110              		.loc 1 184 3 is_stmt 1 view .LVU440
+ 185:application/src/imu/madgwick.c **** 
+ 1111              		.loc 1 185 3 view .LVU441
+ 201:application/src/imu/madgwick.c **** 
+ 202:application/src/imu/madgwick.c **** 		// Gradient decent algorithm corrective step
+ 203:application/src/imu/madgwick.c **** 		s0 = _4q0 * q2q2 + _2q2 * ax + _4q0 * q1q1 - _2q1 * ay;
+ 1112              		.loc 1 203 6 is_stmt 0 view .LVU442
+ 1113 00cc 27EEC33A 		vnmul.f32	s6, s15, s6
+ 1114              	.LVL94:
+ 185:application/src/imu/madgwick.c **** 
+ 1115              		.loc 1 185 6 view .LVU443
+ 1116 00d0 63EEA73A 		vmul.f32	s7, s7, s15
+ 1117              	.LVL95:
+ 188:application/src/imu/madgwick.c **** 		_2q1 = 2.0f * q1;
+ 1118              		.loc 1 188 3 is_stmt 1 view .LVU444
+ 204:application/src/imu/madgwick.c **** 		s1 = _4q1 * q3q3 - _2q3 * ax + 4.0f * q0q0 * q1 - _2q0 * ay - _4q1 +
+ 1119              		.loc 1 204 20 is_stmt 0 view .LVU445
+ 1120 00d4 29EEE26A 		vnmul.f32	s12, s19, s5
+ 193:application/src/imu/madgwick.c **** 		_4q2 = 4.0f * q2;
+ 1121              		.loc 1 193 8 view .LVU446
+ 1122 00d8 67EE247A 		vmul.f32	s15, s14, s9
+ 1123              	.LVL96:
+ 1124              		.loc 1 204 39 view .LVU447
+ 1125 00dc 6AEEA4AA 		vmul.f32	s21, s21, s9
+ 1126              		.loc 1 204 20 view .LVU448
+ 1127 00e0 A7EE8A6A 		vfma.f32	s12, s15, s20
+ 188:application/src/imu/madgwick.c **** 		_2q1 = 2.0f * q1;
+ 1128              		.loc 1 188 8 view .LVU449
+ 1129 00e4 74EE046A 		vadd.f32	s13, s8, s8
+ 189:application/src/imu/madgwick.c **** 		_2q2 = 2.0f * q2;
+ 1130              		.loc 1 189 3 is_stmt 1 view .LVU450
+ 1131              		.loc 1 204 32 is_stmt 0 view .LVU451
+ARM GAS  /tmp/cc1QW4OW.s 			page 30
+
+
+ 1132 00e8 AAEE876A 		vfma.f32	s12, s21, s14
+ 194:application/src/imu/madgwick.c **** 		_8q1 = 8.0f * q1;
+ 1133              		.loc 1 194 8 view .LVU452
+ 1134 00ec 25EEA4BA 		vmul.f32	s22, s11, s9
+ 1135              		.loc 1 204 51 view .LVU453
+ 1136 00f0 A3EE266A 		vfma.f32	s12, s6, s13
+ 205:application/src/imu/madgwick.c **** 		     _8q1 * q1q1 + _8q1 * q2q2 + _4q1 * az;
+ 206:application/src/imu/madgwick.c **** 		s2 = 4.0f * q0q0 * q2 + _2q0 * ax + _4q2 * q3q3 - _2q3 * ay - _4q2 +
+ 1137              		.loc 1 206 32 view .LVU454
+ 1138 00f4 62EEA66A 		vmul.f32	s13, s5, s13
+ 204:application/src/imu/madgwick.c **** 		     _8q1 * q1q1 + _8q1 * q2q2 + _4q1 * az;
+ 1139              		.loc 1 204 63 view .LVU455
+ 1140 00f8 36EE676A 		vsub.f32	s12, s12, s15
+ 1141              		.loc 1 206 25 view .LVU456
+ 1142 00fc EAEEA56A 		vfma.f32	s13, s21, s11
+ 195:application/src/imu/madgwick.c **** 		_8q2 = 8.0f * q2;
+ 1143              		.loc 1 195 8 view .LVU457
+ 1144 0100 F2EE00AA 		vmov.f32	s21, #8.0e+0
+ 1145              		.loc 1 206 37 view .LVU458
+ 1146 0104 EBEE0A6A 		vfma.f32	s13, s22, s20
+ 195:application/src/imu/madgwick.c **** 		_8q2 = 8.0f * q2;
+ 1147              		.loc 1 195 8 view .LVU459
+ 1148 0108 27EE2ACA 		vmul.f32	s24, s14, s21
+ 1149              		.loc 1 206 51 view .LVU460
+ 1150 010c E3EE296A 		vfma.f32	s13, s6, s19
+ 198:application/src/imu/madgwick.c **** 		q2q2 = q2 * q2;
+ 1151              		.loc 1 198 8 view .LVU461
+ 1152 0110 27EE07AA 		vmul.f32	s20, s14, s14
+ 196:application/src/imu/madgwick.c **** 		q0q0 = q0 * q0;
+ 1153              		.loc 1 196 8 view .LVU462
+ 1154 0114 65EEAAAA 		vmul.f32	s21, s11, s21
+ 1155              		.loc 1 206 63 view .LVU463
+ 1156 0118 76EECB6A 		vsub.f32	s13, s13, s22
+ 204:application/src/imu/madgwick.c **** 		     _8q1 * q1q1 + _8q1 * q2q2 + _4q1 * az;
+ 1157              		.loc 1 204 70 view .LVU464
+ 1158 011c ACEE0A6A 		vfma.f32	s12, s24, s20
+ 1159              		.loc 1 206 70 view .LVU465
+ 1160 0120 EAEE8A6A 		vfma.f32	s13, s21, s20
+ 199:application/src/imu/madgwick.c **** 		q3q3 = q3 * q3;
+ 1161              		.loc 1 199 8 view .LVU466
+ 1162 0124 65EEA59A 		vmul.f32	s19, s11, s11
+ 190:application/src/imu/madgwick.c **** 		_2q3 = 2.0f * q3;
+ 1163              		.loc 1 190 8 view .LVU467
+ 1164 0128 75EEA5BA 		vadd.f32	s23, s11, s11
+ 207:application/src/imu/madgwick.c **** 		     _8q2 * q1q1 + _8q2 * q2q2 + _4q2 * az;
+ 1165              		.loc 1 207 20 view .LVU468
+ 1166 012c EAEEA96A 		vfma.f32	s13, s21, s19
+ 205:application/src/imu/madgwick.c **** 		s2 = 4.0f * q0q0 * q2 + _2q0 * ax + _4q2 * q3q3 - _2q3 * ay - _4q2 +
+ 1167              		.loc 1 205 20 view .LVU469
+ 1168 0130 ACEE296A 		vfma.f32	s12, s24, s19
+ 204:application/src/imu/madgwick.c **** 		     _8q1 * q1q1 + _8q1 * q2q2 + _4q1 * az;
+ 1169              		.loc 1 204 6 view .LVU470
+ 1170 0134 A3EEA76A 		vfma.f32	s12, s7, s15
+ 206:application/src/imu/madgwick.c **** 		     _8q2 * q1q1 + _8q2 * q2q2 + _4q2 * az;
+ 1171              		.loc 1 206 6 view .LVU471
+ 1172 0138 F0EE667A 		vmov.f32	s15, s13
+ 1173 013c E3EE8B7A 		vfma.f32	s15, s7, s22
+ARM GAS  /tmp/cc1QW4OW.s 			page 31
+
+
+ 192:application/src/imu/madgwick.c **** 		_4q1 = 4.0f * q1;
+ 1174              		.loc 1 192 8 view .LVU472
+ 1175 0140 64EE246A 		vmul.f32	s13, s8, s9
+ 203:application/src/imu/madgwick.c **** 		s1 = _4q1 * q3q3 - _2q3 * ax + 4.0f * q0q0 * q1 - _2q0 * ay - _4q1 +
+ 1176              		.loc 1 203 27 view .LVU473
+ 1177 0144 62EEAB3A 		vmul.f32	s7, s5, s23
+ 1178              	.LVL97:
+ 203:application/src/imu/madgwick.c **** 		s1 = _4q1 * q3q3 - _2q3 * ax + 4.0f * q0q0 * q1 - _2q0 * ay - _4q1 +
+ 1179              		.loc 1 203 20 view .LVU474
+ 1180 0148 E6EEA93A 		vfma.f32	s7, s13, s19
+ 203:application/src/imu/madgwick.c **** 		s1 = _4q1 * q3q3 - _2q3 * ax + 4.0f * q0q0 * q1 - _2q0 * ay - _4q1 +
+ 1181              		.loc 1 203 32 view .LVU475
+ 1182 014c E6EE8A3A 		vfma.f32	s7, s13, s20
+ 208:application/src/imu/madgwick.c **** 		s3 = 4.0f * q1q1 * q3 - _2q1 * ax + 4.0f * q2q2 * q3 - _2q2 * ay;
+ 1183              		.loc 1 208 13 view .LVU476
+ 1184 0150 2AEE24AA 		vmul.f32	s20, s20, s9
+ 1185              		.loc 1 208 44 view .LVU477
+ 1186 0154 69EEA44A 		vmul.f32	s9, s19, s9
+ 189:application/src/imu/madgwick.c **** 		_2q2 = 2.0f * q2;
+ 1187              		.loc 1 189 8 view .LVU478
+ 1188 0158 77EE079A 		vadd.f32	s19, s14, s14
+ 1189              	.LVL98:
+ 190:application/src/imu/madgwick.c **** 		_2q3 = 2.0f * q3;
+ 1190              		.loc 1 190 3 is_stmt 1 view .LVU479
+ 191:application/src/imu/madgwick.c **** 		_4q0 = 4.0f * q0;
+ 1191              		.loc 1 191 3 view .LVU480
+ 192:application/src/imu/madgwick.c **** 		_4q1 = 4.0f * q1;
+ 1192              		.loc 1 192 3 view .LVU481
+ 193:application/src/imu/madgwick.c **** 		_4q2 = 4.0f * q2;
+ 1193              		.loc 1 193 3 view .LVU482
+ 194:application/src/imu/madgwick.c **** 		_8q1 = 8.0f * q1;
+ 1194              		.loc 1 194 3 view .LVU483
+ 195:application/src/imu/madgwick.c **** 		_8q2 = 8.0f * q2;
+ 1195              		.loc 1 195 3 view .LVU484
+ 196:application/src/imu/madgwick.c **** 		q0q0 = q0 * q0;
+ 1196              		.loc 1 196 3 view .LVU485
+ 197:application/src/imu/madgwick.c **** 		q1q1 = q1 * q1;
+ 1197              		.loc 1 197 3 view .LVU486
+ 198:application/src/imu/madgwick.c **** 		q2q2 = q2 * q2;
+ 1198              		.loc 1 198 3 view .LVU487
+ 199:application/src/imu/madgwick.c **** 		q3q3 = q3 * q3;
+ 1199              		.loc 1 199 3 view .LVU488
+ 200:application/src/imu/madgwick.c **** 
+ 1200              		.loc 1 200 3 view .LVU489
+ 203:application/src/imu/madgwick.c **** 		s1 = _4q1 * q3q3 - _2q3 * ax + 4.0f * q0q0 * q1 - _2q0 * ay - _4q1 +
+ 1201              		.loc 1 203 3 view .LVU490
+ 1202              		.loc 1 208 25 is_stmt 0 view .LVU491
+ 1203 015c 69EEE26A 		vnmul.f32	s13, s19, s5
+ 1204              	.LVL99:
+ 203:application/src/imu/madgwick.c **** 		s1 = _4q1 * q3q3 - _2q3 * ax + 4.0f * q0q0 * q1 - _2q0 * ay - _4q1 +
+ 1205              		.loc 1 203 6 view .LVU492
+ 1206 0160 E3EE293A 		vfma.f32	s7, s6, s19
+ 1207              	.LVL100:
+ 204:application/src/imu/madgwick.c **** 		     _8q1 * q1q1 + _8q1 * q2q2 + _4q1 * az;
+ 1208              		.loc 1 204 3 is_stmt 1 view .LVU493
+ 206:application/src/imu/madgwick.c **** 		     _8q2 * q1q1 + _8q2 * q2q2 + _4q2 * az;
+ 1209              		.loc 1 206 3 view .LVU494
+ARM GAS  /tmp/cc1QW4OW.s 			page 32
+
+
+ 1210              		.loc 1 208 3 view .LVU495
+ 1211              		.loc 1 208 25 is_stmt 0 view .LVU496
+ 1212 0164 EAEE056A 		vfma.f32	s13, s20, s10
+ 1213              		.loc 1 208 37 view .LVU497
+ 1214 0168 E4EE856A 		vfma.f32	s13, s9, s10
+ 209:application/src/imu/madgwick.c **** 		recipNorm = invSqrt(s0 * s0 + s1 * s1 + s2 * s2 +
+ 1215              		.loc 1 209 36 view .LVU498
+ 1216 016c 66EE064A 		vmul.f32	s9, s12, s12
+ 208:application/src/imu/madgwick.c **** 		recipNorm = invSqrt(s0 * s0 + s1 * s1 + s2 * s2 +
+ 1217              		.loc 1 208 6 view .LVU499
+ 1218 0170 E3EE2B6A 		vfma.f32	s13, s6, s23
+ 1219              		.loc 1 209 31 view .LVU500
+ 1220 0174 E3EEA34A 		vfma.f32	s9, s7, s7
+ 208:application/src/imu/madgwick.c **** 		recipNorm = invSqrt(s0 * s0 + s1 * s1 + s2 * s2 +
+ 1221              		.loc 1 208 6 view .LVU501
+ 1222 0178 F0EE662A 		vmov.f32	s5, s13
+ 1223              	.LVL101:
+ 1224              		.loc 1 209 3 is_stmt 1 view .LVU502
+ 1225              		.loc 1 209 41 is_stmt 0 view .LVU503
+ 1226 017c E7EEA74A 		vfma.f32	s9, s15, s15
+ 1227              		.loc 1 209 15 view .LVU504
+ 1228 0180 E6EEA64A 		vfma.f32	s9, s13, s13
+ 1229              	.LVL102:
+ 1230              	.LBB68:
+ 1231              	.LBI68:
+   8:application/src/imu/madgwick.c **** 	float halfx = 0.5f * x;
+ 1232              		.loc 1 8 14 is_stmt 1 view .LVU505
+ 1233              	.LBB69:
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 1234              		.loc 1 9 2 view .LVU506
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1235              		.loc 1 14 16 is_stmt 0 view .LVU507
+ 1236 0184 F0EE496A 		vmov.f32	s13, s18
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1237              		.loc 1 13 6 view .LVU508
+ 1238 0188 14EE902A 		vmov	r2, s9	@ int
+ 1239 018c A3EB6203 		sub	r3, r3, r2, asr #1
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 1240              		.loc 1 9 8 view .LVU509
+ 1241 0190 64EEA88A 		vmul.f32	s17, s9, s17
+ 1242              	.LVL103:
+  10:application/src/imu/madgwick.c **** 	long i = *(long *)&y;
+ 1243              		.loc 1 10 2 is_stmt 1 view .LVU510
+  11:application/src/imu/madgwick.c **** 	i = 0x5f3759df - (i >> 1);
+ 1244              		.loc 1 11 2 view .LVU511
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 1245              		.loc 1 12 2 view .LVU512
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1246              		.loc 1 13 2 view .LVU513
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1247              		.loc 1 13 6 is_stmt 0 view .LVU514
+ 1248 0194 04EE903A 		vmov	s9, r3	@ int
+ 1249              	.LVL104:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1250              		.loc 1 14 2 is_stmt 1 view .LVU515
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1251              		.loc 1 14 25 is_stmt 0 view .LVU516
+ARM GAS  /tmp/cc1QW4OW.s 			page 33
+
+
+ 1252 0198 28EEA43A 		vmul.f32	s6, s17, s9
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1253              		.loc 1 14 16 view .LVU517
+ 1254 019c E4EEC36A 		vfms.f32	s13, s9, s6
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1255              		.loc 1 14 8 view .LVU518
+ 1256 01a0 64EEA64A 		vmul.f32	s9, s9, s13
+ 1257              	.LVL105:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1258              		.loc 1 15 2 is_stmt 1 view .LVU519
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1259              		.loc 1 15 25 is_stmt 0 view .LVU520
+ 1260 01a4 68EEA48A 		vmul.f32	s17, s17, s9
+ 1261              	.LVL106:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1262              		.loc 1 15 16 view .LVU521
+ 1263 01a8 A4EEE89A 		vfms.f32	s18, s9, s17
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1264              		.loc 1 15 8 view .LVU522
+ 1265 01ac 64EE896A 		vmul.f32	s13, s9, s18
+ 1266              	.LVL107:
+  16:application/src/imu/madgwick.c **** }
+ 1267              		.loc 1 16 2 is_stmt 1 view .LVU523
+  16:application/src/imu/madgwick.c **** }
+ 1268              		.loc 1 16 2 is_stmt 0 view .LVU524
+ 1269              	.LBE69:
+ 1270              	.LBE68:
+ 210:application/src/imu/madgwick.c **** 		                    s3 * s3); // normalise step magnitude
+ 211:application/src/imu/madgwick.c **** 		s0 *= recipNorm;
+ 1271              		.loc 1 211 3 is_stmt 1 view .LVU525
+ 212:application/src/imu/madgwick.c **** 		s1 *= recipNorm;
+ 1272              		.loc 1 212 3 view .LVU526
+ 213:application/src/imu/madgwick.c **** 		s2 *= recipNorm;
+ 1273              		.loc 1 213 3 view .LVU527
+ 214:application/src/imu/madgwick.c **** 		s3 *= recipNorm;
+ 1274              		.loc 1 214 3 view .LVU528
+ 215:application/src/imu/madgwick.c **** 
+ 216:application/src/imu/madgwick.c **** 		// Apply feedback step
+ 217:application/src/imu/madgwick.c **** 		qDot1 -= beta * s0;
+ 1275              		.loc 1 217 3 view .LVU529
+ 1276              		.loc 1 217 9 is_stmt 0 view .LVU530
+ 1277 01b0 66EEE33A 		vnmul.f32	s7, s13, s7
+ 1278              	.LVL108:
+ 218:application/src/imu/madgwick.c **** 		qDot2 -= beta * s1;
+ 1279              		.loc 1 218 9 view .LVU531
+ 1280 01b4 26EEC66A 		vnmul.f32	s12, s13, s12
+ 1281              	.LVL109:
+ 219:application/src/imu/madgwick.c **** 		qDot3 -= beta * s2;
+ 1282              		.loc 1 219 9 view .LVU532
+ 1283 01b8 66EEE77A 		vnmul.f32	s15, s13, s15
+ 1284              	.LVL110:
+ 220:application/src/imu/madgwick.c **** 		qDot4 -= beta * s3;
+ 1285              		.loc 1 220 9 view .LVU533
+ 1286 01bc 66EEE26A 		vnmul.f32	s13, s13, s5
+ 1287              	.LVL111:
+ 217:application/src/imu/madgwick.c **** 		qDot2 -= beta * s1;
+ 1288              		.loc 1 217 9 view .LVU534
+ARM GAS  /tmp/cc1QW4OW.s 			page 34
+
+
+ 1289 01c0 A3EE801A 		vfma.f32	s2, s7, s0
+ 1290              	.LVL112:
+ 218:application/src/imu/madgwick.c **** 		qDot3 -= beta * s2;
+ 1291              		.loc 1 218 3 is_stmt 1 view .LVU535
+ 218:application/src/imu/madgwick.c **** 		qDot3 -= beta * s2;
+ 1292              		.loc 1 218 9 is_stmt 0 view .LVU536
+ 1293 01c4 A6EE008A 		vfma.f32	s16, s12, s0
+ 1294              	.LVL113:
+ 219:application/src/imu/madgwick.c **** 		qDot4 -= beta * s3;
+ 1295              		.loc 1 219 3 is_stmt 1 view .LVU537
+ 219:application/src/imu/madgwick.c **** 		qDot4 -= beta * s3;
+ 1296              		.loc 1 219 9 is_stmt 0 view .LVU538
+ 1297 01c8 E7EE801A 		vfma.f32	s3, s15, s0
+ 1298              	.LVL114:
+ 1299              		.loc 1 220 3 is_stmt 1 view .LVU539
+ 1300              		.loc 1 220 9 is_stmt 0 view .LVU540
+ 1301 01cc A6EE802A 		vfma.f32	s4, s13, s0
+ 1302              	.LVL115:
+ 1303              	.L16:
+ 221:application/src/imu/madgwick.c **** 	}
+ 222:application/src/imu/madgwick.c **** 
+ 223:application/src/imu/madgwick.c **** 	// Integrate rate of change of quaternion to yield quaternion
+ 224:application/src/imu/madgwick.c **** 	q0 += qDot1 * dt;
+ 1304              		.loc 1 224 2 is_stmt 1 view .LVU541
+ 1305              	.LBB70:
+ 1306              	.LBB71:
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 1307              		.loc 1 12 17 is_stmt 0 view .LVU542
+ 1308 01d0 224B     		ldr	r3, .L19
+ 1309              	.LBE71:
+ 1310              	.LBE70:
+ 225:application/src/imu/madgwick.c **** 	q1 += qDot2 * dt;
+ 1311              		.loc 1 225 5 view .LVU543
+ 1312 01d2 A8EE207A 		vfma.f32	s14, s16, s1
+ 1313              	.LVL116:
+ 226:application/src/imu/madgwick.c **** 	q2 += qDot3 * dt;
+ 227:application/src/imu/madgwick.c **** 	q3 += qDot4 * dt;
+ 228:application/src/imu/madgwick.c **** 
+ 229:application/src/imu/madgwick.c **** 	// Normalise quaternion
+ 230:application/src/imu/madgwick.c **** 	recipNorm = invSqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+ 231:application/src/imu/madgwick.c **** 	q0 *= recipNorm;
+ 232:application/src/imu/madgwick.c **** 	q1 *= recipNorm;
+ 233:application/src/imu/madgwick.c **** 	q2 *= recipNorm;
+ 234:application/src/imu/madgwick.c **** 	q3 *= recipNorm;
+ 235:application/src/imu/madgwick.c **** 
+ 236:application/src/imu/madgwick.c **** 	q->w = q0;
+ 237:application/src/imu/madgwick.c **** 	q->x = q1;
+ 238:application/src/imu/madgwick.c **** 	q->y = q2;
+ 239:application/src/imu/madgwick.c **** 	q->z = q3;
+ 240:application/src/imu/madgwick.c **** }
+ 1314              		.loc 1 240 1 view .LVU544
+ 1315 01d6 BDEC0A8B 		vldm	sp!, {d8-d12}
+ 1316              		.cfi_remember_state
+ 1317              		.cfi_restore 88
+ 1318              		.cfi_restore 89
+ 1319              		.cfi_restore 86
+ 1320              		.cfi_restore 87
+ARM GAS  /tmp/cc1QW4OW.s 			page 35
+
+
+ 1321              		.cfi_restore 84
+ 1322              		.cfi_restore 85
+ 1323              		.cfi_restore 82
+ 1324              		.cfi_restore 83
+ 1325              		.cfi_restore 80
+ 1326              		.cfi_restore 81
+ 1327              		.cfi_def_cfa_offset 0
+ 1328              	.LVL117:
+ 224:application/src/imu/madgwick.c **** 	q1 += qDot2 * dt;
+ 1329              		.loc 1 224 5 view .LVU545
+ 1330 01da A1EE204A 		vfma.f32	s8, s2, s1
+ 1331              	.LVL118:
+ 225:application/src/imu/madgwick.c **** 	q1 += qDot2 * dt;
+ 1332              		.loc 1 225 2 is_stmt 1 view .LVU546
+ 226:application/src/imu/madgwick.c **** 	q2 += qDot3 * dt;
+ 1333              		.loc 1 226 2 view .LVU547
+ 230:application/src/imu/madgwick.c **** 	q0 *= recipNorm;
+ 1334              		.loc 1 230 35 is_stmt 0 view .LVU548
+ 1335 01de 27EE076A 		vmul.f32	s12, s14, s14
+ 226:application/src/imu/madgwick.c **** 	q2 += qDot3 * dt;
+ 1336              		.loc 1 226 5 view .LVU549
+ 1337 01e2 F0EE657A 		vmov.f32	s15, s11
+ 1338 01e6 E1EEA07A 		vfma.f32	s15, s3, s1
+ 1339              	.LVL119:
+ 227:application/src/imu/madgwick.c **** 
+ 1340              		.loc 1 227 2 is_stmt 1 view .LVU550
+ 230:application/src/imu/madgwick.c **** 	q0 *= recipNorm;
+ 1341              		.loc 1 230 30 is_stmt 0 view .LVU551
+ 1342 01ea A4EE046A 		vfma.f32	s12, s8, s8
+ 227:application/src/imu/madgwick.c **** 
+ 1343              		.loc 1 227 5 view .LVU552
+ 1344 01ee A2EE205A 		vfma.f32	s10, s4, s1
+ 1345              	.LVL120:
+ 230:application/src/imu/madgwick.c **** 	q0 *= recipNorm;
+ 1346              		.loc 1 230 2 is_stmt 1 view .LVU553
+ 230:application/src/imu/madgwick.c **** 	q0 *= recipNorm;
+ 1347              		.loc 1 230 40 is_stmt 0 view .LVU554
+ 1348 01f2 A7EEA76A 		vfma.f32	s12, s15, s15
+ 1349              	.LBB74:
+ 1350              	.LBB72:
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 1351              		.loc 1 9 8 view .LVU555
+ 1352 01f6 F6EE005A 		vmov.f32	s11, #5.0e-1
+ 1353              	.LBE72:
+ 1354              	.LBE74:
+ 230:application/src/imu/madgwick.c **** 	q0 *= recipNorm;
+ 1355              		.loc 1 230 14 view .LVU556
+ 1356 01fa A5EE056A 		vfma.f32	s12, s10, s10
+ 1357              	.LVL121:
+ 1358              	.LBB75:
+ 1359              	.LBI70:
+   8:application/src/imu/madgwick.c **** 	float halfx = 0.5f * x;
+ 1360              		.loc 1 8 14 is_stmt 1 view .LVU557
+ 1361              	.LBB73:
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 1362              		.loc 1 9 2 view .LVU558
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ARM GAS  /tmp/cc1QW4OW.s 			page 36
+
+
+ 1363              		.loc 1 14 16 is_stmt 0 view .LVU559
+ 1364 01fe F7EE086A 		vmov.f32	s13, #1.5e+0
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1365              		.loc 1 13 6 view .LVU560
+ 1366 0202 16EE102A 		vmov	r2, s12	@ int
+ 1367 0206 A3EB6203 		sub	r3, r3, r2, asr #1
+   9:application/src/imu/madgwick.c **** 	float y = x;
+ 1368              		.loc 1 9 8 view .LVU561
+ 1369 020a 66EE255A 		vmul.f32	s11, s12, s11
+ 1370              	.LVL122:
+  10:application/src/imu/madgwick.c **** 	long i = *(long *)&y;
+ 1371              		.loc 1 10 2 is_stmt 1 view .LVU562
+  11:application/src/imu/madgwick.c **** 	i = 0x5f3759df - (i >> 1);
+ 1372              		.loc 1 11 2 view .LVU563
+  12:application/src/imu/madgwick.c **** 	y = *(float *)&i;
+ 1373              		.loc 1 12 2 view .LVU564
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1374              		.loc 1 13 2 view .LVU565
+  13:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1375              		.loc 1 13 6 is_stmt 0 view .LVU566
+ 1376 020e 06EE103A 		vmov	s12, r3	@ int
+ 1377              	.LVL123:
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1378              		.loc 1 14 2 is_stmt 1 view .LVU567
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1379              		.loc 1 14 25 is_stmt 0 view .LVU568
+ 1380 0212 65EE863A 		vmul.f32	s7, s11, s12
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1381              		.loc 1 14 16 view .LVU569
+ 1382 0216 F0EE664A 		vmov.f32	s9, s13
+ 1383 021a E6EE634A 		vfms.f32	s9, s12, s7
+  14:application/src/imu/madgwick.c **** 	y = y * (1.5f - (halfx * y * y));
+ 1384              		.loc 1 14 8 view .LVU570
+ 1385 021e 26EE246A 		vmul.f32	s12, s12, s9
+ 1386              	.LVL124:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1387              		.loc 1 15 2 is_stmt 1 view .LVU571
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1388              		.loc 1 15 25 is_stmt 0 view .LVU572
+ 1389 0222 65EE865A 		vmul.f32	s11, s11, s12
+ 1390              	.LVL125:
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1391              		.loc 1 15 16 view .LVU573
+ 1392 0226 E6EE656A 		vfms.f32	s13, s12, s11
+  15:application/src/imu/madgwick.c **** 	return y;
+ 1393              		.loc 1 15 8 view .LVU574
+ 1394 022a 66EE266A 		vmul.f32	s13, s12, s13
+ 1395              	.LVL126:
+  16:application/src/imu/madgwick.c **** }
+ 1396              		.loc 1 16 2 is_stmt 1 view .LVU575
+  16:application/src/imu/madgwick.c **** }
+ 1397              		.loc 1 16 2 is_stmt 0 view .LVU576
+ 1398              	.LBE73:
+ 1399              	.LBE75:
+ 231:application/src/imu/madgwick.c **** 	q1 *= recipNorm;
+ 1400              		.loc 1 231 2 is_stmt 1 view .LVU577
+ 232:application/src/imu/madgwick.c **** 	q2 *= recipNorm;
+ARM GAS  /tmp/cc1QW4OW.s 			page 37
+
+
+ 1401              		.loc 1 232 2 view .LVU578
+ 233:application/src/imu/madgwick.c **** 	q3 *= recipNorm;
+ 1402              		.loc 1 233 2 view .LVU579
+ 234:application/src/imu/madgwick.c **** 
+ 1403              		.loc 1 234 2 view .LVU580
+ 236:application/src/imu/madgwick.c **** 	q->x = q1;
+ 1404              		.loc 1 236 2 view .LVU581
+ 231:application/src/imu/madgwick.c **** 	q1 *= recipNorm;
+ 1405              		.loc 1 231 5 is_stmt 0 view .LVU582
+ 1406 022e 24EE264A 		vmul.f32	s8, s8, s13
+ 1407              	.LVL127:
+ 232:application/src/imu/madgwick.c **** 	q2 *= recipNorm;
+ 1408              		.loc 1 232 5 view .LVU583
+ 1409 0232 27EE267A 		vmul.f32	s14, s14, s13
+ 1410              	.LVL128:
+ 233:application/src/imu/madgwick.c **** 	q3 *= recipNorm;
+ 1411              		.loc 1 233 5 view .LVU584
+ 1412 0236 67EEA67A 		vmul.f32	s15, s15, s13
+ 1413              	.LVL129:
+ 234:application/src/imu/madgwick.c **** 
+ 1414              		.loc 1 234 5 view .LVU585
+ 1415 023a 25EE265A 		vmul.f32	s10, s10, s13
+ 1416              	.LVL130:
+ 236:application/src/imu/madgwick.c **** 	q->x = q1;
+ 1417              		.loc 1 236 7 view .LVU586
+ 1418 023e 80ED004A 		vstr.32	s8, [r0]
+ 237:application/src/imu/madgwick.c **** 	q->y = q2;
+ 1419              		.loc 1 237 2 is_stmt 1 view .LVU587
+ 237:application/src/imu/madgwick.c **** 	q->y = q2;
+ 1420              		.loc 1 237 7 is_stmt 0 view .LVU588
+ 1421 0242 80ED017A 		vstr.32	s14, [r0, #4]
+ 238:application/src/imu/madgwick.c **** 	q->z = q3;
+ 1422              		.loc 1 238 2 is_stmt 1 view .LVU589
+ 238:application/src/imu/madgwick.c **** 	q->z = q3;
+ 1423              		.loc 1 238 7 is_stmt 0 view .LVU590
+ 1424 0246 C0ED027A 		vstr.32	s15, [r0, #8]
+ 239:application/src/imu/madgwick.c **** }
+ 1425              		.loc 1 239 2 is_stmt 1 view .LVU591
+ 239:application/src/imu/madgwick.c **** }
+ 1426              		.loc 1 239 7 is_stmt 0 view .LVU592
+ 1427 024a 80ED035A 		vstr.32	s10, [r0, #12]
+ 1428              		.loc 1 240 1 view .LVU593
+ 1429 024e 7047     		bx	lr
+ 1430              	.LVL131:
+ 1431              	.L18:
+ 1432              		.cfi_restore_state
+ 179:application/src/imu/madgwick.c **** 
+ 1433              		.loc 1 179 6 discriminator 2 view .LVU594
+ 1434 0250 F5EE403A 		vcmp.f32	s7, #0
+ 1435 0254 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 1436 0258 BAD0     		beq	.L16
+ 1437 025a 0AE7     		b	.L15
+ 1438              	.L20:
+ 1439              		.align	2
+ 1440              	.L19:
+ 1441 025c DF59375F 		.word	1597463007
+ 1442              		.cfi_endproc
+ARM GAS  /tmp/cc1QW4OW.s 			page 38
+
+
+ 1443              	.LFE2:
+ 1445              		.text
+ 1446              	.Letext0:
+ 1447              		.file 2 "application/include/quaternion.h"
+ 1448              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/math.h"
+ARM GAS  /tmp/cc1QW4OW.s 			page 39
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 madgwick.c
+     /tmp/cc1QW4OW.s:20     .text.madgwick_update_9d:0000000000000000 $t
+     /tmp/cc1QW4OW.s:27     .text.madgwick_update_9d:0000000000000000 madgwick_update_9d
+     /tmp/cc1QW4OW.s:874    .text.madgwick_update_9d:0000000000000428 $d
+     /tmp/cc1QW4OW.s:878    .text.madgwick_update_9d:000000000000042c $t
+     /tmp/cc1QW4OW.s:919    .text.madgwick_update_6d:0000000000000000 $t
+     /tmp/cc1QW4OW.s:926    .text.madgwick_update_6d:0000000000000000 madgwick_update_6d
+     /tmp/cc1QW4OW.s:1441   .text.madgwick_update_6d:000000000000025c $d
+
+UNDEFINED SYMBOLS
+sqrtf

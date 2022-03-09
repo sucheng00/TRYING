@@ -1,0 +1,1792 @@
+ARM GAS  /tmp/cctYVs0W.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"ef_port.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.ef_port_init,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	ef_port_init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	ef_port_init:
+  28              	.LVL0:
+  29              	.LFB235:
+  30              		.file 1 "easyflash/port/ef_port.c"
+   1:easyflash/port/ef_port.c **** /*
+   2:easyflash/port/ef_port.c ****  * This file is part of the EasyFlash Library.
+   3:easyflash/port/ef_port.c ****  *
+   4:easyflash/port/ef_port.c ****  * Copyright (c) 2015, Armink, <armink.ztl@gmail.com>
+   5:easyflash/port/ef_port.c ****  *
+   6:easyflash/port/ef_port.c ****  * Permission is hereby granted, free of charge, to any person obtaining
+   7:easyflash/port/ef_port.c ****  * a copy of this software and associated documentation files (the
+   8:easyflash/port/ef_port.c ****  * 'Software'), to deal in the Software without restriction, including
+   9:easyflash/port/ef_port.c ****  * without limitation the rights to use, copy, modify, merge, publish,
+  10:easyflash/port/ef_port.c ****  * distribute, sublicense, and/or sell copies of the Software, and to
+  11:easyflash/port/ef_port.c ****  * permit persons to whom the Software is furnished to do so, subject to
+  12:easyflash/port/ef_port.c ****  * the following conditions:
+  13:easyflash/port/ef_port.c ****  *
+  14:easyflash/port/ef_port.c ****  * The above copyright notice and this permission notice shall be
+  15:easyflash/port/ef_port.c ****  * included in all copies or substantial portions of the Software.
+  16:easyflash/port/ef_port.c ****  *
+  17:easyflash/port/ef_port.c ****  * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+  18:easyflash/port/ef_port.c ****  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  19:easyflash/port/ef_port.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  20:easyflash/port/ef_port.c ****  * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  21:easyflash/port/ef_port.c ****  * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  22:easyflash/port/ef_port.c ****  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  23:easyflash/port/ef_port.c ****  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  24:easyflash/port/ef_port.c ****  *
+  25:easyflash/port/ef_port.c ****  * Function: Portable interface for stm32f4xx platform.
+  26:easyflash/port/ef_port.c ****  * Created on: 2015-01-16
+  27:easyflash/port/ef_port.c ****  */
+  28:easyflash/port/ef_port.c **** 
+ARM GAS  /tmp/cctYVs0W.s 			page 2
+
+
+  29:easyflash/port/ef_port.c **** #include "stm32f4xx_hal.h"
+  30:easyflash/port/ef_port.c **** #include <easyflash.h>
+  31:easyflash/port/ef_port.c **** #include <stdarg.h>
+  32:easyflash/port/ef_port.c **** 
+  33:easyflash/port/ef_port.c **** /* base address of the flash sectors */
+  34:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_0                                                    \
+  35:easyflash/port/ef_port.c **** 	((uint32_t)0x08000000) /* Base address of Sector 0, 16 K bytes   */
+  36:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_1                                                    \
+  37:easyflash/port/ef_port.c **** 	((uint32_t)0x08004000) /* Base address of Sector 1, 16 K bytes   */
+  38:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_2                                                    \
+  39:easyflash/port/ef_port.c **** 	((uint32_t)0x08008000) /* Base address of Sector 2, 16 K bytes   */
+  40:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_3                                                    \
+  41:easyflash/port/ef_port.c **** 	((uint32_t)0x0800C000) /* Base address of Sector 3, 16 K bytes   */
+  42:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_4                                                    \
+  43:easyflash/port/ef_port.c **** 	((uint32_t)0x08010000) /* Base address of Sector 4, 64 K bytes   */
+  44:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_5                                                    \
+  45:easyflash/port/ef_port.c **** 	((uint32_t)0x08020000) /* Base address of Sector 5, 128 K bytes  */
+  46:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_6                                                    \
+  47:easyflash/port/ef_port.c **** 	((uint32_t)0x08040000) /* Base address of Sector 6, 128 K bytes  */
+  48:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_7                                                    \
+  49:easyflash/port/ef_port.c **** 	((uint32_t)0x08060000) /* Base address of Sector 7, 128 K bytes  */
+  50:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_8                                                    \
+  51:easyflash/port/ef_port.c **** 	((uint32_t)0x08080000) /* Base address of Sector 8, 128 K bytes  */
+  52:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_9                                                    \
+  53:easyflash/port/ef_port.c **** 	((uint32_t)0x080A0000) /* Base address of Sector 9, 128 K bytes  */
+  54:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_10                                                   \
+  55:easyflash/port/ef_port.c **** 	((uint32_t)0x080C0000) /* Base address of Sector 10, 128 K bytes */
+  56:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_11                                                   \
+  57:easyflash/port/ef_port.c **** 	((uint32_t)0x080E0000) /* Base address of Sector 11, 128 K bytes */
+  58:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_12                                                   \
+  59:easyflash/port/ef_port.c **** 	((uint32_t)0x08100000) /* Base address of Sector 12, 16 K bytes  */
+  60:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_13                                                   \
+  61:easyflash/port/ef_port.c **** 	((uint32_t)0x08104000) /* Base address of Sector 13, 16 K bytes  */
+  62:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_14                                                   \
+  63:easyflash/port/ef_port.c **** 	((uint32_t)0x08108000) /* Base address of Sector 14, 16 K bytes  */
+  64:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_15                                                   \
+  65:easyflash/port/ef_port.c **** 	((uint32_t)0x0810C000) /* Base address of Sector 15, 16 K bytes  */
+  66:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_16                                                   \
+  67:easyflash/port/ef_port.c **** 	((uint32_t)0x08110000) /* Base address of Sector 16, 64 K bytes  */
+  68:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_17                                                   \
+  69:easyflash/port/ef_port.c **** 	((uint32_t)0x08120000) /* Base address of Sector 17, 128 K bytes */
+  70:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_18                                                   \
+  71:easyflash/port/ef_port.c **** 	((uint32_t)0x08140000) /* Base address of Sector 18, 128 K bytes */
+  72:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_19                                                   \
+  73:easyflash/port/ef_port.c **** 	((uint32_t)0x08160000) /* Base address of Sector 19, 128 K bytes */
+  74:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_20                                                   \
+  75:easyflash/port/ef_port.c **** 	((uint32_t)0x08180000) /* Base address of Sector 20, 128 K bytes */
+  76:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_21                                                   \
+  77:easyflash/port/ef_port.c **** 	((uint32_t)0x081A0000) /* Base address of Sector 21, 128 K bytes */
+  78:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_22                                                   \
+  79:easyflash/port/ef_port.c **** 	((uint32_t)0x081C0000) /* Base address of Sector 22, 128 K bytes */
+  80:easyflash/port/ef_port.c **** #define ADDR_FLASH_SECTOR_23                                                   \
+  81:easyflash/port/ef_port.c **** 	((uint32_t)0x081E0000) /* Base address of Sector 23, 128 K bytes */
+  82:easyflash/port/ef_port.c **** 
+  83:easyflash/port/ef_port.c **** /* default ENV set for user */
+  84:easyflash/port/ef_port.c **** static const ef_env default_env_set[] = {
+  85:easyflash/port/ef_port.c ****     {"boot_times", "0"},
+ARM GAS  /tmp/cctYVs0W.s 			page 3
+
+
+  86:easyflash/port/ef_port.c **** };
+  87:easyflash/port/ef_port.c **** 
+  88:easyflash/port/ef_port.c **** static char log_buf[CONSOLEBUF_SIZE];
+  89:easyflash/port/ef_port.c **** 
+  90:easyflash/port/ef_port.c **** static uint32_t stm32_get_sector(uint32_t address);
+  91:easyflash/port/ef_port.c **** static uint32_t stm32_get_sector_size(uint32_t sector);
+  92:easyflash/port/ef_port.c **** 
+  93:easyflash/port/ef_port.c **** /**
+  94:easyflash/port/ef_port.c ****  * Flash port for hardware initialize.
+  95:easyflash/port/ef_port.c ****  *
+  96:easyflash/port/ef_port.c ****  * @param default_env default ENV set for user
+  97:easyflash/port/ef_port.c ****  * @param default_env_size default ENV size
+  98:easyflash/port/ef_port.c ****  *
+  99:easyflash/port/ef_port.c ****  * @return result
+ 100:easyflash/port/ef_port.c ****  */
+ 101:easyflash/port/ef_port.c **** EfErrCode ef_port_init(ef_env const **default_env, size_t *default_env_size) {
+  31              		.loc 1 101 78 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+ 102:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+  36              		.loc 1 102 2 view .LVU1
+ 103:easyflash/port/ef_port.c **** 
+ 104:easyflash/port/ef_port.c **** 	*default_env = default_env_set;
+  37              		.loc 1 104 2 view .LVU2
+  38              		.loc 1 104 15 is_stmt 0 view .LVU3
+  39 0000 024A     		ldr	r2, .L3
+  40 0002 0260     		str	r2, [r0]
+ 105:easyflash/port/ef_port.c **** 	*default_env_size = sizeof(default_env_set) / sizeof(default_env_set[0]);
+  41              		.loc 1 105 2 is_stmt 1 view .LVU4
+  42              		.loc 1 105 20 is_stmt 0 view .LVU5
+  43 0004 0123     		movs	r3, #1
+ 106:easyflash/port/ef_port.c **** 
+ 107:easyflash/port/ef_port.c **** 	return result;
+ 108:easyflash/port/ef_port.c **** }
+  44              		.loc 1 108 1 view .LVU6
+  45 0006 0020     		movs	r0, #0
+  46              	.LVL1:
+ 105:easyflash/port/ef_port.c **** 	*default_env_size = sizeof(default_env_set) / sizeof(default_env_set[0]);
+  47              		.loc 1 105 20 view .LVU7
+  48 0008 0B60     		str	r3, [r1]
+ 107:easyflash/port/ef_port.c **** }
+  49              		.loc 1 107 2 is_stmt 1 view .LVU8
+  50              		.loc 1 108 1 is_stmt 0 view .LVU9
+  51 000a 7047     		bx	lr
+  52              	.L4:
+  53              		.align	2
+  54              	.L3:
+  55 000c 00000000 		.word	.LANCHOR0
+  56              		.cfi_endproc
+  57              	.LFE235:
+  59              		.section	.text.ef_port_read,"ax",%progbits
+  60              		.align	1
+  61              		.p2align 2,,3
+  62              		.global	ef_port_read
+  63              		.syntax unified
+ARM GAS  /tmp/cctYVs0W.s 			page 4
+
+
+  64              		.thumb
+  65              		.thumb_func
+  67              	ef_port_read:
+  68              	.LVL2:
+  69              	.LFB236:
+ 109:easyflash/port/ef_port.c **** 
+ 110:easyflash/port/ef_port.c **** /**
+ 111:easyflash/port/ef_port.c ****  * Read data from flash.
+ 112:easyflash/port/ef_port.c ****  * @note This operation's units is word.
+ 113:easyflash/port/ef_port.c ****  *
+ 114:easyflash/port/ef_port.c ****  * @param addr flash address
+ 115:easyflash/port/ef_port.c ****  * @param buf buffer to store read data
+ 116:easyflash/port/ef_port.c ****  * @param size read bytes size
+ 117:easyflash/port/ef_port.c ****  *
+ 118:easyflash/port/ef_port.c ****  * @return result
+ 119:easyflash/port/ef_port.c ****  */
+ 120:easyflash/port/ef_port.c **** EfErrCode ef_port_read(uint32_t addr, uint32_t *buf, size_t size) {
+  70              		.loc 1 120 67 is_stmt 1 view -0
+  71              		.cfi_startproc
+  72              		@ args = 0, pretend = 0, frame = 0
+  73              		@ frame_needed = 0, uses_anonymous_args = 0
+  74              		@ link register save eliminated.
+ 121:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+  75              		.loc 1 121 2 view .LVU11
+ 122:easyflash/port/ef_port.c **** 	uint8_t *buf_8 = (uint8_t *)buf;
+  76              		.loc 1 122 2 view .LVU12
+ 123:easyflash/port/ef_port.c **** 	size_t i;
+  77              		.loc 1 123 2 view .LVU13
+ 124:easyflash/port/ef_port.c **** 
+ 125:easyflash/port/ef_port.c **** 	/*copy from flash to ram */
+ 126:easyflash/port/ef_port.c **** 	for (i = 0; i < size; i++, addr++, buf_8++) {
+  78              		.loc 1 126 2 view .LVU14
+  79              		.loc 1 126 14 view .LVU15
+  80              		.loc 1 126 2 is_stmt 0 view .LVU16
+  81 0000 3AB1     		cbz	r2, .L6
+ 122:easyflash/port/ef_port.c **** 	size_t i;
+  82              		.loc 1 122 11 view .LVU17
+  83 0002 0B46     		mov	r3, r1
+  84 0004 C01A     		subs	r0, r0, r3
+  85              	.LVL3:
+ 122:easyflash/port/ef_port.c **** 	size_t i;
+  86              		.loc 1 122 11 view .LVU18
+  87 0006 1144     		add	r1, r1, r2
+  88              	.LVL4:
+  89              	.L7:
+ 127:easyflash/port/ef_port.c **** 		*buf_8 = *(uint8_t *)addr;
+  90              		.loc 1 127 3 is_stmt 1 discriminator 3 view .LVU19
+  91              		.loc 1 127 12 is_stmt 0 discriminator 3 view .LVU20
+  92 0008 1A5C     		ldrb	r2, [r3, r0]	@ zero_extendqisi2
+  93              		.loc 1 127 10 discriminator 3 view .LVU21
+  94 000a 03F8012B 		strb	r2, [r3], #1
+  95              	.LVL5:
+ 126:easyflash/port/ef_port.c **** 		*buf_8 = *(uint8_t *)addr;
+  96              		.loc 1 126 24 is_stmt 1 discriminator 3 view .LVU22
+ 126:easyflash/port/ef_port.c **** 		*buf_8 = *(uint8_t *)addr;
+  97              		.loc 1 126 14 discriminator 3 view .LVU23
+ 126:easyflash/port/ef_port.c **** 		*buf_8 = *(uint8_t *)addr;
+ARM GAS  /tmp/cctYVs0W.s 			page 5
+
+
+  98              		.loc 1 126 2 is_stmt 0 discriminator 3 view .LVU24
+  99 000e 8B42     		cmp	r3, r1
+ 100 0010 FAD1     		bne	.L7
+ 101              	.LVL6:
+ 102              	.L6:
+ 128:easyflash/port/ef_port.c **** 	}
+ 129:easyflash/port/ef_port.c **** 
+ 130:easyflash/port/ef_port.c **** 	return result;
+ 103              		.loc 1 130 2 is_stmt 1 view .LVU25
+ 131:easyflash/port/ef_port.c **** }
+ 104              		.loc 1 131 1 is_stmt 0 view .LVU26
+ 105 0012 0020     		movs	r0, #0
+ 106 0014 7047     		bx	lr
+ 107              		.cfi_endproc
+ 108              	.LFE236:
+ 110 0016 00BF     		.section	.text.ef_port_write,"ax",%progbits
+ 111              		.align	1
+ 112              		.p2align 2,,3
+ 113              		.global	ef_port_write
+ 114              		.syntax unified
+ 115              		.thumb
+ 116              		.thumb_func
+ 118              	ef_port_write:
+ 119              	.LVL7:
+ 120              	.LFB238:
+ 132:easyflash/port/ef_port.c **** 
+ 133:easyflash/port/ef_port.c **** /**
+ 134:easyflash/port/ef_port.c ****  * Erase data on flash.
+ 135:easyflash/port/ef_port.c ****  * @note This operation is irreversible.
+ 136:easyflash/port/ef_port.c ****  * @note This operation's units is different which on many chips.
+ 137:easyflash/port/ef_port.c ****  *
+ 138:easyflash/port/ef_port.c ****  * @param addr flash address
+ 139:easyflash/port/ef_port.c ****  * @param size erase bytes size
+ 140:easyflash/port/ef_port.c ****  *
+ 141:easyflash/port/ef_port.c ****  * @return result
+ 142:easyflash/port/ef_port.c ****  */
+ 143:easyflash/port/ef_port.c **** EfErrCode ef_port_erase(uint32_t addr, size_t size) {
+ 144:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+ 145:easyflash/port/ef_port.c **** 
+ 146:easyflash/port/ef_port.c **** 	size_t erased_size = 0;
+ 147:easyflash/port/ef_port.c **** 	uint32_t cur_erase_sector;
+ 148:easyflash/port/ef_port.c **** 
+ 149:easyflash/port/ef_port.c **** 	/* make sure the start address is a multiple of EF_ERASE_MIN_SIZE */
+ 150:easyflash/port/ef_port.c **** 	EF_ASSERT(addr % EF_ERASE_MIN_SIZE == 0);
+ 151:easyflash/port/ef_port.c **** 
+ 152:easyflash/port/ef_port.c **** 	uint32_t SectorError;
+ 153:easyflash/port/ef_port.c **** 	FLASH_EraseInitTypeDef EraseInitStruct;
+ 154:easyflash/port/ef_port.c **** 	EraseInitStruct.TypeErase = FLASH_TYPEERASE_SECTORS;
+ 155:easyflash/port/ef_port.c **** 	EraseInitStruct.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+ 156:easyflash/port/ef_port.c **** 	EraseInitStruct.NbSectors = 1;
+ 157:easyflash/port/ef_port.c **** 
+ 158:easyflash/port/ef_port.c **** 	/* start erase */
+ 159:easyflash/port/ef_port.c **** 	HAL_FLASH_Unlock();
+ 160:easyflash/port/ef_port.c **** 
+ 161:easyflash/port/ef_port.c **** 	/* it will stop when erased size is greater than setting size */
+ 162:easyflash/port/ef_port.c **** 	while (erased_size < size) {
+ 163:easyflash/port/ef_port.c **** 		cur_erase_sector = stm32_get_sector(addr + erased_size);
+ARM GAS  /tmp/cctYVs0W.s 			page 6
+
+
+ 164:easyflash/port/ef_port.c **** 		EraseInitStruct.Sector = cur_erase_sector;
+ 165:easyflash/port/ef_port.c **** 
+ 166:easyflash/port/ef_port.c **** 		if (HAL_OK != HAL_FLASHEx_Erase(&EraseInitStruct, &SectorError)) {
+ 167:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 168:easyflash/port/ef_port.c **** 			break;
+ 169:easyflash/port/ef_port.c **** 		}
+ 170:easyflash/port/ef_port.c **** 
+ 171:easyflash/port/ef_port.c **** 		erased_size += stm32_get_sector_size(cur_erase_sector);
+ 172:easyflash/port/ef_port.c **** 	}
+ 173:easyflash/port/ef_port.c **** 	HAL_FLASH_Lock();
+ 174:easyflash/port/ef_port.c **** 
+ 175:easyflash/port/ef_port.c **** 	return result;
+ 176:easyflash/port/ef_port.c **** }
+ 177:easyflash/port/ef_port.c **** /**
+ 178:easyflash/port/ef_port.c ****  * Write data to flash.
+ 179:easyflash/port/ef_port.c ****  * @note This operation's units is word.
+ 180:easyflash/port/ef_port.c ****  * @note This operation must after erase. @see flash_erase.
+ 181:easyflash/port/ef_port.c ****  *
+ 182:easyflash/port/ef_port.c ****  * @param addr flash address
+ 183:easyflash/port/ef_port.c ****  * @param buf the write data buffer
+ 184:easyflash/port/ef_port.c ****  * @param size write bytes size
+ 185:easyflash/port/ef_port.c ****  *
+ 186:easyflash/port/ef_port.c ****  * @return result
+ 187:easyflash/port/ef_port.c ****  */
+ 188:easyflash/port/ef_port.c **** EfErrCode ef_port_write(uint32_t addr, const uint32_t *buf, size_t size) {
+ 121              		.loc 1 188 74 is_stmt 1 view -0
+ 122              		.cfi_startproc
+ 123              		@ args = 0, pretend = 0, frame = 0
+ 124              		@ frame_needed = 0, uses_anonymous_args = 0
+ 189:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+ 190:easyflash/port/ef_port.c **** 	size_t i;
+ 191:easyflash/port/ef_port.c **** 	uint32_t read_data;
+ 192:easyflash/port/ef_port.c **** 	uint8_t *buf_8 = (uint8_t *)buf;
+ 193:easyflash/port/ef_port.c **** 
+ 194:easyflash/port/ef_port.c **** 	// 煞笔 ST
+ 195:easyflash/port/ef_port.c **** 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_PGSERR);
+ 125              		.loc 1 195 2 is_stmt 0 view .LVU28
+ 126 0000 134B     		ldr	r3, .L23
+ 188:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+ 127              		.loc 1 188 74 view .LVU29
+ 128 0002 70B5     		push	{r4, r5, r6, lr}
+ 129              		.cfi_def_cfa_offset 16
+ 130              		.cfi_offset 4, -16
+ 131              		.cfi_offset 5, -12
+ 132              		.cfi_offset 6, -8
+ 133              		.cfi_offset 14, -4
+ 134              		.loc 1 195 2 view .LVU30
+ 135 0004 8024     		movs	r4, #128
+ 188:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+ 136              		.loc 1 188 74 view .LVU31
+ 137 0006 1646     		mov	r6, r2
+ 196:easyflash/port/ef_port.c ****  	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_PGPERR);
+ 138              		.loc 1 196 3 view .LVU32
+ 139 0008 4022     		movs	r2, #64
+ 140              	.LVL8:
+ 195:easyflash/port/ef_port.c ****  	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_PGPERR);
+ 141              		.loc 1 195 2 view .LVU33
+ARM GAS  /tmp/cctYVs0W.s 			page 7
+
+
+ 142 000a DC60     		str	r4, [r3, #12]
+ 143              		.loc 1 196 3 view .LVU34
+ 144 000c DA60     		str	r2, [r3, #12]
+ 188:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+ 145              		.loc 1 188 74 view .LVU35
+ 146 000e 0446     		mov	r4, r0
+ 189:easyflash/port/ef_port.c **** 	size_t i;
+ 147              		.loc 1 189 2 is_stmt 1 view .LVU36
+ 148              	.LVL9:
+ 190:easyflash/port/ef_port.c **** 	uint32_t read_data;
+ 149              		.loc 1 190 2 view .LVU37
+ 191:easyflash/port/ef_port.c **** 	uint8_t *buf_8 = (uint8_t *)buf;
+ 150              		.loc 1 191 2 view .LVU38
+ 192:easyflash/port/ef_port.c **** 
+ 151              		.loc 1 192 2 view .LVU39
+ 195:easyflash/port/ef_port.c ****  	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_PGPERR);
+ 152              		.loc 1 195 2 view .LVU40
+ 153              		.loc 1 196 3 view .LVU41
+ 197:easyflash/port/ef_port.c **** 
+ 198:easyflash/port/ef_port.c **** 	HAL_FLASH_Unlock();
+ 154              		.loc 1 198 2 view .LVU42
+ 188:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+ 155              		.loc 1 188 74 is_stmt 0 view .LVU43
+ 156 0010 0D46     		mov	r5, r1
+ 157              		.loc 1 198 2 view .LVU44
+ 158 0012 FFF7FEFF 		bl	HAL_FLASH_Unlock
+ 159              	.LVL10:
+ 199:easyflash/port/ef_port.c **** 
+ 200:easyflash/port/ef_port.c **** 	for (i = 0; i < size; i++, buf_8++, addr++) {
+ 160              		.loc 1 200 2 is_stmt 1 view .LVU45
+ 161              		.loc 1 200 14 view .LVU46
+ 162              		.loc 1 200 2 is_stmt 0 view .LVU47
+ 163 0016 B6B1     		cbz	r6, .L13
+ 164 0018 013D     		subs	r5, r5, #1
+ 165              	.LVL11:
+ 166              		.loc 1 200 2 view .LVU48
+ 167 001a 2644     		add	r6, r6, r4
+ 168              	.LVL12:
+ 169              		.loc 1 200 2 view .LVU49
+ 170 001c 01E0     		b	.L15
+ 171              	.LVL13:
+ 172              	.L22:
+ 173              		.loc 1 200 2 discriminator 2 view .LVU50
+ 174 001e B442     		cmp	r4, r6
+ 175 0020 11D0     		beq	.L13
+ 176              	.LVL14:
+ 177              	.L15:
+ 201:easyflash/port/ef_port.c **** 		/* write data */
+ 202:easyflash/port/ef_port.c **** 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, addr, *buf_8);
+ 178              		.loc 1 202 3 is_stmt 1 view .LVU51
+ 179 0022 15F8012F 		ldrb	r2, [r5, #1]!	@ zero_extendqisi2
+ 180              	.LVL15:
+ 181              		.loc 1 202 3 is_stmt 0 view .LVU52
+ 182 0026 0023     		movs	r3, #0
+ 183 0028 2146     		mov	r1, r4
+ 184 002a 1846     		mov	r0, r3
+ 185 002c FFF7FEFF 		bl	HAL_FLASH_Program
+ARM GAS  /tmp/cctYVs0W.s 			page 8
+
+
+ 186              	.LVL16:
+ 203:easyflash/port/ef_port.c **** 
+ 204:easyflash/port/ef_port.c **** 		read_data = *(uint8_t *)addr;
+ 187              		.loc 1 204 3 is_stmt 1 view .LVU53
+ 205:easyflash/port/ef_port.c **** 		/* check data */
+ 206:easyflash/port/ef_port.c **** 		if (read_data != *buf_8) {
+ 188              		.loc 1 206 3 view .LVU54
+ 200:easyflash/port/ef_port.c **** 		/* write data */
+ 189              		.loc 1 200 24 view .LVU55
+ 190              		.loc 1 206 6 is_stmt 0 view .LVU56
+ 191 0030 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+ 192              	.LVL17:
+ 193              		.loc 1 206 6 view .LVU57
+ 194 0032 2B78     		ldrb	r3, [r5]	@ zero_extendqisi2
+ 195 0034 9A42     		cmp	r2, r3
+ 200:easyflash/port/ef_port.c **** 		/* write data */
+ 196              		.loc 1 200 42 view .LVU58
+ 197 0036 04F10104 		add	r4, r4, #1
+ 198              	.LVL18:
+ 200:easyflash/port/ef_port.c **** 		/* write data */
+ 199              		.loc 1 200 14 is_stmt 1 view .LVU59
+ 200              		.loc 1 206 6 is_stmt 0 view .LVU60
+ 201 003a F0D0     		beq	.L22
+ 207:easyflash/port/ef_port.c **** 			result = EF_WRITE_ERR;
+ 202              		.loc 1 207 11 view .LVU61
+ 203 003c 0324     		movs	r4, #3
+ 204              	.LVL19:
+ 208:easyflash/port/ef_port.c **** 			break;
+ 209:easyflash/port/ef_port.c **** 		}
+ 210:easyflash/port/ef_port.c **** 	}
+ 211:easyflash/port/ef_port.c **** 	HAL_FLASH_Lock();
+ 205              		.loc 1 211 2 is_stmt 1 view .LVU62
+ 206 003e FFF7FEFF 		bl	HAL_FLASH_Lock
+ 207              	.LVL20:
+ 212:easyflash/port/ef_port.c **** 
+ 213:easyflash/port/ef_port.c **** 	return result;
+ 208              		.loc 1 213 2 view .LVU63
+ 214:easyflash/port/ef_port.c **** }
+ 209              		.loc 1 214 1 is_stmt 0 view .LVU64
+ 210 0042 2046     		mov	r0, r4
+ 211 0044 70BD     		pop	{r4, r5, r6, pc}
+ 212              	.LVL21:
+ 213              	.L13:
+ 189:easyflash/port/ef_port.c **** 	size_t i;
+ 214              		.loc 1 189 12 view .LVU65
+ 215 0046 0024     		movs	r4, #0
+ 216              	.LVL22:
+ 211:easyflash/port/ef_port.c **** 
+ 217              		.loc 1 211 2 is_stmt 1 view .LVU66
+ 218 0048 FFF7FEFF 		bl	HAL_FLASH_Lock
+ 219              	.LVL23:
+ 213:easyflash/port/ef_port.c **** }
+ 220              		.loc 1 213 2 view .LVU67
+ 221              		.loc 1 214 1 is_stmt 0 view .LVU68
+ 222 004c 2046     		mov	r0, r4
+ 223 004e 70BD     		pop	{r4, r5, r6, pc}
+ 224              	.LVL24:
+ARM GAS  /tmp/cctYVs0W.s 			page 9
+
+
+ 225              	.L24:
+ 226              		.loc 1 214 1 view .LVU69
+ 227              		.align	2
+ 228              	.L23:
+ 229 0050 003C0240 		.word	1073888256
+ 230              		.cfi_endproc
+ 231              	.LFE238:
+ 233              		.section	.text.ef_port_env_lock,"ax",%progbits
+ 234              		.align	1
+ 235              		.p2align 2,,3
+ 236              		.global	ef_port_env_lock
+ 237              		.syntax unified
+ 238              		.thumb
+ 239              		.thumb_func
+ 241              	ef_port_env_lock:
+ 242              	.LFB239:
+ 215:easyflash/port/ef_port.c **** 
+ 216:easyflash/port/ef_port.c **** /**
+ 217:easyflash/port/ef_port.c ****  * lock the ENV ram cache
+ 218:easyflash/port/ef_port.c ****  */
+ 219:easyflash/port/ef_port.c **** void ef_port_env_lock(void) {
+ 243              		.loc 1 219 29 is_stmt 1 view -0
+ 244              		.cfi_startproc
+ 245              		@ args = 0, pretend = 0, frame = 0
+ 246              		@ frame_needed = 0, uses_anonymous_args = 0
+ 247              		@ link register save eliminated.
+ 220:easyflash/port/ef_port.c **** 	__disable_irq();
+ 248              		.loc 1 220 2 view .LVU71
+ 249              	.LBB6:
+ 250              	.LBI6:
+ 251              		.file 2 "Drivers/CMSIS/Include/cmsis_gcc.h"
+   1:Drivers/CMSIS/Include/cmsis_gcc.h **** /**************************************************************************//**
+   2:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @file     cmsis_gcc.h
+   3:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @brief    CMSIS compiler GCC header file
+   4:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @version  V5.0.4
+   5:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @date     09. April 2018
+   6:Drivers/CMSIS/Include/cmsis_gcc.h ****  ******************************************************************************/
+   7:Drivers/CMSIS/Include/cmsis_gcc.h **** /*
+   8:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
+   9:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  10:Drivers/CMSIS/Include/cmsis_gcc.h ****  * SPDX-License-Identifier: Apache-2.0
+  11:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  12:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Licensed under the Apache License, Version 2.0 (the License); you may
+  13:Drivers/CMSIS/Include/cmsis_gcc.h ****  * not use this file except in compliance with the License.
+  14:Drivers/CMSIS/Include/cmsis_gcc.h ****  * You may obtain a copy of the License at
+  15:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  16:Drivers/CMSIS/Include/cmsis_gcc.h ****  * www.apache.org/licenses/LICENSE-2.0
+  17:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  18:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Unless required by applicable law or agreed to in writing, software
+  19:Drivers/CMSIS/Include/cmsis_gcc.h ****  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+  20:Drivers/CMSIS/Include/cmsis_gcc.h ****  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  21:Drivers/CMSIS/Include/cmsis_gcc.h ****  * See the License for the specific language governing permissions and
+  22:Drivers/CMSIS/Include/cmsis_gcc.h ****  * limitations under the License.
+  23:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+  24:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  25:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __CMSIS_GCC_H
+  26:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_H
+ARM GAS  /tmp/cctYVs0W.s 			page 10
+
+
+  27:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  28:Drivers/CMSIS/Include/cmsis_gcc.h **** /* ignore some GCC warnings */
+  29:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic push
+  30:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wsign-conversion"
+  31:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wconversion"
+  32:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wunused-parameter"
+  33:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  34:Drivers/CMSIS/Include/cmsis_gcc.h **** /* Fallback for __has_builtin */
+  35:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __has_builtin
+  36:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __has_builtin(x) (0)
+  37:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  38:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  39:Drivers/CMSIS/Include/cmsis_gcc.h **** /* CMSIS compiler specific defines */
+  40:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ASM
+  41:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __ASM                                  __asm
+  42:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  43:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __INLINE
+  44:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __INLINE                               inline
+  45:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  46:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_INLINE
+  47:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_INLINE                        static inline
+  48:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  49:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_FORCEINLINE                 
+  50:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
+  51:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif                                           
+  52:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __NO_RETURN
+  53:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __NO_RETURN                            __attribute__((__noreturn__))
+  54:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  55:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __USED
+  56:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __USED                                 __attribute__((used))
+  57:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  58:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __WEAK
+  59:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __WEAK                                 __attribute__((weak))
+  60:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  61:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED
+  62:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED                               __attribute__((packed, aligned(1)))
+  63:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  64:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_STRUCT
+  65:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_STRUCT                        struct __attribute__((packed, aligned(1)))
+  66:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  67:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_UNION
+  68:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_UNION                         union __attribute__((packed, aligned(1)))
+  69:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  70:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32        /* deprecated */
+  71:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  72:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  73:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  74:Drivers/CMSIS/Include/cmsis_gcc.h ****   struct __attribute__((packed)) T_UINT32 { uint32_t v; };
+  75:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  76:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  77:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  78:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_WRITE
+  79:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  80:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  81:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  82:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+  83:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ARM GAS  /tmp/cctYVs0W.s 			page 11
+
+
+  84:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void *)(addr))-
+  85:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  86:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_READ
+  87:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  88:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  89:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  90:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+  91:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  92:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(add
+  93:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  94:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_WRITE
+  95:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  96:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  97:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  98:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+  99:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 100:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))-
+ 101:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 102:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_READ
+ 103:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+ 104:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+ 105:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ 106:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+ 107:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 108:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(add
+ 109:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 110:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ALIGNED
+ 111:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __ALIGNED(x)                           __attribute__((aligned(x)))
+ 112:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 113:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __RESTRICT
+ 114:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __RESTRICT                             __restrict
+ 115:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 116:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 117:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 118:Drivers/CMSIS/Include/cmsis_gcc.h **** /* ###########################  Core Function Access  ########################### */
+ 119:Drivers/CMSIS/Include/cmsis_gcc.h **** /** \ingroup  CMSIS_Core_FunctionInterface
+ 120:Drivers/CMSIS/Include/cmsis_gcc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+ 121:Drivers/CMSIS/Include/cmsis_gcc.h ****   @{
+ 122:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 123:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 124:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
+ 125:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Enable IRQ Interrupts
+ 126:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 127:Drivers/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 128:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 129:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_irq(void)
+ 130:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ 131:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie i" : : : "memory");
+ 132:Drivers/CMSIS/Include/cmsis_gcc.h **** }
+ 133:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 134:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 135:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
+ 136:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Disable IRQ Interrupts
+ 137:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Disables IRQ interrupts by setting the I-bit in the CPSR.
+ 138:Drivers/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 139:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 140:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_irq(void)
+ARM GAS  /tmp/cctYVs0W.s 			page 12
+
+
+ 252              		.loc 2 140 27 view .LVU72
+ 253              	.LBB7:
+ 141:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ 142:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid i" : : : "memory");
+ 254              		.loc 2 142 3 view .LVU73
+ 255              		.syntax unified
+ 256              	@ 142 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 257 0000 72B6     		cpsid i
+ 258              	@ 0 "" 2
+ 259              		.thumb
+ 260              		.syntax unified
+ 261              	.LBE7:
+ 262              	.LBE6:
+ 221:easyflash/port/ef_port.c **** }
+ 263              		.loc 1 221 1 is_stmt 0 view .LVU74
+ 264 0002 7047     		bx	lr
+ 265              		.cfi_endproc
+ 266              	.LFE239:
+ 268              		.section	.text.ef_port_env_unlock,"ax",%progbits
+ 269              		.align	1
+ 270              		.p2align 2,,3
+ 271              		.global	ef_port_env_unlock
+ 272              		.syntax unified
+ 273              		.thumb
+ 274              		.thumb_func
+ 276              	ef_port_env_unlock:
+ 277              	.LFB240:
+ 222:easyflash/port/ef_port.c **** 
+ 223:easyflash/port/ef_port.c **** /**
+ 224:easyflash/port/ef_port.c ****  * unlock the ENV ram cache
+ 225:easyflash/port/ef_port.c ****  */
+ 226:easyflash/port/ef_port.c **** void ef_port_env_unlock(void) {
+ 278              		.loc 1 226 31 is_stmt 1 view -0
+ 279              		.cfi_startproc
+ 280              		@ args = 0, pretend = 0, frame = 0
+ 281              		@ frame_needed = 0, uses_anonymous_args = 0
+ 282              		@ link register save eliminated.
+ 227:easyflash/port/ef_port.c **** 	__enable_irq();
+ 283              		.loc 1 227 2 view .LVU76
+ 284              	.LBB8:
+ 285              	.LBI8:
+ 129:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ 286              		.loc 2 129 27 view .LVU77
+ 287              	.LBB9:
+ 131:Drivers/CMSIS/Include/cmsis_gcc.h **** }
+ 288              		.loc 2 131 3 view .LVU78
+ 289              		.syntax unified
+ 290              	@ 131 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 291 0000 62B6     		cpsie i
+ 292              	@ 0 "" 2
+ 293              		.thumb
+ 294              		.syntax unified
+ 295              	.LBE9:
+ 296              	.LBE8:
+ 228:easyflash/port/ef_port.c **** }
+ 297              		.loc 1 228 1 is_stmt 0 view .LVU79
+ 298 0002 7047     		bx	lr
+ARM GAS  /tmp/cctYVs0W.s 			page 13
+
+
+ 299              		.cfi_endproc
+ 300              	.LFE240:
+ 302              		.section	.text.ef_log_debug,"ax",%progbits
+ 303              		.align	1
+ 304              		.p2align 2,,3
+ 305              		.global	ef_log_debug
+ 306              		.syntax unified
+ 307              		.thumb
+ 308              		.thumb_func
+ 310              	ef_log_debug:
+ 311              	.LVL25:
+ 312              	.LFB243:
+ 229:easyflash/port/ef_port.c **** 
+ 230:easyflash/port/ef_port.c **** /**
+ 231:easyflash/port/ef_port.c ****  * Get the sector of a given address
+ 232:easyflash/port/ef_port.c ****  *
+ 233:easyflash/port/ef_port.c ****  * @param address flash address
+ 234:easyflash/port/ef_port.c ****  *
+ 235:easyflash/port/ef_port.c ****  * @return The sector of a given address
+ 236:easyflash/port/ef_port.c ****  */
+ 237:easyflash/port/ef_port.c **** static uint32_t stm32_get_sector(uint32_t address) {
+ 238:easyflash/port/ef_port.c **** 	uint32_t sector = 0;
+ 239:easyflash/port/ef_port.c **** 
+ 240:easyflash/port/ef_port.c **** 	if ((address < ADDR_FLASH_SECTOR_1) && (address >= ADDR_FLASH_SECTOR_0)) {
+ 241:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_0;
+ 242:easyflash/port/ef_port.c **** 	} else if ((address < ADDR_FLASH_SECTOR_2) &&
+ 243:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_1)) {
+ 244:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_1;
+ 245:easyflash/port/ef_port.c **** 	} else if ((address < ADDR_FLASH_SECTOR_3) &&
+ 246:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_2)) {
+ 247:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_2;
+ 248:easyflash/port/ef_port.c **** 	} else if ((address < ADDR_FLASH_SECTOR_4) &&
+ 249:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_3)) {
+ 250:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_3;
+ 251:easyflash/port/ef_port.c **** 	} else if ((address < ADDR_FLASH_SECTOR_5) &&
+ 252:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_4)) {
+ 253:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_4;
+ 254:easyflash/port/ef_port.c **** 	} else if ((address < ADDR_FLASH_SECTOR_6) &&
+ 255:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_5)) {
+ 256:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_5;
+ 257:easyflash/port/ef_port.c **** 	} else if ((address < ADDR_FLASH_SECTOR_7) &&
+ 258:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_6)) {
+ 259:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_6;
+ 260:easyflash/port/ef_port.c **** 	} else if ((address < ADDR_FLASH_SECTOR_8) &&
+ 261:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_7)) {
+ 262:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_7;
+ 263:easyflash/port/ef_port.c **** 	} else if ((address < ADDR_FLASH_SECTOR_9) &&
+ 264:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_8)) {
+ 265:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_8;
+ 266:easyflash/port/ef_port.c **** 	} else if ((address < ADDR_FLASH_SECTOR_10) &&
+ 267:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_9)) {
+ 268:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_9;
+ 269:easyflash/port/ef_port.c **** 	} else if ((address < ADDR_FLASH_SECTOR_11) &&
+ 270:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_10)) {
+ 271:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_10;
+ 272:easyflash/port/ef_port.c **** 	} else if ((address < ADDR_FLASH_SECTOR_12) &&
+ 273:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_11)) {
+ARM GAS  /tmp/cctYVs0W.s 			page 14
+
+
+ 274:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_11;
+ 275:easyflash/port/ef_port.c **** 	}
+ 276:easyflash/port/ef_port.c **** 	//    else if ((address < ADDR_FLASH_SECTOR_13) && (address >=
+ 277:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_12)) {
+ 278:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_12;
+ 279:easyflash/port/ef_port.c **** 	//    } else if ((address < ADDR_FLASH_SECTOR_14) && (address >=
+ 280:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_13)) {
+ 281:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_13;
+ 282:easyflash/port/ef_port.c **** 	//    } else if ((address < ADDR_FLASH_SECTOR_15) && (address >=
+ 283:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_14)) {
+ 284:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_14;
+ 285:easyflash/port/ef_port.c **** 	//    } else if ((address < ADDR_FLASH_SECTOR_16) && (address >=
+ 286:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_15)) {
+ 287:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_15;
+ 288:easyflash/port/ef_port.c **** 	//    } else if ((address < ADDR_FLASH_SECTOR_17) && (address >=
+ 289:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_16)) {
+ 290:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_16;
+ 291:easyflash/port/ef_port.c **** 	//    } else if ((address < ADDR_FLASH_SECTOR_18) && (address >=
+ 292:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_17)) {
+ 293:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_17;
+ 294:easyflash/port/ef_port.c **** 	//    } else if ((address < ADDR_FLASH_SECTOR_19) && (address >=
+ 295:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_18)) {
+ 296:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_18;
+ 297:easyflash/port/ef_port.c **** 	//    } else if ((address < ADDR_FLASH_SECTOR_20) && (address >=
+ 298:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_19)) {
+ 299:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_19;
+ 300:easyflash/port/ef_port.c **** 	//    } else if ((address < ADDR_FLASH_SECTOR_21) && (address >=
+ 301:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_20)) {
+ 302:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_20;
+ 303:easyflash/port/ef_port.c **** 	//    } else if ((address < ADDR_FLASH_SECTOR_22) && (address >=
+ 304:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_21)) {
+ 305:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_21;
+ 306:easyflash/port/ef_port.c **** 	//    } else if ((address < ADDR_FLASH_SECTOR_23) && (address >=
+ 307:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_22)) {
+ 308:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_22;
+ 309:easyflash/port/ef_port.c **** 	//    } else /*(address < FLASH_END_ADDR) && (address >=
+ 310:easyflash/port/ef_port.c **** 	//    ADDR_FLASH_SECTOR_23))*/
+ 311:easyflash/port/ef_port.c **** 	//    {
+ 312:easyflash/port/ef_port.c **** 	//        sector = FLASH_SECTOR_23;
+ 313:easyflash/port/ef_port.c **** 	//    }
+ 314:easyflash/port/ef_port.c **** 
+ 315:easyflash/port/ef_port.c **** 	return sector;
+ 316:easyflash/port/ef_port.c **** }
+ 317:easyflash/port/ef_port.c **** 
+ 318:easyflash/port/ef_port.c **** /**
+ 319:easyflash/port/ef_port.c ****  * Get the sector size
+ 320:easyflash/port/ef_port.c ****  *
+ 321:easyflash/port/ef_port.c ****  * @param sector sector
+ 322:easyflash/port/ef_port.c ****  *
+ 323:easyflash/port/ef_port.c ****  * @return sector size
+ 324:easyflash/port/ef_port.c ****  */
+ 325:easyflash/port/ef_port.c **** static uint32_t stm32_get_sector_size(uint32_t sector) {
+ 326:easyflash/port/ef_port.c **** 	EF_ASSERT(IS_FLASH_SECTOR(sector));
+ 327:easyflash/port/ef_port.c **** 
+ 328:easyflash/port/ef_port.c **** 	switch (sector) {
+ 329:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_0:
+ 330:easyflash/port/ef_port.c **** 		return 16 * 1024;
+ARM GAS  /tmp/cctYVs0W.s 			page 15
+
+
+ 331:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_1:
+ 332:easyflash/port/ef_port.c **** 		return 16 * 1024;
+ 333:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_2:
+ 334:easyflash/port/ef_port.c **** 		return 16 * 1024;
+ 335:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_3:
+ 336:easyflash/port/ef_port.c **** 		return 16 * 1024;
+ 337:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_4:
+ 338:easyflash/port/ef_port.c **** 		return 64 * 1024;
+ 339:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_5:
+ 340:easyflash/port/ef_port.c **** 		return 128 * 1024;
+ 341:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_6:
+ 342:easyflash/port/ef_port.c **** 		return 128 * 1024;
+ 343:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_7:
+ 344:easyflash/port/ef_port.c **** 		return 128 * 1024;
+ 345:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_8:
+ 346:easyflash/port/ef_port.c **** 		return 128 * 1024;
+ 347:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_9:
+ 348:easyflash/port/ef_port.c **** 		return 128 * 1024;
+ 349:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_10:
+ 350:easyflash/port/ef_port.c **** 		return 128 * 1024;
+ 351:easyflash/port/ef_port.c **** 	case FLASH_SECTOR_11:
+ 352:easyflash/port/ef_port.c **** 		return 128 * 1024;
+ 353:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_12: return 16 * 1024;
+ 354:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_13: return 16 * 1024;
+ 355:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_14: return 16 * 1024;
+ 356:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_15: return 16 * 1024;
+ 357:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_16: return 64 * 1024;
+ 358:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_17: return 128 * 1024;
+ 359:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_18: return 128 * 1024;
+ 360:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_19: return 128 * 1024;
+ 361:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_20: return 128 * 1024;
+ 362:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_21: return 128 * 1024;
+ 363:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_22: return 128 * 1024;
+ 364:easyflash/port/ef_port.c **** 	//    case FLASH_SECTOR_23: return 128 * 1024;
+ 365:easyflash/port/ef_port.c **** 	default:
+ 366:easyflash/port/ef_port.c **** 		return 128 * 1024;
+ 367:easyflash/port/ef_port.c **** 	}
+ 368:easyflash/port/ef_port.c **** }
+ 369:easyflash/port/ef_port.c **** 
+ 370:easyflash/port/ef_port.c **** /**
+ 371:easyflash/port/ef_port.c ****  * This function is print flash debug info.
+ 372:easyflash/port/ef_port.c ****  *
+ 373:easyflash/port/ef_port.c ****  * @param file the file which has call this function
+ 374:easyflash/port/ef_port.c ****  * @param line the line number which has call this function
+ 375:easyflash/port/ef_port.c ****  * @param format output format
+ 376:easyflash/port/ef_port.c ****  * @param ... args
+ 377:easyflash/port/ef_port.c ****  *
+ 378:easyflash/port/ef_port.c ****  */
+ 379:easyflash/port/ef_port.c **** void ef_log_debug(const char *file, const long line, const char *format, ...) {
+ 313              		.loc 1 379 79 is_stmt 1 view -0
+ 314              		.cfi_startproc
+ 315              		@ args = 4, pretend = 8, frame = 8
+ 316              		@ frame_needed = 0, uses_anonymous_args = 1
+ 317              		@ link register save eliminated.
+ 380:easyflash/port/ef_port.c **** #ifdef PRINT_DEBUG
+ 381:easyflash/port/ef_port.c **** 
+ 382:easyflash/port/ef_port.c **** 	va_list args;
+ARM GAS  /tmp/cctYVs0W.s 			page 16
+
+
+ 318              		.loc 1 382 2 view .LVU81
+ 383:easyflash/port/ef_port.c **** 
+ 384:easyflash/port/ef_port.c **** 	/* args point to the first variable parameter */
+ 385:easyflash/port/ef_port.c **** 	va_start(args, format);
+ 319              		.loc 1 385 2 view .LVU82
+ 379:easyflash/port/ef_port.c **** #ifdef PRINT_DEBUG
+ 320              		.loc 1 379 79 is_stmt 0 view .LVU83
+ 321 0000 0CB4     		push	{r2, r3}
+ 322              		.cfi_def_cfa_offset 8
+ 323              		.cfi_offset 2, -8
+ 324              		.cfi_offset 3, -4
+ 325 0002 82B0     		sub	sp, sp, #8
+ 326              		.cfi_def_cfa_offset 16
+ 327              		.loc 1 385 2 view .LVU84
+ 328 0004 03AB     		add	r3, sp, #12
+ 329 0006 0193     		str	r3, [sp, #4]
+ 386:easyflash/port/ef_port.c **** 
+ 387:easyflash/port/ef_port.c **** 	/* You can add your code under here. */
+ 388:easyflash/port/ef_port.c **** 
+ 389:easyflash/port/ef_port.c **** 	va_end(args);
+ 330              		.loc 1 389 2 is_stmt 1 view .LVU85
+ 390:easyflash/port/ef_port.c **** 
+ 391:easyflash/port/ef_port.c **** #endif
+ 392:easyflash/port/ef_port.c **** }
+ 331              		.loc 1 392 1 is_stmt 0 view .LVU86
+ 332 0008 02B0     		add	sp, sp, #8
+ 333              		.cfi_def_cfa_offset 8
+ 334              		@ sp needed
+ 335 000a 02B0     		add	sp, sp, #8
+ 336              		.cfi_restore 3
+ 337              		.cfi_restore 2
+ 338              		.cfi_def_cfa_offset 0
+ 339 000c 7047     		bx	lr
+ 340              		.cfi_endproc
+ 341              	.LFE243:
+ 343 000e 00BF     		.section	.rodata.ef_port_erase.str1.4,"aMS",%progbits,1
+ 344              		.align	2
+ 345              	.LC0:
+ 346 0000 61646472 		.ascii	"addr % EF_ERASE_MIN_SIZE == 0\000"
+ 346      20252045 
+ 346      465F4552 
+ 346      4153455F 
+ 346      4D494E5F 
+ 347 001e 0000     		.align	2
+ 348              	.LC1:
+ 349 0020 28257329 		.ascii	"(%s) has assert failed at %s.\000"
+ 349      20686173 
+ 349      20617373 
+ 349      65727420 
+ 349      6661696C 
+ 350 003e 0000     		.align	2
+ 351              	.LC2:
+ 352 0040 65617379 		.ascii	"easyflash/port/ef_port.c\000"
+ 352      666C6173 
+ 352      682F706F 
+ 352      72742F65 
+ 352      665F706F 
+ARM GAS  /tmp/cctYVs0W.s 			page 17
+
+
+ 353              		.section	.text.ef_port_erase,"ax",%progbits
+ 354              		.align	1
+ 355              		.p2align 2,,3
+ 356              		.global	ef_port_erase
+ 357              		.syntax unified
+ 358              		.thumb
+ 359              		.thumb_func
+ 361              	ef_port_erase:
+ 362              	.LVL26:
+ 363              	.LFB237:
+ 143:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+ 364              		.loc 1 143 53 is_stmt 1 view -0
+ 365              		.cfi_startproc
+ 366              		@ args = 0, pretend = 0, frame = 24
+ 367              		@ frame_needed = 0, uses_anonymous_args = 0
+ 144:easyflash/port/ef_port.c **** 
+ 368              		.loc 1 144 2 view .LVU88
+ 146:easyflash/port/ef_port.c **** 	uint32_t cur_erase_sector;
+ 369              		.loc 1 146 2 view .LVU89
+ 147:easyflash/port/ef_port.c **** 
+ 370              		.loc 1 147 2 view .LVU90
+ 150:easyflash/port/ef_port.c **** 
+ 371              		.loc 1 150 2 view .LVU91
+ 143:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+ 372              		.loc 1 143 53 is_stmt 0 view .LVU92
+ 373 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+ 374              		.cfi_def_cfa_offset 28
+ 375              		.cfi_offset 4, -28
+ 376              		.cfi_offset 5, -24
+ 377              		.cfi_offset 6, -20
+ 378              		.cfi_offset 7, -16
+ 379              		.cfi_offset 8, -12
+ 380              		.cfi_offset 9, -8
+ 381              		.cfi_offset 14, -4
+ 150:easyflash/port/ef_port.c **** 
+ 382              		.loc 1 150 2 view .LVU93
+ 383 0004 C0F31004 		ubfx	r4, r0, #0, #17
+ 143:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+ 384              		.loc 1 143 53 view .LVU94
+ 385 0008 89B0     		sub	sp, sp, #36
+ 386              		.cfi_def_cfa_offset 64
+ 150:easyflash/port/ef_port.c **** 
+ 387              		.loc 1 150 2 view .LVU95
+ 388 000a 44B1     		cbz	r4, .L30
+ 150:easyflash/port/ef_port.c **** 
+ 389              		.loc 1 150 2 is_stmt 1 discriminator 1 view .LVU96
+ 390 000c 5649     		ldr	r1, .L60
+ 391              	.LVL27:
+ 150:easyflash/port/ef_port.c **** 
+ 392              		.loc 1 150 2 is_stmt 0 discriminator 1 view .LVU97
+ 393 000e 0091     		str	r1, [sp]
+ 394 0010 564B     		ldr	r3, .L60+4
+ 395 0012 574A     		ldr	r2, .L60+8
+ 396 0014 5748     		ldr	r0, .L60+12
+ 397              	.LVL28:
+ 150:easyflash/port/ef_port.c **** 
+ 398              		.loc 1 150 2 discriminator 1 view .LVU98
+ARM GAS  /tmp/cctYVs0W.s 			page 18
+
+
+ 399 0016 9621     		movs	r1, #150
+ 400 0018 FFF7FEFF 		bl	ef_log_debug
+ 401              	.LVL29:
+ 402              	.L31:
+ 150:easyflash/port/ef_port.c **** 
+ 403              		.loc 1 150 2 is_stmt 1 discriminator 1 view .LVU99
+ 150:easyflash/port/ef_port.c **** 
+ 404              		.loc 1 150 2 discriminator 1 view .LVU100
+ 150:easyflash/port/ef_port.c **** 
+ 405              		.loc 1 150 2 discriminator 1 view .LVU101
+ 150:easyflash/port/ef_port.c **** 
+ 406              		.loc 1 150 2 discriminator 1 view .LVU102
+ 150:easyflash/port/ef_port.c **** 
+ 407              		.loc 1 150 2 discriminator 1 view .LVU103
+ 150:easyflash/port/ef_port.c **** 
+ 408              		.loc 1 150 2 discriminator 1 view .LVU104
+ 409 001c FEE7     		b	.L31
+ 410              	.LVL30:
+ 411              	.L30:
+ 150:easyflash/port/ef_port.c **** 
+ 412              		.loc 1 150 42 discriminator 2 view .LVU105
+ 152:easyflash/port/ef_port.c **** 	FLASH_EraseInitTypeDef EraseInitStruct;
+ 413              		.loc 1 152 2 discriminator 2 view .LVU106
+ 153:easyflash/port/ef_port.c **** 	EraseInitStruct.TypeErase = FLASH_TYPEERASE_SECTORS;
+ 414              		.loc 1 153 2 discriminator 2 view .LVU107
+ 154:easyflash/port/ef_port.c **** 	EraseInitStruct.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+ 415              		.loc 1 154 2 discriminator 2 view .LVU108
+ 416 001e 0E46     		mov	r6, r1
+ 155:easyflash/port/ef_port.c **** 	EraseInitStruct.NbSectors = 1;
+ 417              		.loc 1 155 31 is_stmt 0 discriminator 2 view .LVU109
+ 418 0020 4FF00208 		mov	r8, #2
+ 156:easyflash/port/ef_port.c **** 
+ 419              		.loc 1 156 28 discriminator 2 view .LVU110
+ 420 0024 0127     		movs	r7, #1
+ 421 0026 CDE90678 		strd	r7, r8, [sp, #24]
+ 422 002a 0546     		mov	r5, r0
+ 154:easyflash/port/ef_port.c **** 	EraseInitStruct.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+ 423              		.loc 1 154 28 discriminator 2 view .LVU111
+ 424 002c 0394     		str	r4, [sp, #12]
+ 155:easyflash/port/ef_port.c **** 	EraseInitStruct.NbSectors = 1;
+ 425              		.loc 1 155 2 is_stmt 1 discriminator 2 view .LVU112
+ 159:easyflash/port/ef_port.c **** 
+ 426              		.loc 1 159 2 discriminator 2 view .LVU113
+ 427 002e FFF7FEFF 		bl	HAL_FLASH_Unlock
+ 428              	.LVL31:
+ 162:easyflash/port/ef_port.c **** 		cur_erase_sector = stm32_get_sector(addr + erased_size);
+ 429              		.loc 1 162 2 discriminator 2 view .LVU114
+ 162:easyflash/port/ef_port.c **** 		cur_erase_sector = stm32_get_sector(addr + erased_size);
+ 430              		.loc 1 162 8 discriminator 2 view .LVU115
+ 431 0032 AEB1     		cbz	r6, .L32
+ 164:easyflash/port/ef_port.c **** 
+ 432              		.loc 1 164 26 is_stmt 0 view .LVU116
+ 433 0034 4FF00309 		mov	r9, #3
+ 434              	.LVL32:
+ 435              	.L49:
+ 163:easyflash/port/ef_port.c **** 		EraseInitStruct.Sector = cur_erase_sector;
+ 436              		.loc 1 163 3 is_stmt 1 view .LVU117
+ARM GAS  /tmp/cctYVs0W.s 			page 19
+
+
+ 163:easyflash/port/ef_port.c **** 		EraseInitStruct.Sector = cur_erase_sector;
+ 437              		.loc 1 163 22 is_stmt 0 view .LVU118
+ 438 0038 2A19     		adds	r2, r5, r4
+ 439              	.LVL33:
+ 440              	.LBB14:
+ 441              	.LBI14:
+ 237:easyflash/port/ef_port.c **** 	uint32_t sector = 0;
+ 442              		.loc 1 237 17 is_stmt 1 view .LVU119
+ 443              	.LBB15:
+ 238:easyflash/port/ef_port.c **** 
+ 444              		.loc 1 238 2 view .LVU120
+ 240:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_0;
+ 445              		.loc 1 240 2 view .LVU121
+ 240:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_0;
+ 446              		.loc 1 240 38 is_stmt 0 view .LVU122
+ 447 003a 02F17843 		add	r3, r2, #-134217728
+ 240:easyflash/port/ef_port.c **** 		sector = FLASH_SECTOR_0;
+ 448              		.loc 1 240 5 view .LVU123
+ 449 003e B3F5804F 		cmp	r3, #16384
+ 450 0042 13D2     		bcs	.L33
+ 451              	.LVL34:
+ 452              	.L46:
+ 315:easyflash/port/ef_port.c **** }
+ 453              		.loc 1 315 2 is_stmt 1 view .LVU124
+ 315:easyflash/port/ef_port.c **** }
+ 454              		.loc 1 315 2 is_stmt 0 view .LVU125
+ 455              	.LBE15:
+ 456              	.LBE14:
+ 164:easyflash/port/ef_port.c **** 
+ 457              		.loc 1 164 3 is_stmt 1 view .LVU126
+ 164:easyflash/port/ef_port.c **** 
+ 458              		.loc 1 164 26 is_stmt 0 view .LVU127
+ 459 0044 0023     		movs	r3, #0
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 460              		.loc 1 166 17 view .LVU128
+ 461 0046 02A9     		add	r1, sp, #8
+ 462 0048 03A8     		add	r0, sp, #12
+ 164:easyflash/port/ef_port.c **** 
+ 463              		.loc 1 164 26 view .LVU129
+ 464 004a 0593     		str	r3, [sp, #20]
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 465              		.loc 1 166 3 is_stmt 1 view .LVU130
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 466              		.loc 1 166 17 is_stmt 0 view .LVU131
+ 467 004c FFF7FEFF 		bl	HAL_FLASHEx_Erase
+ 468              	.LVL35:
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 469              		.loc 1 166 6 view .LVU132
+ 470 0050 0028     		cmp	r0, #0
+ 471 0052 55D1     		bne	.L34
+ 472              	.LVL36:
+ 473              	.L48:
+ 143:easyflash/port/ef_port.c **** 	EfErrCode result = EF_NO_ERR;
+ 474              		.loc 1 143 53 view .LVU133
+ 475 0054 4FF48043 		mov	r3, #16384
+ 476              	.L35:
+ 171:easyflash/port/ef_port.c **** 	}
+ARM GAS  /tmp/cctYVs0W.s 			page 20
+
+
+ 477              		.loc 1 171 15 view .LVU134
+ 478 0058 1C44     		add	r4, r4, r3
+ 479              	.LVL37:
+ 162:easyflash/port/ef_port.c **** 		cur_erase_sector = stm32_get_sector(addr + erased_size);
+ 480              		.loc 1 162 8 is_stmt 1 view .LVU135
+ 481 005a A642     		cmp	r6, r4
+ 482 005c ECD8     		bhi	.L49
+ 144:easyflash/port/ef_port.c **** 
+ 483              		.loc 1 144 12 is_stmt 0 view .LVU136
+ 484 005e 0026     		movs	r6, #0
+ 485              	.LVL38:
+ 486              	.L32:
+ 173:easyflash/port/ef_port.c **** 
+ 487              		.loc 1 173 2 is_stmt 1 view .LVU137
+ 488 0060 FFF7FEFF 		bl	HAL_FLASH_Lock
+ 489              	.LVL39:
+ 175:easyflash/port/ef_port.c **** }
+ 490              		.loc 1 175 2 view .LVU138
+ 176:easyflash/port/ef_port.c **** /**
+ 491              		.loc 1 176 1 is_stmt 0 view .LVU139
+ 492 0064 3046     		mov	r0, r6
+ 493 0066 09B0     		add	sp, sp, #36
+ 494              		.cfi_remember_state
+ 495              		.cfi_def_cfa_offset 28
+ 496              		@ sp needed
+ 497 0068 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 498              	.LVL40:
+ 499              	.L33:
+ 500              		.cfi_restore_state
+ 501              	.LBB27:
+ 502              	.LBB16:
+ 242:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_1)) {
+ 503              		.loc 1 242 9 is_stmt 1 view .LVU140
+ 242:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_1)) {
+ 504              		.loc 1 242 45 is_stmt 0 view .LVU141
+ 505 006c A3F58041 		sub	r1, r3, #16384
+ 242:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_1)) {
+ 506              		.loc 1 242 12 view .LVU142
+ 507 0070 B1F5804F 		cmp	r1, #16384
+ 508 0074 3DD3     		bcc	.L36
+ 245:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_2)) {
+ 509              		.loc 1 245 9 is_stmt 1 view .LVU143
+ 245:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_2)) {
+ 510              		.loc 1 245 45 is_stmt 0 view .LVU144
+ 511 0076 A3F50041 		sub	r1, r3, #32768
+ 245:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_2)) {
+ 512              		.loc 1 245 12 view .LVU145
+ 513 007a B1F5804F 		cmp	r1, #16384
+ 514 007e 41D3     		bcc	.L37
+ 248:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_3)) {
+ 515              		.loc 1 248 9 is_stmt 1 view .LVU146
+ 248:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_3)) {
+ 516              		.loc 1 248 45 is_stmt 0 view .LVU147
+ 517 0080 A3F54043 		sub	r3, r3, #49152
+ 248:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_3)) {
+ 518              		.loc 1 248 12 view .LVU148
+ 519 0084 B3F5804F 		cmp	r3, #16384
+ARM GAS  /tmp/cctYVs0W.s 			page 21
+
+
+ 520 0088 45D3     		bcc	.L38
+ 251:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_4)) {
+ 521              		.loc 1 251 9 is_stmt 1 view .LVU149
+ 251:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_4)) {
+ 522              		.loc 1 251 45 is_stmt 0 view .LVU150
+ 523 008a 02F17742 		add	r2, r2, #-150994944
+ 524              	.LVL41:
+ 251:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_4)) {
+ 525              		.loc 1 251 45 view .LVU151
+ 526 008e 02F57F03 		add	r3, r2, #16711680
+ 251:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_4)) {
+ 527              		.loc 1 251 12 view .LVU152
+ 528 0092 B3F5803F 		cmp	r3, #65536
+ 529 0096 49D3     		bcc	.L39
+ 254:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_5)) {
+ 530              		.loc 1 254 9 is_stmt 1 view .LVU153
+ 254:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_5)) {
+ 531              		.loc 1 254 45 is_stmt 0 view .LVU154
+ 532 0098 02F57E03 		add	r3, r2, #16646144
+ 254:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_5)) {
+ 533              		.loc 1 254 12 view .LVU155
+ 534 009c B3F5003F 		cmp	r3, #131072
+ 535 00a0 4FD3     		bcc	.L40
+ 257:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_6)) {
+ 536              		.loc 1 257 9 is_stmt 1 view .LVU156
+ 257:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_6)) {
+ 537              		.loc 1 257 45 is_stmt 0 view .LVU157
+ 538 00a2 02F57C03 		add	r3, r2, #16515072
+ 257:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_6)) {
+ 539              		.loc 1 257 12 view .LVU158
+ 540 00a6 B3F5003F 		cmp	r3, #131072
+ 541 00aa 3DD3     		bcc	.L41
+ 260:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_7)) {
+ 542              		.loc 1 260 9 is_stmt 1 view .LVU159
+ 260:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_7)) {
+ 543              		.loc 1 260 45 is_stmt 0 view .LVU160
+ 544 00ac 02F57A03 		add	r3, r2, #16384000
+ 260:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_7)) {
+ 545              		.loc 1 260 12 view .LVU161
+ 546 00b0 B3F5003F 		cmp	r3, #131072
+ 547 00b4 51D3     		bcc	.L42
+ 263:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_8)) {
+ 548              		.loc 1 263 9 is_stmt 1 view .LVU162
+ 263:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_8)) {
+ 549              		.loc 1 263 45 is_stmt 0 view .LVU163
+ 550 00b6 02F57803 		add	r3, r2, #16252928
+ 263:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_8)) {
+ 551              		.loc 1 263 12 view .LVU164
+ 552 00ba B3F5003F 		cmp	r3, #131072
+ 553 00be 42D3     		bcc	.L43
+ 266:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_9)) {
+ 554              		.loc 1 266 9 is_stmt 1 view .LVU165
+ 266:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_9)) {
+ 555              		.loc 1 266 46 is_stmt 0 view .LVU166
+ 556 00c0 02F57603 		add	r3, r2, #16121856
+ 266:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_9)) {
+ 557              		.loc 1 266 12 view .LVU167
+ARM GAS  /tmp/cctYVs0W.s 			page 22
+
+
+ 558 00c4 B3F5003F 		cmp	r3, #131072
+ 559 00c8 4BD3     		bcc	.L44
+ 269:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_10)) {
+ 560              		.loc 1 269 9 is_stmt 1 view .LVU168
+ 269:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_10)) {
+ 561              		.loc 1 269 46 is_stmt 0 view .LVU169
+ 562 00ca 02F57403 		add	r3, r2, #15990784
+ 269:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_10)) {
+ 563              		.loc 1 269 12 view .LVU170
+ 564 00ce B3F5003F 		cmp	r3, #131072
+ 565 00d2 44D3     		bcc	.L45
+ 272:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_11)) {
+ 566              		.loc 1 272 9 is_stmt 1 view .LVU171
+ 272:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_11)) {
+ 567              		.loc 1 272 46 is_stmt 0 view .LVU172
+ 568 00d4 02F57202 		add	r2, r2, #15859712
+ 569              	.LVL42:
+ 272:easyflash/port/ef_port.c **** 	           (address >= ADDR_FLASH_SECTOR_11)) {
+ 570              		.loc 1 272 12 view .LVU173
+ 571 00d8 B2F5003F 		cmp	r2, #131072
+ 572 00dc B2D2     		bcs	.L46
+ 274:easyflash/port/ef_port.c **** 	}
+ 573              		.loc 1 274 3 is_stmt 1 view .LVU174
+ 574              	.LVL43:
+ 315:easyflash/port/ef_port.c **** }
+ 575              		.loc 1 315 2 view .LVU175
+ 315:easyflash/port/ef_port.c **** }
+ 576              		.loc 1 315 2 is_stmt 0 view .LVU176
+ 577              	.LBE16:
+ 578              	.LBE27:
+ 164:easyflash/port/ef_port.c **** 
+ 579              		.loc 1 164 3 is_stmt 1 view .LVU177
+ 164:easyflash/port/ef_port.c **** 
+ 580              		.loc 1 164 26 is_stmt 0 view .LVU178
+ 581 00de 0B23     		movs	r3, #11
+ 582              	.LVL44:
+ 583              	.L55:
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 584              		.loc 1 166 17 view .LVU179
+ 585 00e0 02A9     		add	r1, sp, #8
+ 586 00e2 03A8     		add	r0, sp, #12
+ 164:easyflash/port/ef_port.c **** 
+ 587              		.loc 1 164 26 view .LVU180
+ 588 00e4 0593     		str	r3, [sp, #20]
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 589              		.loc 1 166 3 is_stmt 1 view .LVU181
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 590              		.loc 1 166 17 is_stmt 0 view .LVU182
+ 591 00e6 FFF7FEFF 		bl	HAL_FLASHEx_Erase
+ 592              	.LVL45:
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 593              		.loc 1 166 6 view .LVU183
+ 594 00ea 48B9     		cbnz	r0, .L34
+ 595              	.L53:
+ 596 00ec 4FF40033 		mov	r3, #131072
+ 597 00f0 B2E7     		b	.L35
+ 598              	.LVL46:
+ARM GAS  /tmp/cctYVs0W.s 			page 23
+
+
+ 599              	.L36:
+ 600              	.LBB28:
+ 601              	.LBB17:
+ 315:easyflash/port/ef_port.c **** }
+ 602              		.loc 1 315 2 is_stmt 1 view .LVU184
+ 315:easyflash/port/ef_port.c **** }
+ 603              		.loc 1 315 2 is_stmt 0 view .LVU185
+ 604              	.LBE17:
+ 605              	.LBE28:
+ 164:easyflash/port/ef_port.c **** 
+ 606              		.loc 1 164 3 is_stmt 1 view .LVU186
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 607              		.loc 1 166 17 is_stmt 0 view .LVU187
+ 608 00f2 02A9     		add	r1, sp, #8
+ 609 00f4 03A8     		add	r0, sp, #12
+ 164:easyflash/port/ef_port.c **** 
+ 610              		.loc 1 164 26 view .LVU188
+ 611 00f6 0597     		str	r7, [sp, #20]
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 612              		.loc 1 166 3 is_stmt 1 view .LVU189
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 613              		.loc 1 166 17 is_stmt 0 view .LVU190
+ 614 00f8 FFF7FEFF 		bl	HAL_FLASHEx_Erase
+ 615              	.LVL47:
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 616              		.loc 1 166 6 view .LVU191
+ 617 00fc 0028     		cmp	r0, #0
+ 618 00fe A9D0     		beq	.L48
+ 619              	.LVL48:
+ 620              	.L34:
+ 167:easyflash/port/ef_port.c **** 			break;
+ 621              		.loc 1 167 11 view .LVU192
+ 622 0100 0126     		movs	r6, #1
+ 623              	.LVL49:
+ 167:easyflash/port/ef_port.c **** 			break;
+ 624              		.loc 1 167 11 view .LVU193
+ 625 0102 ADE7     		b	.L32
+ 626              	.LVL50:
+ 627              	.L37:
+ 628              	.LBB29:
+ 629              	.LBB18:
+ 315:easyflash/port/ef_port.c **** }
+ 630              		.loc 1 315 2 is_stmt 1 view .LVU194
+ 315:easyflash/port/ef_port.c **** }
+ 631              		.loc 1 315 2 is_stmt 0 view .LVU195
+ 632              	.LBE18:
+ 633              	.LBE29:
+ 164:easyflash/port/ef_port.c **** 
+ 634              		.loc 1 164 3 is_stmt 1 view .LVU196
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 635              		.loc 1 166 17 is_stmt 0 view .LVU197
+ 636 0104 02A9     		add	r1, sp, #8
+ 637 0106 03A8     		add	r0, sp, #12
+ 164:easyflash/port/ef_port.c **** 
+ 638              		.loc 1 164 26 view .LVU198
+ 639 0108 CDF81480 		str	r8, [sp, #20]
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ARM GAS  /tmp/cctYVs0W.s 			page 24
+
+
+ 640              		.loc 1 166 3 is_stmt 1 view .LVU199
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 641              		.loc 1 166 17 is_stmt 0 view .LVU200
+ 642 010c FFF7FEFF 		bl	HAL_FLASHEx_Erase
+ 643              	.LVL51:
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 644              		.loc 1 166 6 view .LVU201
+ 645 0110 0028     		cmp	r0, #0
+ 646 0112 9FD0     		beq	.L48
+ 647 0114 F4E7     		b	.L34
+ 648              	.LVL52:
+ 649              	.L38:
+ 650              	.LBB30:
+ 651              	.LBB19:
+ 315:easyflash/port/ef_port.c **** }
+ 652              		.loc 1 315 2 is_stmt 1 view .LVU202
+ 315:easyflash/port/ef_port.c **** }
+ 653              		.loc 1 315 2 is_stmt 0 view .LVU203
+ 654              	.LBE19:
+ 655              	.LBE30:
+ 164:easyflash/port/ef_port.c **** 
+ 656              		.loc 1 164 3 is_stmt 1 view .LVU204
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 657              		.loc 1 166 17 is_stmt 0 view .LVU205
+ 658 0116 02A9     		add	r1, sp, #8
+ 659 0118 03A8     		add	r0, sp, #12
+ 164:easyflash/port/ef_port.c **** 
+ 660              		.loc 1 164 26 view .LVU206
+ 661 011a CDF81490 		str	r9, [sp, #20]
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 662              		.loc 1 166 3 is_stmt 1 view .LVU207
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 663              		.loc 1 166 17 is_stmt 0 view .LVU208
+ 664 011e FFF7FEFF 		bl	HAL_FLASHEx_Erase
+ 665              	.LVL53:
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 666              		.loc 1 166 6 view .LVU209
+ 667 0122 0028     		cmp	r0, #0
+ 668 0124 96D0     		beq	.L48
+ 669 0126 EBE7     		b	.L34
+ 670              	.LVL54:
+ 671              	.L41:
+ 672              	.LBB31:
+ 673              	.LBB20:
+ 315:easyflash/port/ef_port.c **** }
+ 674              		.loc 1 315 2 is_stmt 1 view .LVU210
+ 315:easyflash/port/ef_port.c **** }
+ 675              		.loc 1 315 2 is_stmt 0 view .LVU211
+ 676              	.LBE20:
+ 677              	.LBE31:
+ 164:easyflash/port/ef_port.c **** 
+ 678              		.loc 1 164 3 is_stmt 1 view .LVU212
+ 164:easyflash/port/ef_port.c **** 
+ 679              		.loc 1 164 26 is_stmt 0 view .LVU213
+ 680 0128 0623     		movs	r3, #6
+ 681 012a D9E7     		b	.L55
+ 682              	.LVL55:
+ARM GAS  /tmp/cctYVs0W.s 			page 25
+
+
+ 683              	.L39:
+ 684              	.LBB32:
+ 685              	.LBB21:
+ 315:easyflash/port/ef_port.c **** }
+ 686              		.loc 1 315 2 is_stmt 1 view .LVU214
+ 315:easyflash/port/ef_port.c **** }
+ 687              		.loc 1 315 2 is_stmt 0 view .LVU215
+ 688              	.LBE21:
+ 689              	.LBE32:
+ 164:easyflash/port/ef_port.c **** 
+ 690              		.loc 1 164 3 is_stmt 1 view .LVU216
+ 164:easyflash/port/ef_port.c **** 
+ 691              		.loc 1 164 26 is_stmt 0 view .LVU217
+ 692 012c 0423     		movs	r3, #4
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 693              		.loc 1 166 17 view .LVU218
+ 694 012e 02A9     		add	r1, sp, #8
+ 695 0130 03A8     		add	r0, sp, #12
+ 164:easyflash/port/ef_port.c **** 
+ 696              		.loc 1 164 26 view .LVU219
+ 697 0132 0593     		str	r3, [sp, #20]
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 698              		.loc 1 166 3 is_stmt 1 view .LVU220
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 699              		.loc 1 166 17 is_stmt 0 view .LVU221
+ 700 0134 FFF7FEFF 		bl	HAL_FLASHEx_Erase
+ 701              	.LVL56:
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 702              		.loc 1 166 6 view .LVU222
+ 703 0138 0028     		cmp	r0, #0
+ 704 013a E1D1     		bne	.L34
+ 705 013c 4FF48033 		mov	r3, #65536
+ 706 0140 8AE7     		b	.L35
+ 707              	.LVL57:
+ 708              	.L40:
+ 709              	.LBB33:
+ 710              	.LBB22:
+ 315:easyflash/port/ef_port.c **** }
+ 711              		.loc 1 315 2 is_stmt 1 view .LVU223
+ 315:easyflash/port/ef_port.c **** }
+ 712              		.loc 1 315 2 is_stmt 0 view .LVU224
+ 713              	.LBE22:
+ 714              	.LBE33:
+ 164:easyflash/port/ef_port.c **** 
+ 715              		.loc 1 164 3 is_stmt 1 view .LVU225
+ 164:easyflash/port/ef_port.c **** 
+ 716              		.loc 1 164 26 is_stmt 0 view .LVU226
+ 717 0142 0523     		movs	r3, #5
+ 718 0144 CCE7     		b	.L55
+ 719              	.LVL58:
+ 720              	.L43:
+ 721              	.LBB34:
+ 722              	.LBB23:
+ 315:easyflash/port/ef_port.c **** }
+ 723              		.loc 1 315 2 is_stmt 1 view .LVU227
+ 315:easyflash/port/ef_port.c **** }
+ 724              		.loc 1 315 2 is_stmt 0 view .LVU228
+ARM GAS  /tmp/cctYVs0W.s 			page 26
+
+
+ 725              	.LBE23:
+ 726              	.LBE34:
+ 164:easyflash/port/ef_port.c **** 
+ 727              		.loc 1 164 3 is_stmt 1 view .LVU229
+ 164:easyflash/port/ef_port.c **** 
+ 728              		.loc 1 164 26 is_stmt 0 view .LVU230
+ 729 0146 0823     		movs	r3, #8
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 730              		.loc 1 166 17 view .LVU231
+ 731 0148 0DEB0301 		add	r1, sp, r3
+ 732 014c 03A8     		add	r0, sp, #12
+ 164:easyflash/port/ef_port.c **** 
+ 733              		.loc 1 164 26 view .LVU232
+ 734 014e 0593     		str	r3, [sp, #20]
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 735              		.loc 1 166 3 is_stmt 1 view .LVU233
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 736              		.loc 1 166 17 is_stmt 0 view .LVU234
+ 737 0150 FFF7FEFF 		bl	HAL_FLASHEx_Erase
+ 738              	.LVL59:
+ 166:easyflash/port/ef_port.c **** 			result = EF_ERASE_ERR;
+ 739              		.loc 1 166 6 view .LVU235
+ 740 0154 0028     		cmp	r0, #0
+ 741 0156 C9D0     		beq	.L53
+ 742 0158 D2E7     		b	.L34
+ 743              	.LVL60:
+ 744              	.L42:
+ 745              	.LBB35:
+ 746              	.LBB24:
+ 315:easyflash/port/ef_port.c **** }
+ 747              		.loc 1 315 2 is_stmt 1 view .LVU236
+ 315:easyflash/port/ef_port.c **** }
+ 748              		.loc 1 315 2 is_stmt 0 view .LVU237
+ 749              	.LBE24:
+ 750              	.LBE35:
+ 164:easyflash/port/ef_port.c **** 
+ 751              		.loc 1 164 3 is_stmt 1 view .LVU238
+ 164:easyflash/port/ef_port.c **** 
+ 752              		.loc 1 164 26 is_stmt 0 view .LVU239
+ 753 015a 0723     		movs	r3, #7
+ 754 015c C0E7     		b	.L55
+ 755              	.LVL61:
+ 756              	.L45:
+ 757              	.LBB36:
+ 758              	.LBB25:
+ 315:easyflash/port/ef_port.c **** }
+ 759              		.loc 1 315 2 is_stmt 1 view .LVU240
+ 315:easyflash/port/ef_port.c **** }
+ 760              		.loc 1 315 2 is_stmt 0 view .LVU241
+ 761              	.LBE25:
+ 762              	.LBE36:
+ 164:easyflash/port/ef_port.c **** 
+ 763              		.loc 1 164 3 is_stmt 1 view .LVU242
+ 164:easyflash/port/ef_port.c **** 
+ 764              		.loc 1 164 26 is_stmt 0 view .LVU243
+ 765 015e 0A23     		movs	r3, #10
+ 766 0160 BEE7     		b	.L55
+ARM GAS  /tmp/cctYVs0W.s 			page 27
+
+
+ 767              	.LVL62:
+ 768              	.L44:
+ 769              	.LBB37:
+ 770              	.LBB26:
+ 315:easyflash/port/ef_port.c **** }
+ 771              		.loc 1 315 2 is_stmt 1 view .LVU244
+ 315:easyflash/port/ef_port.c **** }
+ 772              		.loc 1 315 2 is_stmt 0 view .LVU245
+ 773              	.LBE26:
+ 774              	.LBE37:
+ 164:easyflash/port/ef_port.c **** 
+ 775              		.loc 1 164 3 is_stmt 1 view .LVU246
+ 164:easyflash/port/ef_port.c **** 
+ 776              		.loc 1 164 26 is_stmt 0 view .LVU247
+ 777 0162 0923     		movs	r3, #9
+ 778 0164 BCE7     		b	.L55
+ 779              	.L61:
+ 780 0166 00BF     		.align	2
+ 781              	.L60:
+ 782 0168 00000000 		.word	.LANCHOR1
+ 783 016c 00000000 		.word	.LC0
+ 784 0170 20000000 		.word	.LC1
+ 785 0174 40000000 		.word	.LC2
+ 786              		.cfi_endproc
+ 787              	.LFE237:
+ 789              		.section	.text.ef_log_info,"ax",%progbits
+ 790              		.align	1
+ 791              		.p2align 2,,3
+ 792              		.global	ef_log_info
+ 793              		.syntax unified
+ 794              		.thumb
+ 795              		.thumb_func
+ 797              	ef_log_info:
+ 798              	.LVL63:
+ 799              	.LFB244:
+ 393:easyflash/port/ef_port.c **** 
+ 394:easyflash/port/ef_port.c **** /**
+ 395:easyflash/port/ef_port.c ****  * This function is print flash routine info.
+ 396:easyflash/port/ef_port.c ****  *
+ 397:easyflash/port/ef_port.c ****  * @param format output format
+ 398:easyflash/port/ef_port.c ****  * @param ... args
+ 399:easyflash/port/ef_port.c ****  */
+ 400:easyflash/port/ef_port.c **** void ef_log_info(const char *format, ...) {
+ 800              		.loc 1 400 43 is_stmt 1 view -0
+ 801              		.cfi_startproc
+ 802              		@ args = 4, pretend = 16, frame = 8
+ 803              		@ frame_needed = 0, uses_anonymous_args = 1
+ 804              		@ link register save eliminated.
+ 401:easyflash/port/ef_port.c **** 	va_list args;
+ 805              		.loc 1 401 2 view .LVU249
+ 402:easyflash/port/ef_port.c **** 
+ 403:easyflash/port/ef_port.c **** 	/* args point to the first variable parameter */
+ 404:easyflash/port/ef_port.c **** 	va_start(args, format);
+ 806              		.loc 1 404 2 view .LVU250
+ 400:easyflash/port/ef_port.c **** 	va_list args;
+ 807              		.loc 1 400 43 is_stmt 0 view .LVU251
+ 808 0000 0FB4     		push	{r0, r1, r2, r3}
+ARM GAS  /tmp/cctYVs0W.s 			page 28
+
+
+ 809              		.cfi_def_cfa_offset 16
+ 810              		.cfi_offset 0, -16
+ 811              		.cfi_offset 1, -12
+ 812              		.cfi_offset 2, -8
+ 813              		.cfi_offset 3, -4
+ 814 0002 82B0     		sub	sp, sp, #8
+ 815              		.cfi_def_cfa_offset 24
+ 816              		.loc 1 404 2 view .LVU252
+ 817 0004 03AB     		add	r3, sp, #12
+ 818 0006 0193     		str	r3, [sp, #4]
+ 405:easyflash/port/ef_port.c **** 
+ 406:easyflash/port/ef_port.c **** 	/* You can add your code under here. */
+ 407:easyflash/port/ef_port.c **** 
+ 408:easyflash/port/ef_port.c **** 	va_end(args);
+ 819              		.loc 1 408 2 is_stmt 1 view .LVU253
+ 409:easyflash/port/ef_port.c **** }
+ 820              		.loc 1 409 1 is_stmt 0 view .LVU254
+ 821 0008 02B0     		add	sp, sp, #8
+ 822              		.cfi_def_cfa_offset 16
+ 823              		@ sp needed
+ 824 000a 04B0     		add	sp, sp, #16
+ 825              		.cfi_restore 3
+ 826              		.cfi_restore 2
+ 827              		.cfi_restore 1
+ 828              		.cfi_restore 0
+ 829              		.cfi_def_cfa_offset 0
+ 830 000c 7047     		bx	lr
+ 831              		.cfi_endproc
+ 832              	.LFE244:
+ 834 000e 00BF     		.section	.text.ef_print,"ax",%progbits
+ 835              		.align	1
+ 836              		.p2align 2,,3
+ 837              		.global	ef_print
+ 838              		.syntax unified
+ 839              		.thumb
+ 840              		.thumb_func
+ 842              	ef_print:
+ 843              	.LVL64:
+ 844              	.LFB245:
+ 410:easyflash/port/ef_port.c **** /**
+ 411:easyflash/port/ef_port.c ****  * This function is print flash non-package info.
+ 412:easyflash/port/ef_port.c ****  *
+ 413:easyflash/port/ef_port.c ****  * @param format output format
+ 414:easyflash/port/ef_port.c ****  * @param ... args
+ 415:easyflash/port/ef_port.c ****  */
+ 416:easyflash/port/ef_port.c **** void ef_print(const char *format, ...) {
+ 845              		.loc 1 416 40 is_stmt 1 view -0
+ 846              		.cfi_startproc
+ 847              		@ args = 4, pretend = 16, frame = 8
+ 848              		@ frame_needed = 0, uses_anonymous_args = 1
+ 849              		@ link register save eliminated.
+ 417:easyflash/port/ef_port.c **** 	va_list args;
+ 850              		.loc 1 417 2 view .LVU256
+ 418:easyflash/port/ef_port.c **** 
+ 419:easyflash/port/ef_port.c **** 	/* args point to the first variable parameter */
+ 420:easyflash/port/ef_port.c **** 	va_start(args, format);
+ 851              		.loc 1 420 2 view .LVU257
+ARM GAS  /tmp/cctYVs0W.s 			page 29
+
+
+ 416:easyflash/port/ef_port.c **** 	va_list args;
+ 852              		.loc 1 416 40 is_stmt 0 view .LVU258
+ 853 0000 0FB4     		push	{r0, r1, r2, r3}
+ 854              		.cfi_def_cfa_offset 16
+ 855              		.cfi_offset 0, -16
+ 856              		.cfi_offset 1, -12
+ 857              		.cfi_offset 2, -8
+ 858              		.cfi_offset 3, -4
+ 859 0002 82B0     		sub	sp, sp, #8
+ 860              		.cfi_def_cfa_offset 24
+ 861              		.loc 1 420 2 view .LVU259
+ 862 0004 03AB     		add	r3, sp, #12
+ 863 0006 0193     		str	r3, [sp, #4]
+ 421:easyflash/port/ef_port.c **** 
+ 422:easyflash/port/ef_port.c **** 	/* You can add your code under here. */
+ 423:easyflash/port/ef_port.c **** 
+ 424:easyflash/port/ef_port.c **** 	va_end(args);
+ 864              		.loc 1 424 2 is_stmt 1 view .LVU260
+ 425:easyflash/port/ef_port.c **** }
+ 865              		.loc 1 425 1 is_stmt 0 view .LVU261
+ 866 0008 02B0     		add	sp, sp, #8
+ 867              		.cfi_def_cfa_offset 16
+ 868              		@ sp needed
+ 869 000a 04B0     		add	sp, sp, #16
+ 870              		.cfi_restore 3
+ 871              		.cfi_restore 2
+ 872              		.cfi_restore 1
+ 873              		.cfi_restore 0
+ 874              		.cfi_def_cfa_offset 0
+ 875 000c 7047     		bx	lr
+ 876              		.cfi_endproc
+ 877              	.LFE245:
+ 879 000e 00BF     		.section	.rodata.str1.4,"aMS",%progbits,1
+ 880              		.align	2
+ 881              	.LC3:
+ 882 0000 626F6F74 		.ascii	"boot_times\000"
+ 882      5F74696D 
+ 882      657300
+ 883 000b 00       		.align	2
+ 884              	.LC4:
+ 885 000c 3000     		.ascii	"0\000"
+ 886              		.section	.rodata.__FUNCTION__.1,"a"
+ 887              		.align	2
+ 888              		.set	.LANCHOR1,. + 0
+ 891              	__FUNCTION__.1:
+ 892 0000 65665F70 		.ascii	"ef_port_erase\000"
+ 892      6F72745F 
+ 892      65726173 
+ 892      6500
+ 893              		.section	.rodata.default_env_set,"a"
+ 894              		.align	2
+ 895              		.set	.LANCHOR0,. + 0
+ 898              	default_env_set:
+ 899 0000 00000000 		.word	.LC3
+ 900 0004 0C000000 		.word	.LC4
+ 901 0008 00000000 		.space	4
+ 902              		.text
+ARM GAS  /tmp/cctYVs0W.s 			page 30
+
+
+ 903              	.Letext0:
+ 904              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 905              		.file 4 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 906              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 907              		.file 6 "/opt/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/include/stddef.h"
+ 908              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h"
+ 909              		.file 8 "easyflash/inc/ef_def.h"
+ 910              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 911              		.file 10 "/opt/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/include/stdarg.h"
+ 912              		.file 11 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h"
+ 913              		.file 12 "<built-in>"
+ARM GAS  /tmp/cctYVs0W.s 			page 31
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ef_port.c
+     /tmp/cctYVs0W.s:20     .text.ef_port_init:0000000000000000 $t
+     /tmp/cctYVs0W.s:27     .text.ef_port_init:0000000000000000 ef_port_init
+     /tmp/cctYVs0W.s:55     .text.ef_port_init:000000000000000c $d
+     /tmp/cctYVs0W.s:60     .text.ef_port_read:0000000000000000 $t
+     /tmp/cctYVs0W.s:67     .text.ef_port_read:0000000000000000 ef_port_read
+     /tmp/cctYVs0W.s:111    .text.ef_port_write:0000000000000000 $t
+     /tmp/cctYVs0W.s:118    .text.ef_port_write:0000000000000000 ef_port_write
+     /tmp/cctYVs0W.s:229    .text.ef_port_write:0000000000000050 $d
+     /tmp/cctYVs0W.s:234    .text.ef_port_env_lock:0000000000000000 $t
+     /tmp/cctYVs0W.s:241    .text.ef_port_env_lock:0000000000000000 ef_port_env_lock
+     /tmp/cctYVs0W.s:269    .text.ef_port_env_unlock:0000000000000000 $t
+     /tmp/cctYVs0W.s:276    .text.ef_port_env_unlock:0000000000000000 ef_port_env_unlock
+     /tmp/cctYVs0W.s:303    .text.ef_log_debug:0000000000000000 $t
+     /tmp/cctYVs0W.s:310    .text.ef_log_debug:0000000000000000 ef_log_debug
+     /tmp/cctYVs0W.s:344    .rodata.ef_port_erase.str1.4:0000000000000000 $d
+     /tmp/cctYVs0W.s:354    .text.ef_port_erase:0000000000000000 $t
+     /tmp/cctYVs0W.s:361    .text.ef_port_erase:0000000000000000 ef_port_erase
+     /tmp/cctYVs0W.s:782    .text.ef_port_erase:0000000000000168 $d
+     /tmp/cctYVs0W.s:790    .text.ef_log_info:0000000000000000 $t
+     /tmp/cctYVs0W.s:797    .text.ef_log_info:0000000000000000 ef_log_info
+     /tmp/cctYVs0W.s:835    .text.ef_print:0000000000000000 $t
+     /tmp/cctYVs0W.s:842    .text.ef_print:0000000000000000 ef_print
+     /tmp/cctYVs0W.s:880    .rodata.str1.4:0000000000000000 $d
+     /tmp/cctYVs0W.s:887    .rodata.__FUNCTION__.1:0000000000000000 $d
+     /tmp/cctYVs0W.s:891    .rodata.__FUNCTION__.1:0000000000000000 __FUNCTION__.1
+     /tmp/cctYVs0W.s:894    .rodata.default_env_set:0000000000000000 $d
+     /tmp/cctYVs0W.s:898    .rodata.default_env_set:0000000000000000 default_env_set
+
+UNDEFINED SYMBOLS
+HAL_FLASH_Unlock
+HAL_FLASH_Program
+HAL_FLASH_Lock
+HAL_FLASHEx_Erase

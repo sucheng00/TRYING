@@ -1,0 +1,205 @@
+ARM GAS  /tmp/cc21oRAN.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_can.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.can_filter_init,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	can_filter_init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	can_filter_init:
+  28              	.LFB235:
+  29              		.file 1 "bsp/boards/Src/bsp_can.c"
+   1:bsp/boards/Src/bsp_can.c **** #include "bsp_can.h"
+   2:bsp/boards/Src/bsp_can.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_can.c **** 
+   4:bsp/boards/Src/bsp_can.c **** 
+   5:bsp/boards/Src/bsp_can.c **** extern CAN_HandleTypeDef hcan1;
+   6:bsp/boards/Src/bsp_can.c **** extern CAN_HandleTypeDef hcan2;
+   7:bsp/boards/Src/bsp_can.c **** 
+   8:bsp/boards/Src/bsp_can.c **** void can_filter_init(void)
+   9:bsp/boards/Src/bsp_can.c **** {
+  30              		.loc 1 9 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 40
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  10:bsp/boards/Src/bsp_can.c **** 
+  11:bsp/boards/Src/bsp_can.c ****     CAN_FilterTypeDef can_filter_st;
+  34              		.loc 1 11 5 view .LVU1
+  12:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterActivation = ENABLE;
+  35              		.loc 1 12 5 view .LVU2
+   9:bsp/boards/Src/bsp_can.c **** 
+  36              		.loc 1 9 1 is_stmt 0 view .LVU3
+  37 0000 30B5     		push	{r4, r5, lr}
+  38              		.cfi_def_cfa_offset 12
+  39              		.cfi_offset 4, -12
+  40              		.cfi_offset 5, -8
+  41              		.cfi_offset 14, -4
+  13:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterMode = CAN_FILTERMODE_IDMASK;
+  14:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterScale = CAN_FILTERSCALE_32BIT;
+  15:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterIdHigh = 0x0000;
+  16:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterIdLow = 0x0000;
+ARM GAS  /tmp/cc21oRAN.s 			page 2
+
+
+  17:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterMaskIdHigh = 0x0000;
+  18:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterMaskIdLow = 0x0000;
+  19:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterBank = 0;
+  20:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterFIFOAssignment = CAN_RX_FIFO0;
+  21:bsp/boards/Src/bsp_can.c ****     HAL_CAN_ConfigFilter(&hcan1, &can_filter_st);
+  42              		.loc 1 21 5 view .LVU4
+  43 0002 144D     		ldr	r5, .L4
+  22:bsp/boards/Src/bsp_can.c ****     HAL_CAN_Start(&hcan1);
+  23:bsp/boards/Src/bsp_can.c ****     HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+  24:bsp/boards/Src/bsp_can.c **** 
+  25:bsp/boards/Src/bsp_can.c **** 
+  26:bsp/boards/Src/bsp_can.c ****     can_filter_st.SlaveStartFilterBank = 14;
+  27:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterBank = 14;
+  28:bsp/boards/Src/bsp_can.c ****     HAL_CAN_ConfigFilter(&hcan2, &can_filter_st);
+  44              		.loc 1 28 5 view .LVU5
+  45 0004 144C     		ldr	r4, .L4+4
+   9:bsp/boards/Src/bsp_can.c **** 
+  46              		.loc 1 9 1 view .LVU6
+  47 0006 8BB0     		sub	sp, sp, #44
+  48              		.cfi_def_cfa_offset 56
+  12:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterMode = CAN_FILTERMODE_IDMASK;
+  49              		.loc 1 12 36 view .LVU7
+  50 0008 0122     		movs	r2, #1
+  13:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterScale = CAN_FILTERSCALE_32BIT;
+  51              		.loc 1 13 30 view .LVU8
+  52 000a 0023     		movs	r3, #0
+  21:bsp/boards/Src/bsp_can.c ****     HAL_CAN_Start(&hcan1);
+  53              		.loc 1 21 5 view .LVU9
+  54 000c 6946     		mov	r1, sp
+  55 000e 2846     		mov	r0, r5
+  14:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterIdHigh = 0x0000;
+  56              		.loc 1 14 31 view .LVU10
+  57 0010 CDE90632 		strd	r3, r2, [sp, #24]
+  12:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterMode = CAN_FILTERMODE_IDMASK;
+  58              		.loc 1 12 36 view .LVU11
+  59 0014 0892     		str	r2, [sp, #32]
+  13:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterScale = CAN_FILTERSCALE_32BIT;
+  60              		.loc 1 13 5 is_stmt 1 view .LVU12
+  15:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterIdLow = 0x0000;
+  61              		.loc 1 15 5 view .LVU13
+  16:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterMaskIdHigh = 0x0000;
+  62              		.loc 1 16 31 is_stmt 0 view .LVU14
+  63 0016 CDE90033 		strd	r3, r3, [sp]
+  17:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterMaskIdLow = 0x0000;
+  64              		.loc 1 17 5 is_stmt 1 view .LVU15
+  18:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterBank = 0;
+  65              		.loc 1 18 35 is_stmt 0 view .LVU16
+  66 001a CDE90233 		strd	r3, r3, [sp, #8]
+  19:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterFIFOAssignment = CAN_RX_FIFO0;
+  67              		.loc 1 19 5 is_stmt 1 view .LVU17
+  20:bsp/boards/Src/bsp_can.c ****     HAL_CAN_ConfigFilter(&hcan1, &can_filter_st);
+  68              		.loc 1 20 40 is_stmt 0 view .LVU18
+  69 001e CDE90433 		strd	r3, r3, [sp, #16]
+  21:bsp/boards/Src/bsp_can.c ****     HAL_CAN_Start(&hcan1);
+  70              		.loc 1 21 5 is_stmt 1 view .LVU19
+  71 0022 FFF7FEFF 		bl	HAL_CAN_ConfigFilter
+  72              	.LVL0:
+ARM GAS  /tmp/cc21oRAN.s 			page 3
+
+
+  22:bsp/boards/Src/bsp_can.c ****     HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+  73              		.loc 1 22 5 view .LVU20
+  74 0026 2846     		mov	r0, r5
+  75 0028 FFF7FEFF 		bl	HAL_CAN_Start
+  76              	.LVL1:
+  23:bsp/boards/Src/bsp_can.c **** 
+  77              		.loc 1 23 5 view .LVU21
+  78 002c 0221     		movs	r1, #2
+  79 002e 2846     		mov	r0, r5
+  80 0030 FFF7FEFF 		bl	HAL_CAN_ActivateNotification
+  81              	.LVL2:
+  26:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterBank = 14;
+  82              		.loc 1 26 5 view .LVU22
+  26:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterBank = 14;
+  83              		.loc 1 26 40 is_stmt 0 view .LVU23
+  84 0034 0E23     		movs	r3, #14
+  85              		.loc 1 28 5 view .LVU24
+  86 0036 6946     		mov	r1, sp
+  87 0038 2046     		mov	r0, r4
+  26:bsp/boards/Src/bsp_can.c ****     can_filter_st.FilterBank = 14;
+  88              		.loc 1 26 40 view .LVU25
+  89 003a 0993     		str	r3, [sp, #36]
+  27:bsp/boards/Src/bsp_can.c ****     HAL_CAN_ConfigFilter(&hcan2, &can_filter_st);
+  90              		.loc 1 27 5 is_stmt 1 view .LVU26
+  27:bsp/boards/Src/bsp_can.c ****     HAL_CAN_ConfigFilter(&hcan2, &can_filter_st);
+  91              		.loc 1 27 30 is_stmt 0 view .LVU27
+  92 003c 0593     		str	r3, [sp, #20]
+  93              		.loc 1 28 5 is_stmt 1 view .LVU28
+  94 003e FFF7FEFF 		bl	HAL_CAN_ConfigFilter
+  95              	.LVL3:
+  29:bsp/boards/Src/bsp_can.c ****     HAL_CAN_Start(&hcan2);
+  96              		.loc 1 29 5 view .LVU29
+  97 0042 2046     		mov	r0, r4
+  98 0044 FFF7FEFF 		bl	HAL_CAN_Start
+  99              	.LVL4:
+  30:bsp/boards/Src/bsp_can.c ****     HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);
+ 100              		.loc 1 30 5 view .LVU30
+ 101 0048 0221     		movs	r1, #2
+ 102 004a 2046     		mov	r0, r4
+ 103 004c FFF7FEFF 		bl	HAL_CAN_ActivateNotification
+ 104              	.LVL5:
+  31:bsp/boards/Src/bsp_can.c **** 
+  32:bsp/boards/Src/bsp_can.c **** 
+  33:bsp/boards/Src/bsp_can.c **** 
+  34:bsp/boards/Src/bsp_can.c **** }
+ 105              		.loc 1 34 1 is_stmt 0 view .LVU31
+ 106 0050 0BB0     		add	sp, sp, #44
+ 107              		.cfi_def_cfa_offset 12
+ 108              		@ sp needed
+ 109 0052 30BD     		pop	{r4, r5, pc}
+ 110              	.L5:
+ 111              		.align	2
+ 112              	.L4:
+ 113 0054 00000000 		.word	hcan1
+ 114 0058 00000000 		.word	hcan2
+ 115              		.cfi_endproc
+ 116              	.LFE235:
+ARM GAS  /tmp/cc21oRAN.s 			page 4
+
+
+ 118              		.text
+ 119              	.Letext0:
+ 120              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 121              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 122              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 123              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h"
+ 124              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_can.h"
+ARM GAS  /tmp/cc21oRAN.s 			page 5
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_can.c
+     /tmp/cc21oRAN.s:20     .text.can_filter_init:0000000000000000 $t
+     /tmp/cc21oRAN.s:27     .text.can_filter_init:0000000000000000 can_filter_init
+     /tmp/cc21oRAN.s:113    .text.can_filter_init:0000000000000054 $d
+
+UNDEFINED SYMBOLS
+HAL_CAN_ConfigFilter
+HAL_CAN_Start
+HAL_CAN_ActivateNotification
+hcan1
+hcan2

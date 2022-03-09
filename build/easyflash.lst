@@ -1,0 +1,311 @@
+ARM GAS  /tmp/ccjwJ927.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"easyflash.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.rodata.easyflash_init.str1.4,"aMS",%progbits,1
+  20              		.align	2
+  21              	.LC0:
+  22 0000 342E302E 		.ascii	"4.0.99\000"
+  22      393900
+  23 0007 00       		.align	2
+  24              	.LC1:
+  25 0008 45617379 		.ascii	"EasyFlash V%s is initialize success.\000"
+  25      466C6173 
+  25      68205625 
+  25      73206973 
+  25      20696E69 
+  26 002d 000000   		.align	2
+  27              	.LC2:
+  28 0030 45617379 		.ascii	"EasyFlash V%s is initialize fail.\000"
+  28      466C6173 
+  28      68205625 
+  28      73206973 
+  28      20696E69 
+  29 0052 0000     		.align	2
+  30              	.LC3:
+  31 0054 596F7520 		.ascii	"You can get the latest version on https://github.co"
+  31      63616E20 
+  31      67657420 
+  31      74686520 
+  31      6C617465 
+  32 0087 6D2F6172 		.ascii	"m/armink/EasyFlash .\000"
+  32      6D696E6B 
+  32      2F456173 
+  32      79466C61 
+  32      7368202E 
+  33              		.section	.text.easyflash_init,"ax",%progbits
+  34              		.align	1
+  35              		.p2align 2,,3
+  36              		.global	easyflash_init
+  37              		.syntax unified
+  38              		.thumb
+  39              		.thumb_func
+  41              	easyflash_init:
+ARM GAS  /tmp/ccjwJ927.s 			page 2
+
+
+  42              	.LFB235:
+  43              		.file 1 "easyflash/src/easyflash.c"
+   1:easyflash/src/easyflash.c **** /*
+   2:easyflash/src/easyflash.c ****  * This file is part of the EasyFlash Library.
+   3:easyflash/src/easyflash.c ****  *
+   4:easyflash/src/easyflash.c ****  * Copyright (c) 2014-2019, Armink, <armink.ztl@gmail.com>
+   5:easyflash/src/easyflash.c ****  *
+   6:easyflash/src/easyflash.c ****  * Permission is hereby granted, free of charge, to any person obtaining
+   7:easyflash/src/easyflash.c ****  * a copy of this software and associated documentation files (the
+   8:easyflash/src/easyflash.c ****  * 'Software'), to deal in the Software without restriction, including
+   9:easyflash/src/easyflash.c ****  * without limitation the rights to use, copy, modify, merge, publish,
+  10:easyflash/src/easyflash.c ****  * distribute, sublicense, and/or sell copies of the Software, and to
+  11:easyflash/src/easyflash.c ****  * permit persons to whom the Software is furnished to do so, subject to
+  12:easyflash/src/easyflash.c ****  * the following conditions:
+  13:easyflash/src/easyflash.c ****  *
+  14:easyflash/src/easyflash.c ****  * The above copyright notice and this permission notice shall be
+  15:easyflash/src/easyflash.c ****  * included in all copies or substantial portions of the Software.
+  16:easyflash/src/easyflash.c ****  *
+  17:easyflash/src/easyflash.c ****  * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+  18:easyflash/src/easyflash.c ****  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  19:easyflash/src/easyflash.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  20:easyflash/src/easyflash.c ****  * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  21:easyflash/src/easyflash.c ****  * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  22:easyflash/src/easyflash.c ****  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  23:easyflash/src/easyflash.c ****  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  24:easyflash/src/easyflash.c ****  *
+  25:easyflash/src/easyflash.c ****  * Function: Initialize interface for this library.
+  26:easyflash/src/easyflash.c ****  * Created on: 2014-09-09
+  27:easyflash/src/easyflash.c ****  */
+  28:easyflash/src/easyflash.c **** 
+  29:easyflash/src/easyflash.c **** /*
+  30:easyflash/src/easyflash.c ****  *
+  31:easyflash/src/easyflash.c ****  * This all Backup Area Flash storage index. All used flash area configure is under here.
+  32:easyflash/src/easyflash.c ****  * |----------------------------|   Storage Size
+  33:easyflash/src/easyflash.c ****  * | Environment variables area |   ENV area size @see ENV_AREA_SIZE
+  34:easyflash/src/easyflash.c ****  * |----------------------------|
+  35:easyflash/src/easyflash.c ****  * |      Saved log area        |   Log area size @see LOG_AREA_SIZE
+  36:easyflash/src/easyflash.c ****  * |----------------------------|
+  37:easyflash/src/easyflash.c ****  * |(IAP)Downloaded application |   IAP already downloaded application, unfixed size
+  38:easyflash/src/easyflash.c ****  * |----------------------------|
+  39:easyflash/src/easyflash.c ****  *
+  40:easyflash/src/easyflash.c ****  * @note all area sizes must be aligned with EF_ERASE_MIN_SIZE
+  41:easyflash/src/easyflash.c ****  *
+  42:easyflash/src/easyflash.c ****  * The EasyFlash add the NG (Next Generation) mode start from V4.0. All old mode before V4.0, calle
+  43:easyflash/src/easyflash.c ****  *
+  44:easyflash/src/easyflash.c ****  * - NG (Next Generation) mode is default mode from V4.0. It's easy to settings, only defined the E
+  45:easyflash/src/easyflash.c ****  * - The LEGACY mode has been DEPRECATED. It is NOT RECOMMENDED to continue using.
+  46:easyflash/src/easyflash.c ****  *   Beacuse it will use ram to buffer the ENV and spend more flash erase times.
+  47:easyflash/src/easyflash.c ****  *   If you want use it please using the V3.X version.
+  48:easyflash/src/easyflash.c ****  */
+  49:easyflash/src/easyflash.c **** 
+  50:easyflash/src/easyflash.c **** #include <easyflash.h>
+  51:easyflash/src/easyflash.c **** 
+  52:easyflash/src/easyflash.c **** #if !defined(EF_START_ADDR)
+  53:easyflash/src/easyflash.c ****     #error "Please configure backup area start address (in ef_cfg.h)"
+  54:easyflash/src/easyflash.c **** #endif
+  55:easyflash/src/easyflash.c **** 
+ARM GAS  /tmp/ccjwJ927.s 			page 3
+
+
+  56:easyflash/src/easyflash.c **** #if !defined(EF_ERASE_MIN_SIZE)
+  57:easyflash/src/easyflash.c ****     #error "Please configure minimum size of flash erasure (in ef_cfg.h)"
+  58:easyflash/src/easyflash.c **** #endif
+  59:easyflash/src/easyflash.c **** 
+  60:easyflash/src/easyflash.c **** /**
+  61:easyflash/src/easyflash.c ****  * EasyFlash system initialize.
+  62:easyflash/src/easyflash.c ****  *
+  63:easyflash/src/easyflash.c ****  * @return result
+  64:easyflash/src/easyflash.c ****  */
+  65:easyflash/src/easyflash.c **** EfErrCode easyflash_init(void)
+  66:easyflash/src/easyflash.c **** {
+  44              		.loc 1 66 1 view -0
+  45              		.cfi_startproc
+  46              		@ args = 0, pretend = 0, frame = 8
+  47              		@ frame_needed = 0, uses_anonymous_args = 0
+  67:easyflash/src/easyflash.c ****     extern EfErrCode ef_port_init(ef_env const **default_env, size_t *default_env_size);
+  48              		.loc 1 67 5 view .LVU1
+  68:easyflash/src/easyflash.c ****     extern EfErrCode ef_env_init(ef_env const * default_env, size_t default_env_size);
+  49              		.loc 1 68 5 view .LVU2
+  69:easyflash/src/easyflash.c ****     extern EfErrCode ef_iap_init(void);
+  50              		.loc 1 69 5 view .LVU3
+  70:easyflash/src/easyflash.c ****     extern EfErrCode ef_log_init(void);
+  51              		.loc 1 70 5 view .LVU4
+  71:easyflash/src/easyflash.c **** 
+  72:easyflash/src/easyflash.c ****     size_t default_env_set_size = 0;
+  52              		.loc 1 72 5 view .LVU5
+  66:easyflash/src/easyflash.c ****     extern EfErrCode ef_port_init(ef_env const **default_env, size_t *default_env_size);
+  53              		.loc 1 66 1 is_stmt 0 view .LVU6
+  54 0000 10B5     		push	{r4, lr}
+  55              		.cfi_def_cfa_offset 8
+  56              		.cfi_offset 4, -8
+  57              		.cfi_offset 14, -4
+  58 0002 82B0     		sub	sp, sp, #8
+  59              		.cfi_def_cfa_offset 16
+  60              		.loc 1 72 12 view .LVU7
+  61 0004 0023     		movs	r3, #0
+  73:easyflash/src/easyflash.c ****     const ef_env *default_env_set;
+  74:easyflash/src/easyflash.c ****     EfErrCode result = EF_NO_ERR;
+  75:easyflash/src/easyflash.c **** 
+  76:easyflash/src/easyflash.c ****     result = ef_port_init(&default_env_set, &default_env_set_size);
+  62              		.loc 1 76 14 view .LVU8
+  63 0006 6946     		mov	r1, sp
+  64 0008 01A8     		add	r0, sp, #4
+  72:easyflash/src/easyflash.c ****     const ef_env *default_env_set;
+  65              		.loc 1 72 12 view .LVU9
+  66 000a 0093     		str	r3, [sp]
+  73:easyflash/src/easyflash.c ****     const ef_env *default_env_set;
+  67              		.loc 1 73 5 is_stmt 1 view .LVU10
+  74:easyflash/src/easyflash.c **** 
+  68              		.loc 1 74 5 view .LVU11
+  69              	.LVL0:
+  70              		.loc 1 76 5 view .LVU12
+  71              		.loc 1 76 14 is_stmt 0 view .LVU13
+  72 000c FFF7FEFF 		bl	ef_port_init
+  73              	.LVL1:
+  77:easyflash/src/easyflash.c **** 
+  78:easyflash/src/easyflash.c **** #ifdef EF_USING_ENV
+ARM GAS  /tmp/ccjwJ927.s 			page 4
+
+
+  79:easyflash/src/easyflash.c ****     if (result == EF_NO_ERR)
+  74              		.loc 1 79 5 is_stmt 1 view .LVU14
+  75              		.loc 1 79 8 is_stmt 0 view .LVU15
+  76 0010 50B1     		cbz	r0, .L7
+  77 0012 0446     		mov	r4, r0
+  78              	.L2:
+  79              	.LVL2:
+  80:easyflash/src/easyflash.c ****     {
+  81:easyflash/src/easyflash.c ****         result = ef_env_init(default_env_set, default_env_set_size);
+  82:easyflash/src/easyflash.c ****     }
+  83:easyflash/src/easyflash.c **** #endif
+  84:easyflash/src/easyflash.c **** 
+  85:easyflash/src/easyflash.c **** #ifdef EF_USING_IAP
+  86:easyflash/src/easyflash.c ****     if (result == EF_NO_ERR)
+  87:easyflash/src/easyflash.c ****     {
+  88:easyflash/src/easyflash.c ****         result = ef_iap_init();
+  89:easyflash/src/easyflash.c ****     }
+  90:easyflash/src/easyflash.c **** #endif
+  91:easyflash/src/easyflash.c **** 
+  92:easyflash/src/easyflash.c **** #ifdef EF_USING_LOG
+  93:easyflash/src/easyflash.c ****     if (result == EF_NO_ERR)
+  94:easyflash/src/easyflash.c ****     {
+  95:easyflash/src/easyflash.c ****         result = ef_log_init();
+  96:easyflash/src/easyflash.c ****     }
+  97:easyflash/src/easyflash.c **** #endif
+  98:easyflash/src/easyflash.c **** 
+  99:easyflash/src/easyflash.c ****     if (result == EF_NO_ERR)
+ 100:easyflash/src/easyflash.c ****     {
+ 101:easyflash/src/easyflash.c ****         EF_INFO("EasyFlash V%s is initialize success.", EF_SW_VERSION);
+ 102:easyflash/src/easyflash.c ****     }
+ 103:easyflash/src/easyflash.c ****     else
+ 104:easyflash/src/easyflash.c ****     {
+ 105:easyflash/src/easyflash.c ****         EF_INFO("EasyFlash V%s is initialize fail.", EF_SW_VERSION);
+  80              		.loc 1 105 9 is_stmt 1 view .LVU16
+  81 0014 0D49     		ldr	r1, .L8
+  82 0016 0E48     		ldr	r0, .L8+4
+  83 0018 FFF7FEFF 		bl	ef_log_info
+  84              	.LVL3:
+ 106:easyflash/src/easyflash.c ****     }
+ 107:easyflash/src/easyflash.c ****     EF_INFO("You can get the latest version on https://github.com/armink/EasyFlash .");
+  85              		.loc 1 107 5 view .LVU17
+  86 001c 0D48     		ldr	r0, .L8+8
+  87 001e FFF7FEFF 		bl	ef_log_info
+  88              	.LVL4:
+ 108:easyflash/src/easyflash.c **** 
+ 109:easyflash/src/easyflash.c ****     return result;
+  89              		.loc 1 109 5 view .LVU18
+ 110:easyflash/src/easyflash.c **** }
+  90              		.loc 1 110 1 is_stmt 0 view .LVU19
+  91 0022 2046     		mov	r0, r4
+  92 0024 02B0     		add	sp, sp, #8
+  93              		.cfi_remember_state
+  94              		.cfi_def_cfa_offset 8
+  95              		@ sp needed
+  96 0026 10BD     		pop	{r4, pc}
+  97              	.LVL5:
+  98              	.L7:
+ARM GAS  /tmp/ccjwJ927.s 			page 5
+
+
+  99              		.cfi_restore_state
+  81:easyflash/src/easyflash.c ****     }
+ 100              		.loc 1 81 9 is_stmt 1 view .LVU20
+  81:easyflash/src/easyflash.c ****     }
+ 101              		.loc 1 81 18 is_stmt 0 view .LVU21
+ 102 0028 DDE90010 		ldrd	r1, r0, [sp]
+ 103              	.LVL6:
+  81:easyflash/src/easyflash.c ****     }
+ 104              		.loc 1 81 18 view .LVU22
+ 105 002c FFF7FEFF 		bl	ef_env_init
+ 106              	.LVL7:
+  99:easyflash/src/easyflash.c ****     {
+ 107              		.loc 1 99 5 is_stmt 1 view .LVU23
+  99:easyflash/src/easyflash.c ****     {
+ 108              		.loc 1 99 8 is_stmt 0 view .LVU24
+ 109 0030 0446     		mov	r4, r0
+ 110 0032 0028     		cmp	r0, #0
+ 111 0034 EED1     		bne	.L2
+ 101:easyflash/src/easyflash.c ****     }
+ 112              		.loc 1 101 9 is_stmt 1 view .LVU25
+ 113 0036 0549     		ldr	r1, .L8
+ 114 0038 0748     		ldr	r0, .L8+12
+ 115              	.LVL8:
+ 101:easyflash/src/easyflash.c ****     }
+ 116              		.loc 1 101 9 is_stmt 0 view .LVU26
+ 117 003a FFF7FEFF 		bl	ef_log_info
+ 118              	.LVL9:
+ 107:easyflash/src/easyflash.c **** 
+ 119              		.loc 1 107 5 is_stmt 1 view .LVU27
+ 120 003e 0548     		ldr	r0, .L8+8
+ 121 0040 FFF7FEFF 		bl	ef_log_info
+ 122              	.LVL10:
+ 109:easyflash/src/easyflash.c **** }
+ 123              		.loc 1 109 5 view .LVU28
+ 124              		.loc 1 110 1 is_stmt 0 view .LVU29
+ 125 0044 2046     		mov	r0, r4
+ 126 0046 02B0     		add	sp, sp, #8
+ 127              		.cfi_def_cfa_offset 8
+ 128              		@ sp needed
+ 129 0048 10BD     		pop	{r4, pc}
+ 130              	.L9:
+ 131 004a 00BF     		.align	2
+ 132              	.L8:
+ 133 004c 00000000 		.word	.LC0
+ 134 0050 30000000 		.word	.LC2
+ 135 0054 54000000 		.word	.LC3
+ 136 0058 08000000 		.word	.LC1
+ 137              		.cfi_endproc
+ 138              	.LFE235:
+ 140              		.text
+ 141              	.Letext0:
+ 142              		.file 2 "easyflash/inc/ef_def.h"
+ 143              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/include/stddef.h"
+ 144              		.file 4 "easyflash/inc/easyflash.h"
+ARM GAS  /tmp/ccjwJ927.s 			page 6
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 easyflash.c
+     /tmp/ccjwJ927.s:20     .rodata.easyflash_init.str1.4:0000000000000000 $d
+     /tmp/ccjwJ927.s:34     .text.easyflash_init:0000000000000000 $t
+     /tmp/ccjwJ927.s:41     .text.easyflash_init:0000000000000000 easyflash_init
+     /tmp/ccjwJ927.s:133    .text.easyflash_init:000000000000004c $d
+
+UNDEFINED SYMBOLS
+ef_port_init
+ef_log_info
+ef_env_init

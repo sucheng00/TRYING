@@ -1,0 +1,152 @@
+ARM GAS  /tmp/ccM36zpr.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"bsp_servo_pwm.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.servo_pwm_set,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	servo_pwm_set
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	servo_pwm_set:
+  28              	.LVL0:
+  29              	.LFB235:
+  30              		.file 1 "bsp/boards/Src/bsp_servo_pwm.c"
+   1:bsp/boards/Src/bsp_servo_pwm.c **** #include "bsp_servo_pwm.h"
+   2:bsp/boards/Src/bsp_servo_pwm.c **** #include "main.h"
+   3:bsp/boards/Src/bsp_servo_pwm.c **** 
+   4:bsp/boards/Src/bsp_servo_pwm.c **** extern TIM_HandleTypeDef htim1;
+   5:bsp/boards/Src/bsp_servo_pwm.c **** extern TIM_HandleTypeDef htim8;
+   6:bsp/boards/Src/bsp_servo_pwm.c **** 
+   7:bsp/boards/Src/bsp_servo_pwm.c **** void servo_pwm_set(uint16_t pwm, uint8_t i)
+   8:bsp/boards/Src/bsp_servo_pwm.c **** {
+  31              		.loc 1 8 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+   9:bsp/boards/Src/bsp_servo_pwm.c ****     switch(i)
+  36              		.loc 1 9 5 view .LVU1
+  37 0000 0329     		cmp	r1, #3
+  38 0002 06D8     		bhi	.L1
+  39 0004 DFE801F0 		tbb	[pc, r1]
+  40              	.L4:
+  41 0008 0E       		.byte	(.L7-.L4)/2
+  42 0009 0A       		.byte	(.L6-.L4)/2
+  43 000a 06       		.byte	(.L5-.L4)/2
+  44 000b 02       		.byte	(.L3-.L4)/2
+  45              		.p2align 1
+  46              	.L3:
+  10:bsp/boards/Src/bsp_servo_pwm.c ****     {
+  11:bsp/boards/Src/bsp_servo_pwm.c ****         case 0:
+  12:bsp/boards/Src/bsp_servo_pwm.c ****         {
+ARM GAS  /tmp/ccM36zpr.s 			page 2
+
+
+  13:bsp/boards/Src/bsp_servo_pwm.c ****             __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, pwm);
+  14:bsp/boards/Src/bsp_servo_pwm.c ****         }break;
+  15:bsp/boards/Src/bsp_servo_pwm.c ****         case 1:
+  16:bsp/boards/Src/bsp_servo_pwm.c ****         {
+  17:bsp/boards/Src/bsp_servo_pwm.c ****             __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, pwm);
+  18:bsp/boards/Src/bsp_servo_pwm.c ****         }break;
+  19:bsp/boards/Src/bsp_servo_pwm.c ****         case 2:
+  20:bsp/boards/Src/bsp_servo_pwm.c ****         {
+  21:bsp/boards/Src/bsp_servo_pwm.c ****             __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, pwm);
+  22:bsp/boards/Src/bsp_servo_pwm.c ****         }break;
+  23:bsp/boards/Src/bsp_servo_pwm.c ****         case 3:
+  24:bsp/boards/Src/bsp_servo_pwm.c ****         {
+  25:bsp/boards/Src/bsp_servo_pwm.c ****             __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_3, pwm);
+  47              		.loc 1 25 13 view .LVU2
+  48 000c 074B     		ldr	r3, .L9
+  49 000e 1B68     		ldr	r3, [r3]
+  50 0010 D863     		str	r0, [r3, #60]
+  26:bsp/boards/Src/bsp_servo_pwm.c ****         }break;
+  51              		.loc 1 26 10 view .LVU3
+  52              	.L1:
+  27:bsp/boards/Src/bsp_servo_pwm.c ****     }
+  28:bsp/boards/Src/bsp_servo_pwm.c **** }
+  53              		.loc 1 28 1 is_stmt 0 view .LVU4
+  54 0012 7047     		bx	lr
+  55              	.L5:
+  21:bsp/boards/Src/bsp_servo_pwm.c ****         }break;
+  56              		.loc 1 21 13 is_stmt 1 view .LVU5
+  57 0014 054B     		ldr	r3, .L9
+  58 0016 1B68     		ldr	r3, [r3]
+  59 0018 1864     		str	r0, [r3, #64]
+  22:bsp/boards/Src/bsp_servo_pwm.c ****         case 3:
+  60              		.loc 1 22 10 view .LVU6
+  22:bsp/boards/Src/bsp_servo_pwm.c ****         case 3:
+  61              		.loc 1 22 9 is_stmt 0 view .LVU7
+  62 001a 7047     		bx	lr
+  63              	.L6:
+  17:bsp/boards/Src/bsp_servo_pwm.c ****         }break;
+  64              		.loc 1 17 13 is_stmt 1 view .LVU8
+  65 001c 044B     		ldr	r3, .L9+4
+  66 001e 1B68     		ldr	r3, [r3]
+  67 0020 5863     		str	r0, [r3, #52]
+  18:bsp/boards/Src/bsp_servo_pwm.c ****         case 2:
+  68              		.loc 1 18 10 view .LVU9
+  18:bsp/boards/Src/bsp_servo_pwm.c ****         case 2:
+  69              		.loc 1 18 9 is_stmt 0 view .LVU10
+  70 0022 7047     		bx	lr
+  71              	.L7:
+  13:bsp/boards/Src/bsp_servo_pwm.c ****         }break;
+  72              		.loc 1 13 13 is_stmt 1 view .LVU11
+  73 0024 024B     		ldr	r3, .L9+4
+  74 0026 1B68     		ldr	r3, [r3]
+  75 0028 9863     		str	r0, [r3, #56]
+  14:bsp/boards/Src/bsp_servo_pwm.c ****         case 1:
+  76              		.loc 1 14 10 view .LVU12
+  14:bsp/boards/Src/bsp_servo_pwm.c ****         case 1:
+  77              		.loc 1 14 9 is_stmt 0 view .LVU13
+  78 002a 7047     		bx	lr
+ARM GAS  /tmp/ccM36zpr.s 			page 3
+
+
+  79              	.L10:
+  80              		.align	2
+  81              	.L9:
+  82 002c 00000000 		.word	htim1
+  83 0030 00000000 		.word	htim8
+  84              		.cfi_endproc
+  85              	.LFE235:
+  87              		.text
+  88              	.Letext0:
+  89              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+  90              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+  91              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+  92              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+  93              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+  94              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h"
+ARM GAS  /tmp/ccM36zpr.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_servo_pwm.c
+     /tmp/ccM36zpr.s:20     .text.servo_pwm_set:0000000000000000 $t
+     /tmp/ccM36zpr.s:27     .text.servo_pwm_set:0000000000000000 servo_pwm_set
+     /tmp/ccM36zpr.s:41     .text.servo_pwm_set:0000000000000008 $d
+     /tmp/ccM36zpr.s:45     .text.servo_pwm_set:000000000000000c $t
+     /tmp/ccM36zpr.s:82     .text.servo_pwm_set:000000000000002c $d
+
+UNDEFINED SYMBOLS
+htim1
+htim8

@@ -1,0 +1,2149 @@
+ARM GAS  /tmp/ccLS7UkA.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"imu.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.__io_putchar,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	__io_putchar
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	__io_putchar:
+  28              	.LVL0:
+  29              	.LFB244:
+  30              		.file 1 "application/src/imu/imu.c"
+   1:application/src/imu/imu.c **** #include "imu.h"
+   2:application/src/imu/imu.c **** #include "BMI088driver.h"
+   3:application/src/imu/imu.c **** #include "FreeRTOS.h"
+   4:application/src/imu/imu.c **** #include "cmsis_os.h"
+   5:application/src/imu/imu.c **** #include "easyflash.h"
+   6:application/src/imu/imu.c **** #include "imu_heater.h"
+   7:application/src/imu/imu.c **** #include "logging.h"
+   8:application/src/imu/imu.c **** #include "madgwick.h"
+   9:application/src/imu/imu.c **** #include "microros.h"
+  10:application/src/imu/imu.c **** #include "timers.h"
+  11:application/src/imu/imu.c **** #include <math.h>
+  12:application/src/imu/imu.c **** #include <rmw_microros/time_sync.h>
+  13:application/src/imu/imu.c **** 
+  14:application/src/imu/imu.c **** #define CALIBRATION_EF_KEY "imu_calibration"
+  15:application/src/imu/imu.c **** #define IMU_TARGET_TEMPERATURE 40.0
+  16:application/src/imu/imu.c **** #define IMU_CALIBRATION_TEMPERATURE_TOLERANCE 1.0
+  17:application/src/imu/imu.c **** #define IMU_CALIBRATION_SAMPLES 300
+  18:application/src/imu/imu.c **** #define IMU_UPDATE_HZ 200
+  19:application/src/imu/imu.c **** #define MADGWICK_BETA 0.1
+  20:application/src/imu/imu.c **** 
+  21:application/src/imu/imu.c **** #include "usart.h"
+  22:application/src/imu/imu.c **** #include "stdio.h"
+  23:application/src/imu/imu.c **** #ifdef __GNUC__
+  24:application/src/imu/imu.c **** #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+  25:application/src/imu/imu.c **** #else
+  26:application/src/imu/imu.c **** #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+  27:application/src/imu/imu.c **** #endif
+  28:application/src/imu/imu.c **** 
+ARM GAS  /tmp/ccLS7UkA.s 			page 2
+
+
+  29:application/src/imu/imu.c **** PUTCHAR_PROTOTYPE
+  30:application/src/imu/imu.c **** {
+  31              		.loc 1 30 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 8
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  31:application/src/imu/imu.c ****     HAL_UART_Transmit(&huart1 , (uint8_t *)&ch, 1, 0xFFFF);
+  35              		.loc 1 31 5 view .LVU1
+  30:application/src/imu/imu.c ****     HAL_UART_Transmit(&huart1 , (uint8_t *)&ch, 1, 0xFFFF);
+  36              		.loc 1 30 1 is_stmt 0 view .LVU2
+  37 0000 00B5     		push	{lr}
+  38              		.cfi_def_cfa_offset 4
+  39              		.cfi_offset 14, -4
+  40 0002 83B0     		sub	sp, sp, #12
+  41              		.cfi_def_cfa_offset 16
+  42              		.loc 1 31 5 view .LVU3
+  43 0004 4FF6FF73 		movw	r3, #65535
+  30:application/src/imu/imu.c ****     HAL_UART_Transmit(&huart1 , (uint8_t *)&ch, 1, 0xFFFF);
+  44              		.loc 1 30 1 view .LVU4
+  45 0008 0190     		str	r0, [sp, #4]
+  46              		.loc 1 31 5 view .LVU5
+  47 000a 0122     		movs	r2, #1
+  48 000c 01A9     		add	r1, sp, #4
+  49 000e 0348     		ldr	r0, .L4
+  50              	.LVL1:
+  51              		.loc 1 31 5 view .LVU6
+  52 0010 FFF7FEFF 		bl	HAL_UART_Transmit
+  53              	.LVL2:
+  32:application/src/imu/imu.c ****     return ch;
+  54              		.loc 1 32 5 is_stmt 1 view .LVU7
+  33:application/src/imu/imu.c **** }
+  55              		.loc 1 33 1 is_stmt 0 view .LVU8
+  56 0014 0198     		ldr	r0, [sp, #4]
+  57 0016 03B0     		add	sp, sp, #12
+  58              		.cfi_def_cfa_offset 4
+  59              		@ sp needed
+  60 0018 5DF804FB 		ldr	pc, [sp], #4
+  61              	.L5:
+  62              		.align	2
+  63              	.L4:
+  64 001c 00000000 		.word	huart1
+  65              		.cfi_endproc
+  66              	.LFE244:
+  68              		.section	.text._write,"ax",%progbits
+  69              		.align	1
+  70              		.p2align 2,,3
+  71              		.global	_write
+  72              		.syntax unified
+  73              		.thumb
+  74              		.thumb_func
+  76              	_write:
+  77              	.LVL3:
+  78              	.LFB245:
+  34:application/src/imu/imu.c **** int _write(int file, char *ptr, int len)
+  35:application/src/imu/imu.c **** 
+  36:application/src/imu/imu.c **** {
+  79              		.loc 1 36 1 is_stmt 1 view -0
+ARM GAS  /tmp/ccLS7UkA.s 			page 3
+
+
+  80              		.cfi_startproc
+  81              		@ args = 0, pretend = 0, frame = 8
+  82              		@ frame_needed = 0, uses_anonymous_args = 0
+  37:application/src/imu/imu.c ****       int DataIdx;
+  83              		.loc 1 37 7 view .LVU10
+  38:application/src/imu/imu.c ****       for (DataIdx = 0; DataIdx < len;DataIdx++)
+  84              		.loc 1 38 7 view .LVU11
+  85              		.loc 1 38 25 view .LVU12
+  36:application/src/imu/imu.c ****       int DataIdx;
+  86              		.loc 1 36 1 is_stmt 0 view .LVU13
+  87 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+  88              		.cfi_def_cfa_offset 24
+  89              		.cfi_offset 4, -24
+  90              		.cfi_offset 5, -20
+  91              		.cfi_offset 6, -16
+  92              		.cfi_offset 7, -12
+  93              		.cfi_offset 8, -8
+  94              		.cfi_offset 14, -4
+  95              		.loc 1 38 7 view .LVU14
+  96 0004 B2F10008 		subs	r8, r2, #0
+  36:application/src/imu/imu.c ****       int DataIdx;
+  97              		.loc 1 36 1 view .LVU15
+  98 0008 82B0     		sub	sp, sp, #8
+  99              		.cfi_def_cfa_offset 32
+ 100              		.loc 1 38 7 view .LVU16
+ 101 000a 0FDD     		ble	.L7
+ 102              	.LBB6:
+ 103              	.LBB7:
+  31:application/src/imu/imu.c ****     return ch;
+ 104              		.loc 1 31 5 view .LVU17
+ 105 000c 094F     		ldr	r7, .L11
+ 106 000e 0C46     		mov	r4, r1
+ 107 0010 01EB0806 		add	r6, r1, r8
+ 108              	.LVL4:
+ 109              	.L8:
+  31:application/src/imu/imu.c ****     return ch;
+ 110              		.loc 1 31 5 view .LVU18
+ 111              	.LBE7:
+ 112              	.LBE6:
+  39:application/src/imu/imu.c ****      {
+  40:application/src/imu/imu.c ****            __io_putchar(*ptr++);
+ 113              		.loc 1 40 12 is_stmt 1 discriminator 3 view .LVU19
+ 114              		.loc 1 40 12 is_stmt 0 discriminator 3 view .LVU20
+ 115 0014 14F8015B 		ldrb	r5, [r4], #1	@ zero_extendqisi2
+ 116              	.LVL5:
+ 117              		.loc 1 40 12 discriminator 3 view .LVU21
+ 118 0018 0195     		str	r5, [sp, #4]
+ 119              	.LVL6:
+ 120              	.LBB9:
+ 121              	.LBI6:
+  29:application/src/imu/imu.c **** {
+ 122              		.loc 1 29 1 is_stmt 1 discriminator 3 view .LVU22
+ 123              	.LBB8:
+  31:application/src/imu/imu.c ****     return ch;
+ 124              		.loc 1 31 5 discriminator 3 view .LVU23
+ 125 001a 4FF6FF73 		movw	r3, #65535
+ 126 001e 0122     		movs	r2, #1
+ARM GAS  /tmp/ccLS7UkA.s 			page 4
+
+
+ 127 0020 01A9     		add	r1, sp, #4
+ 128 0022 3846     		mov	r0, r7
+ 129 0024 FFF7FEFF 		bl	HAL_UART_Transmit
+ 130              	.LVL7:
+  32:application/src/imu/imu.c **** }
+ 131              		.loc 1 32 5 discriminator 3 view .LVU24
+ 132              	.LBE8:
+ 133              	.LBE9:
+  38:application/src/imu/imu.c ****      {
+ 134              		.loc 1 38 39 discriminator 3 view .LVU25
+  38:application/src/imu/imu.c ****      {
+ 135              		.loc 1 38 25 discriminator 3 view .LVU26
+  38:application/src/imu/imu.c ****      {
+ 136              		.loc 1 38 7 is_stmt 0 discriminator 3 view .LVU27
+ 137 0028 A642     		cmp	r6, r4
+ 138 002a F3D1     		bne	.L8
+ 139              	.LVL8:
+ 140              	.L7:
+  41:application/src/imu/imu.c ****      }
+  42:application/src/imu/imu.c ****       return len;
+ 141              		.loc 1 42 7 is_stmt 1 view .LVU28
+  43:application/src/imu/imu.c **** }
+ 142              		.loc 1 43 1 is_stmt 0 view .LVU29
+ 143 002c 4046     		mov	r0, r8
+ 144 002e 02B0     		add	sp, sp, #8
+ 145              		.cfi_def_cfa_offset 24
+ 146              		@ sp needed
+ 147 0030 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 148              	.LVL9:
+ 149              	.L12:
+ 150              		.loc 1 43 1 view .LVU30
+ 151              		.align	2
+ 152              	.L11:
+ 153 0034 00000000 		.word	huart1
+ 154              		.cfi_endproc
+ 155              	.LFE245:
+ 157              		.section	.rodata.imu_read_stored_calibration.str1.4,"aMS",%progbits,1
+ 158              		.align	2
+ 159              	.LC0:
+ 160 0000 696D755F 		.ascii	"imu_calibration\000"
+ 160      63616C69 
+ 160      62726174 
+ 160      696F6E00 
+ 161              		.section	.text.imu_read_stored_calibration,"ax",%progbits
+ 162              		.align	1
+ 163              		.p2align 2,,3
+ 164              		.global	imu_read_stored_calibration
+ 165              		.syntax unified
+ 166              		.thumb
+ 167              		.thumb_func
+ 169              	imu_read_stored_calibration:
+ 170              	.LVL10:
+ 171              	.LFB248:
+  44:application/src/imu/imu.c **** 
+  45:application/src/imu/imu.c **** 
+  46:application/src/imu/imu.c **** static float imu_rotation_matrix[3][3] = {
+  47:application/src/imu/imu.c ****     {0.0f, 1.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
+ARM GAS  /tmp/ccLS7UkA.s 			page 5
+
+
+  48:application/src/imu/imu.c **** 
+  49:application/src/imu/imu.c **** static pid_controller_param_t heater_pid_param = {
+  50:application/src/imu/imu.c ****     .mode = PID_CONTROLLER_POSITION,
+  51:application/src/imu/imu.c ****     .k_p = 800,
+  52:application/src/imu/imu.c ****     .k_i = 10,
+  53:application/src/imu/imu.c ****     .k_d = 0,
+  54:application/src/imu/imu.c ****     .integral_limit = 8000,
+  55:application/src/imu/imu.c ****     .out_limit = 20000,
+  56:application/src/imu/imu.c **** };
+  57:application/src/imu/imu.c **** 
+  58:application/src/imu/imu.c **** static imu_calibration_t calibration;
+  59:application/src/imu/imu.c **** static pid_controller_t heater_pid;
+  60:application/src/imu/imu.c **** 
+  61:application/src/imu/imu.c **** static float gyro_raw[3];
+  62:application/src/imu/imu.c **** static float accel_raw[3];
+  63:application/src/imu/imu.c **** 
+  64:application/src/imu/imu.c **** static imu_data_t data;
+  65:application/src/imu/imu.c **** 
+  66:application/src/imu/imu.c **** // 读取 BMI088 加速度、角速度、温度，并记录时间戳
+  67:application/src/imu/imu.c **** static void read_bmi088_data(void) {
+  68:application/src/imu/imu.c **** 	data.epoch_ns = rmw_uros_epoch_nanos();
+  69:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+  70:application/src/imu/imu.c **** }
+  71:application/src/imu/imu.c **** 
+  72:application/src/imu/imu.c **** // 执行一次温度控制，请按 IMU_UPDATE_HZ 频率调用
+  73:application/src/imu/imu.c **** static void run_temperature_control(void) {
+  74:application/src/imu/imu.c **** 	pid_controller_update(&heater_pid, data.temperature,
+  75:application/src/imu/imu.c **** 	                      IMU_TARGET_TEMPERATURE);
+  76:application/src/imu/imu.c **** 	uint16_t pwm;
+  77:application/src/imu/imu.c **** 	if (heater_pid.out < 0) {
+  78:application/src/imu/imu.c **** 		pwm = 0;
+  79:application/src/imu/imu.c **** 	} else {
+  80:application/src/imu/imu.c **** 		pwm = heater_pid.out;
+  81:application/src/imu/imu.c **** 	}
+  82:application/src/imu/imu.c **** 	imu_heater_set_pwm(pwm);
+  83:application/src/imu/imu.c **** }
+  84:application/src/imu/imu.c **** 
+  85:application/src/imu/imu.c **** bool imu_read_stored_calibration(imu_calibration_t *result) {
+ 172              		.loc 1 85 61 is_stmt 1 view -0
+ 173              		.cfi_startproc
+ 174              		@ args = 0, pretend = 0, frame = 8
+ 175              		@ frame_needed = 0, uses_anonymous_args = 0
+  86:application/src/imu/imu.c **** 	size_t read_len;
+ 176              		.loc 1 86 2 view .LVU32
+  87:application/src/imu/imu.c **** 	ef_get_env_blob(CALIBRATION_EF_KEY, result, sizeof(imu_calibration_t),
+ 177              		.loc 1 87 2 view .LVU33
+  85:application/src/imu/imu.c **** 	size_t read_len;
+ 178              		.loc 1 85 61 is_stmt 0 view .LVU34
+ 179 0000 00B5     		push	{lr}
+ 180              		.cfi_def_cfa_offset 4
+ 181              		.cfi_offset 14, -4
+ 182 0002 83B0     		sub	sp, sp, #12
+ 183              		.cfi_def_cfa_offset 16
+  85:application/src/imu/imu.c **** 	size_t read_len;
+ 184              		.loc 1 85 61 view .LVU35
+ 185 0004 0146     		mov	r1, r0
+ 186              		.loc 1 87 2 view .LVU36
+ARM GAS  /tmp/ccLS7UkA.s 			page 6
+
+
+ 187 0006 01AB     		add	r3, sp, #4
+ 188 0008 0C22     		movs	r2, #12
+ 189 000a 0648     		ldr	r0, .L15
+ 190              	.LVL11:
+ 191              		.loc 1 87 2 view .LVU37
+ 192 000c FFF7FEFF 		bl	ef_get_env_blob
+ 193              	.LVL12:
+  88:application/src/imu/imu.c **** 	                &read_len);
+  89:application/src/imu/imu.c **** 	if (read_len != sizeof(imu_calibration_t)) {
+ 194              		.loc 1 89 2 is_stmt 1 view .LVU38
+ 195              		.loc 1 89 5 is_stmt 0 view .LVU39
+ 196 0010 0198     		ldr	r0, [sp, #4]
+  90:application/src/imu/imu.c **** 		return false;
+  91:application/src/imu/imu.c **** 	} else {
+  92:application/src/imu/imu.c **** 		return true;
+  93:application/src/imu/imu.c **** 	}
+  94:application/src/imu/imu.c **** }
+ 197              		.loc 1 94 1 view .LVU40
+ 198 0012 A0F10C00 		sub	r0, #12
+ 199 0016 B0FA80F0 		clz	r0, r0
+ 200 001a 4009     		lsrs	r0, r0, #5
+ 201 001c 03B0     		add	sp, sp, #12
+ 202              		.cfi_def_cfa_offset 4
+ 203              		@ sp needed
+ 204 001e 5DF804FB 		ldr	pc, [sp], #4
+ 205              	.L16:
+ 206 0022 00BF     		.align	2
+ 207              	.L15:
+ 208 0024 00000000 		.word	.LC0
+ 209              		.cfi_endproc
+ 210              	.LFE248:
+ 212              		.section	.rodata.imu_write_stored_calibration.str1.4,"aMS",%progbits,1
+ 213              		.align	2
+ 214              	.LC1:
+ 215 0000 4661696C 		.ascii	"Failed to save IMU calibration result\000"
+ 215      65642074 
+ 215      6F207361 
+ 215      76652049 
+ 215      4D552063 
+ 216              		.section	.text.imu_write_stored_calibration,"ax",%progbits
+ 217              		.align	1
+ 218              		.p2align 2,,3
+ 219              		.global	imu_write_stored_calibration
+ 220              		.syntax unified
+ 221              		.thumb
+ 222              		.thumb_func
+ 224              	imu_write_stored_calibration:
+ 225              	.LVL13:
+ 226              	.LFB249:
+  95:application/src/imu/imu.c **** 
+  96:application/src/imu/imu.c **** void imu_write_stored_calibration(const imu_calibration_t *result) {
+ 227              		.loc 1 96 68 is_stmt 1 view -0
+ 228              		.cfi_startproc
+ 229              		@ args = 0, pretend = 0, frame = 0
+ 230              		@ frame_needed = 0, uses_anonymous_args = 0
+  97:application/src/imu/imu.c **** 	if (ef_set_env_blob(CALIBRATION_EF_KEY, result,
+ 231              		.loc 1 97 2 view .LVU42
+ARM GAS  /tmp/ccLS7UkA.s 			page 7
+
+
+  96:application/src/imu/imu.c **** 	if (ef_set_env_blob(CALIBRATION_EF_KEY, result,
+ 232              		.loc 1 96 68 is_stmt 0 view .LVU43
+ 233 0000 10B5     		push	{r4, lr}
+ 234              		.cfi_def_cfa_offset 8
+ 235              		.cfi_offset 4, -8
+ 236              		.cfi_offset 14, -4
+  96:application/src/imu/imu.c **** 	if (ef_set_env_blob(CALIBRATION_EF_KEY, result,
+ 237              		.loc 1 96 68 view .LVU44
+ 238 0002 0146     		mov	r1, r0
+ 239              		.loc 1 97 6 view .LVU45
+ 240 0004 0C22     		movs	r2, #12
+ 241 0006 1048     		ldr	r0, .L35
+ 242              	.LVL14:
+ 243              		.loc 1 97 6 view .LVU46
+ 244 0008 FFF7FEFF 		bl	ef_set_env_blob
+ 245              	.LVL15:
+ 246              		.loc 1 97 5 view .LVU47
+ 247 000c 00B9     		cbnz	r0, .L32
+  98:application/src/imu/imu.c **** 	                    sizeof(imu_calibration_t)) != EF_NO_ERR) {
+  99:application/src/imu/imu.c **** 		LOG_ERROR("Failed to save IMU calibration result");
+ 100:application/src/imu/imu.c **** 		for (;;)
+ 101:application/src/imu/imu.c **** 			;
+ 102:application/src/imu/imu.c **** 	}
+ 103:application/src/imu/imu.c **** }
+ 248              		.loc 1 103 1 view .LVU48
+ 249 000e 10BD     		pop	{r4, pc}
+ 250              	.L32:
+ 251              	.LBB14:
+ 252              	.LBI14:
+  96:application/src/imu/imu.c **** 	if (ef_set_env_blob(CALIBRATION_EF_KEY, result,
+ 253              		.loc 1 96 6 is_stmt 1 view .LVU49
+ 254              	.LVL16:
+ 255              	.LBB15:
+  99:application/src/imu/imu.c **** 		for (;;)
+ 256              		.loc 1 99 3 view .LVU50
+ 257              	.LBB16:
+  99:application/src/imu/imu.c **** 		for (;;)
+ 258              		.loc 1 99 3 view .LVU51
+ 259 0010 FFF7FEFF 		bl	logging_get_logger_name
+ 260              	.LVL17:
+  99:application/src/imu/imu.c **** 		for (;;)
+ 261              		.loc 1 99 3 view .LVU52
+ 262 0014 0446     		mov	r4, r0
+ 263 0016 38B1     		cbz	r0, .L19
+  99:application/src/imu/imu.c **** 		for (;;)
+ 264              		.loc 1 99 3 view .LVU53
+ 265              	.LBB17:
+  99:application/src/imu/imu.c **** 		for (;;)
+ 266              		.loc 1 99 3 view .LVU54
+  99:application/src/imu/imu.c **** 		for (;;)
+ 267              		.loc 1 99 3 view .LVU55
+ 268 0018 0C4B     		ldr	r3, .L35+4
+ 269 001a 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 270 001c 63B1     		cbz	r3, .L33
+ 271              	.LVL18:
+ 272              	.L21:
+  99:application/src/imu/imu.c **** 		for (;;)
+ARM GAS  /tmp/ccLS7UkA.s 			page 8
+
+
+ 273              		.loc 1 99 3 view .LVU56
+  99:application/src/imu/imu.c **** 		for (;;)
+ 274              		.loc 1 99 3 view .LVU57
+  99:application/src/imu/imu.c **** 		for (;;)
+ 275              		.loc 1 99 3 view .LVU58
+ 276 001e 2821     		movs	r1, #40
+ 277 0020 2046     		mov	r0, r4
+ 278 0022 FFF7FEFF 		bl	rcutils_logging_logger_is_enabled_for
+ 279              	.LVL19:
+ 280 0026 00B9     		cbnz	r0, .L34
+ 281              	.L19:
+ 282              	.L30:
+  99:application/src/imu/imu.c **** 		for (;;)
+ 283              		.loc 1 99 3 is_stmt 0 view .LVU59
+ 284              	.LBE17:
+  99:application/src/imu/imu.c **** 		for (;;)
+ 285              		.loc 1 99 3 is_stmt 1 view .LVU60
+ 286              	.LBE16:
+  99:application/src/imu/imu.c **** 		for (;;)
+ 287              		.loc 1 99 3 view .LVU61
+ 100:application/src/imu/imu.c **** 			;
+ 288              		.loc 1 100 3 view .LVU62
+ 101:application/src/imu/imu.c **** 	}
+ 289              		.loc 1 101 4 view .LVU63
+ 100:application/src/imu/imu.c **** 			;
+ 290              		.loc 1 100 9 view .LVU64
+ 291              	.LBB19:
+  99:application/src/imu/imu.c **** 		for (;;)
+ 292              		.loc 1 99 3 view .LVU65
+ 293              	.LBE19:
+  99:application/src/imu/imu.c **** 		for (;;)
+ 294              		.loc 1 99 3 view .LVU66
+ 100:application/src/imu/imu.c **** 			;
+ 295              		.loc 1 100 3 view .LVU67
+ 101:application/src/imu/imu.c **** 	}
+ 296              		.loc 1 101 4 view .LVU68
+ 100:application/src/imu/imu.c **** 			;
+ 297              		.loc 1 100 9 view .LVU69
+ 298 0028 FEE7     		b	.L30
+ 299              	.L34:
+ 300              	.LBB20:
+ 301              	.LBB18:
+  99:application/src/imu/imu.c **** 		for (;;)
+ 302              		.loc 1 99 3 view .LVU70
+ 303 002a 094B     		ldr	r3, .L35+8
+ 304 002c 0948     		ldr	r0, .L35+12
+ 305 002e 2246     		mov	r2, r4
+ 306 0030 2821     		movs	r1, #40
+ 307 0032 FFF7FEFF 		bl	rcutils_log
+ 308              	.LVL20:
+ 309 0036 F7E7     		b	.L30
+ 310              	.LVL21:
+ 311              	.L33:
+  99:application/src/imu/imu.c **** 		for (;;)
+ 312              		.loc 1 99 3 view .LVU71
+ 313 0038 FFF7FEFF 		bl	rcutils_logging_initialize
+ 314              	.LVL22:
+ARM GAS  /tmp/ccLS7UkA.s 			page 9
+
+
+  99:application/src/imu/imu.c **** 		for (;;)
+ 315              		.loc 1 99 3 is_stmt 0 view .LVU72
+ 316 003c 0028     		cmp	r0, #0
+ 317 003e EED0     		beq	.L21
+  99:application/src/imu/imu.c **** 		for (;;)
+ 318              		.loc 1 99 3 is_stmt 1 view .LVU73
+  99:application/src/imu/imu.c **** 		for (;;)
+ 319              		.loc 1 99 3 view .LVU74
+  99:application/src/imu/imu.c **** 		for (;;)
+ 320              		.loc 1 99 3 view .LVU75
+  99:application/src/imu/imu.c **** 		for (;;)
+ 321              		.loc 1 99 3 view .LVU76
+ 322 0040 FFF7FEFF 		bl	rcutils_reset_error
+ 323              	.LVL23:
+ 324 0044 EBE7     		b	.L21
+ 325              	.L36:
+ 326 0046 00BF     		.align	2
+ 327              	.L35:
+ 328 0048 00000000 		.word	.LC0
+ 329 004c 00000000 		.word	g_rcutils_logging_initialized
+ 330 0050 00000000 		.word	.LC1
+ 331 0054 00000000 		.word	.LANCHOR0
+ 332              	.LBE18:
+ 333              	.LBE20:
+ 334              	.LBE15:
+ 335              	.LBE14:
+ 336              		.cfi_endproc
+ 337              	.LFE249:
+ 339              		.section	.rodata.imu_task.str1.4,"aMS",%progbits,1
+ 340              		.align	2
+ 341              	.LC2:
+ 342 0000 424D4930 		.ascii	"BMI088 initialization failed\000"
+ 342      38382069 
+ 342      6E697469 
+ 342      616C697A 
+ 342      6174696F 
+ 343 001d 000000   		.align	2
+ 344              	.LC3:
+ 345 0020 52656164 		.ascii	"Read IMU calibration result from flash\000"
+ 345      20494D55 
+ 345      2063616C 
+ 345      69627261 
+ 345      74696F6E 
+ 346 0047 00       		.align	2
+ 347              	.LC4:
+ 348 0048 53746172 		.ascii	"Start IMU calibration\000"
+ 348      7420494D 
+ 348      55206361 
+ 348      6C696272 
+ 348      6174696F 
+ 349 005e 0000     		.align	2
+ 350              	.LC5:
+ 351 0060 494D5520 		.ascii	"IMU temperature reached %f\000"
+ 351      74656D70 
+ 351      65726174 
+ 351      75726520 
+ 351      72656163 
+ARM GAS  /tmp/ccLS7UkA.s 			page 10
+
+
+ 352              		.global	__aeabi_f2d
+ 353 007b 00       		.align	2
+ 354              	.LC6:
+ 355 007c 494D5520 		.ascii	"IMU calibrated\000"
+ 355      63616C69 
+ 355      62726174 
+ 355      656400
+ 356              		.section	.text.imu_task,"ax",%progbits
+ 357              		.align	1
+ 358              		.p2align 2,,3
+ 359              		.global	imu_task
+ 360              		.syntax unified
+ 361              		.thumb
+ 362              		.thumb_func
+ 364              	imu_task:
+ 365              	.LVL24:
+ 366              	.LFB252:
+ 104:application/src/imu/imu.c **** 
+ 105:application/src/imu/imu.c **** static void imu_do_calibration(void) {
+ 106:application/src/imu/imu.c **** 	// 等待 IMU 到达设定温度
+ 107:application/src/imu/imu.c **** 	for (;;) {
+ 108:application/src/imu/imu.c **** 		read_bmi088_data();
+ 109:application/src/imu/imu.c **** 		run_temperature_control();
+ 110:application/src/imu/imu.c **** 
+ 111:application/src/imu/imu.c **** 		if (fabsf(data.temperature - IMU_TARGET_TEMPERATURE) <
+ 112:application/src/imu/imu.c **** 		    IMU_CALIBRATION_TEMPERATURE_TOLERANCE)
+ 113:application/src/imu/imu.c **** 			break;
+ 114:application/src/imu/imu.c **** 
+ 115:application/src/imu/imu.c **** 		HAL_Delay(1000 / IMU_UPDATE_HZ);
+ 116:application/src/imu/imu.c **** 	}
+ 117:application/src/imu/imu.c **** 
+ 118:application/src/imu/imu.c **** 	LOG_INFO("IMU temperature reached %f", data.temperature);
+ 119:application/src/imu/imu.c **** 
+ 120:application/src/imu/imu.c **** 	// 校准陀螺仪
+ 121:application/src/imu/imu.c **** 	calibration.gx = 0;
+ 122:application/src/imu/imu.c **** 	calibration.gy = 0;
+ 123:application/src/imu/imu.c **** 	calibration.gz = 0;
+ 124:application/src/imu/imu.c **** 
+ 125:application/src/imu/imu.c **** 	for (int i = 0; i < IMU_CALIBRATION_SAMPLES; i++) {
+ 126:application/src/imu/imu.c **** 		read_bmi088_data();
+ 127:application/src/imu/imu.c **** 		run_temperature_control();
+ 128:application/src/imu/imu.c **** 
+ 129:application/src/imu/imu.c **** 		calibration.gx += gyro_raw[0];
+ 130:application/src/imu/imu.c **** 		calibration.gy += gyro_raw[1];
+ 131:application/src/imu/imu.c **** 		calibration.gz += gyro_raw[2];
+ 132:application/src/imu/imu.c **** 
+ 133:application/src/imu/imu.c **** 		HAL_Delay(1000 / IMU_UPDATE_HZ);
+ 134:application/src/imu/imu.c **** 	}
+ 135:application/src/imu/imu.c **** 
+ 136:application/src/imu/imu.c **** 	calibration.gx /= IMU_CALIBRATION_SAMPLES;
+ 137:application/src/imu/imu.c **** 	calibration.gy /= IMU_CALIBRATION_SAMPLES;
+ 138:application/src/imu/imu.c **** 	calibration.gz /= IMU_CALIBRATION_SAMPLES;
+ 139:application/src/imu/imu.c **** 
+ 140:application/src/imu/imu.c **** 	LOG_INFO("IMU calibrated");
+ 141:application/src/imu/imu.c **** 
+ 142:application/src/imu/imu.c **** 	// 存储校准数据
+ 143:application/src/imu/imu.c **** 	imu_write_stored_calibration(&calibration);
+ARM GAS  /tmp/ccLS7UkA.s 			page 11
+
+
+ 144:application/src/imu/imu.c **** }
+ 145:application/src/imu/imu.c **** 
+ 146:application/src/imu/imu.c **** // 解算加速度、角速度（作用旋转矩阵并校准）
+ 147:application/src/imu/imu.c **** static void solve_gyro_accel(void) {
+ 148:application/src/imu/imu.c **** 	data.gx = gyro_raw[0] * imu_rotation_matrix[0][0] +
+ 149:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[0][1] +
+ 150:application/src/imu/imu.c **** 	          gyro_raw[2] * imu_rotation_matrix[0][2] - calibration.gx;
+ 151:application/src/imu/imu.c **** 	data.gy = gyro_raw[0] * imu_rotation_matrix[1][0] +
+ 152:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[1][1] +
+ 153:application/src/imu/imu.c **** 	          gyro_raw[2] * imu_rotation_matrix[1][2] - calibration.gy;
+ 154:application/src/imu/imu.c **** 	data.gz = gyro_raw[0] * imu_rotation_matrix[2][0] +
+ 155:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[2][1] +
+ 156:application/src/imu/imu.c **** 	          gyro_raw[2] * imu_rotation_matrix[2][2] - calibration.gz;
+ 157:application/src/imu/imu.c **** 	data.ax = accel_raw[0] * imu_rotation_matrix[0][0] +
+ 158:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[0][1] +
+ 159:application/src/imu/imu.c **** 	          accel_raw[2] * imu_rotation_matrix[0][2];
+ 160:application/src/imu/imu.c **** 	data.ay = accel_raw[0] * imu_rotation_matrix[1][0] +
+ 161:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[1][1] +
+ 162:application/src/imu/imu.c **** 	          accel_raw[2] * imu_rotation_matrix[1][2];
+ 163:application/src/imu/imu.c **** 	data.az = accel_raw[0] * imu_rotation_matrix[2][0] +
+ 164:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[2][1] +
+ 165:application/src/imu/imu.c **** 	          accel_raw[2] * imu_rotation_matrix[2][2];
+ 166:application/src/imu/imu.c **** }
+ 167:application/src/imu/imu.c **** 
+ 168:application/src/imu/imu.c **** void imu_task(const void *arg) {
+ 367              		.loc 1 168 32 view -0
+ 368              		.cfi_startproc
+ 369              		@ args = 0, pretend = 0, frame = 24
+ 370              		@ frame_needed = 0, uses_anonymous_args = 0
+ 169:application/src/imu/imu.c **** 	// 初始化 BMI088
+ 170:application/src/imu/imu.c **** 	if (BMI088_Init() != BMI088_NO_Error) {
+ 371              		.loc 1 170 2 view .LVU78
+ 168:application/src/imu/imu.c **** 	// 初始化 BMI088
+ 372              		.loc 1 168 32 is_stmt 0 view .LVU79
+ 373 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 374              		.cfi_def_cfa_offset 36
+ 375              		.cfi_offset 4, -36
+ 376              		.cfi_offset 5, -32
+ 377              		.cfi_offset 6, -28
+ 378              		.cfi_offset 7, -24
+ 379              		.cfi_offset 8, -20
+ 380              		.cfi_offset 9, -16
+ 381              		.cfi_offset 10, -12
+ 382              		.cfi_offset 11, -8
+ 383              		.cfi_offset 14, -4
+ 384 0004 2DED048B 		vpush.64	{d8, d9}
+ 385              		.cfi_def_cfa_offset 52
+ 386              		.cfi_offset 80, -52
+ 387              		.cfi_offset 81, -48
+ 388              		.cfi_offset 82, -44
+ 389              		.cfi_offset 83, -40
+ 390 0008 89B0     		sub	sp, sp, #36
+ 391              		.cfi_def_cfa_offset 88
+ 392              		.loc 1 170 6 view .LVU80
+ 393 000a FFF7FEFF 		bl	BMI088_Init
+ 394              	.LVL25:
+ 395              		.loc 1 170 5 view .LVU81
+ARM GAS  /tmp/ccLS7UkA.s 			page 12
+
+
+ 396 000e 80B1     		cbz	r0, .L38
+ 171:application/src/imu/imu.c **** 		LOG_ERROR("BMI088 initialization failed");
+ 397              		.loc 1 171 3 is_stmt 1 view .LVU82
+ 398              	.LBB49:
+ 399              		.loc 1 171 3 view .LVU83
+ 400 0010 FFF7FEFF 		bl	logging_get_logger_name
+ 401              	.LVL26:
+ 402              		.loc 1 171 3 view .LVU84
+ 403 0014 0446     		mov	r4, r0
+ 404 0016 58B1     		cbz	r0, .L39
+ 405              		.loc 1 171 3 discriminator 1 view .LVU85
+ 406              	.LBB50:
+ 407              		.loc 1 171 3 discriminator 1 view .LVU86
+ 408              		.loc 1 171 3 discriminator 1 view .LVU87
+ 409 0018 714B     		ldr	r3, .L121
+ 410 001a 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 411 001c 002B     		cmp	r3, #0
+ 412 001e 00F0C981 		beq	.L114
+ 413              	.LVL27:
+ 414              	.L41:
+ 415              		.loc 1 171 3 discriminator 7 view .LVU88
+ 416              		.loc 1 171 3 discriminator 7 view .LVU89
+ 417              		.loc 1 171 3 discriminator 7 view .LVU90
+ 418 0022 2821     		movs	r1, #40
+ 419 0024 2046     		mov	r0, r4
+ 420 0026 FFF7FEFF 		bl	rcutils_logging_logger_is_enabled_for
+ 421              	.LVL28:
+ 422 002a 0028     		cmp	r0, #0
+ 423 002c 40F0BB81 		bne	.L115
+ 424              	.L39:
+ 425              	.L109:
+ 426              		.loc 1 171 3 is_stmt 0 discriminator 7 view .LVU91
+ 427              	.LBE50:
+ 428              		.loc 1 171 3 is_stmt 1 discriminator 1 view .LVU92
+ 429              	.LBE49:
+ 430              		.loc 1 171 3 discriminator 1 view .LVU93
+ 172:application/src/imu/imu.c **** 		for (;;)
+ 431              		.loc 1 172 3 discriminator 1 view .LVU94
+ 173:application/src/imu/imu.c **** 			;
+ 432              		.loc 1 173 4 discriminator 1 view .LVU95
+ 172:application/src/imu/imu.c **** 		for (;;)
+ 433              		.loc 1 172 9 discriminator 1 view .LVU96
+ 434              	.LBB52:
+ 171:application/src/imu/imu.c **** 		LOG_ERROR("BMI088 initialization failed");
+ 435              		.loc 1 171 3 discriminator 1 view .LVU97
+ 436              	.LBE52:
+ 171:application/src/imu/imu.c **** 		LOG_ERROR("BMI088 initialization failed");
+ 437              		.loc 1 171 3 discriminator 1 view .LVU98
+ 172:application/src/imu/imu.c **** 		for (;;)
+ 438              		.loc 1 172 3 discriminator 1 view .LVU99
+ 439              		.loc 1 173 4 discriminator 1 view .LVU100
+ 172:application/src/imu/imu.c **** 		for (;;)
+ 440              		.loc 1 172 9 discriminator 1 view .LVU101
+ 441 0030 FEE7     		b	.L109
+ 442              	.LVL29:
+ 443              	.L38:
+ 174:application/src/imu/imu.c **** 	}
+ARM GAS  /tmp/ccLS7UkA.s 			page 13
+
+
+ 175:application/src/imu/imu.c **** 
+ 176:application/src/imu/imu.c **** 	// 初始化加热
+ 177:application/src/imu/imu.c **** 	imu_heater_init();
+ 444              		.loc 1 177 2 view .LVU102
+ 445 0032 FFF7FEFF 		bl	imu_heater_init
+ 446              	.LVL30:
+ 178:application/src/imu/imu.c **** 	pid_controller_init(&heater_pid, &heater_pid_param);
+ 447              		.loc 1 178 2 view .LVU103
+ 448 0036 6B48     		ldr	r0, .L121+4
+ 449 0038 6B49     		ldr	r1, .L121+8
+ 450 003a FFF7FEFF 		bl	pid_controller_init
+ 451              	.LVL31:
+ 179:application/src/imu/imu.c **** 
+ 180:application/src/imu/imu.c **** 	// 读取校准数据
+ 181:application/src/imu/imu.c **** 	if (imu_read_stored_calibration(&calibration)) {
+ 452              		.loc 1 181 2 view .LVU104
+ 453              		.loc 1 181 6 is_stmt 0 view .LVU105
+ 454 003e 6B48     		ldr	r0, .L121+12
+ 455 0040 FFF7FEFF 		bl	imu_read_stored_calibration
+ 456              	.LVL32:
+ 457              		.loc 1 181 5 view .LVU106
+ 458 0044 0028     		cmp	r0, #0
+ 459 0046 00F0AB80 		beq	.L43
+ 182:application/src/imu/imu.c **** 		LOG_INFO("Read IMU calibration result from flash");
+ 460              		.loc 1 182 3 is_stmt 1 view .LVU107
+ 461              	.LBB53:
+ 462              		.loc 1 182 3 view .LVU108
+ 463 004a FFF7FEFF 		bl	logging_get_logger_name
+ 464              	.LVL33:
+ 465              		.loc 1 182 3 view .LVU109
+ 466 004e 0446     		mov	r4, r0
+ 467 0050 78B1     		cbz	r0, .L113
+ 468              		.loc 1 182 3 discriminator 1 view .LVU110
+ 469              	.LBB54:
+ 470              		.loc 1 182 3 discriminator 1 view .LVU111
+ 471              		.loc 1 182 3 discriminator 1 view .LVU112
+ 472 0052 634B     		ldr	r3, .L121
+ 473 0054 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 474 0056 002B     		cmp	r3, #0
+ 475 0058 00F0BC81 		beq	.L116
+ 476              	.LVL34:
+ 477              	.L47:
+ 478              		.loc 1 182 3 discriminator 7 view .LVU113
+ 479              		.loc 1 182 3 discriminator 7 view .LVU114
+ 480              		.loc 1 182 3 discriminator 7 view .LVU115
+ 481 005c 1421     		movs	r1, #20
+ 482 005e 2046     		mov	r0, r4
+ 483 0060 FFF7FEFF 		bl	rcutils_logging_logger_is_enabled_for
+ 484              	.LVL35:
+ 485 0064 28B1     		cbz	r0, .L113
+ 486              		.loc 1 182 3 discriminator 8 view .LVU116
+ 487 0066 624B     		ldr	r3, .L121+16
+ 488 0068 6248     		ldr	r0, .L121+20
+ 489 006a 2246     		mov	r2, r4
+ 490 006c 1421     		movs	r1, #20
+ 491 006e FFF7FEFF 		bl	rcutils_log
+ 492              	.LVL36:
+ARM GAS  /tmp/ccLS7UkA.s 			page 14
+
+
+ 493              	.L113:
+ 494              		.loc 1 182 3 is_stmt 0 discriminator 8 view .LVU117
+ 495 0072 614C     		ldr	r4, .L121+24
+ 496              	.LVL37:
+ 497              		.loc 1 182 3 discriminator 8 view .LVU118
+ 498 0074 DFF86C91 		ldr	r9, .L121+4
+ 499 0078 5C4D     		ldr	r5, .L121+12
+ 500 007a 604E     		ldr	r6, .L121+28
+ 501              	.L45:
+ 502              		.loc 1 182 3 discriminator 8 view .LVU119
+ 503              	.LBE54:
+ 504              	.LBE53:
+ 183:application/src/imu/imu.c **** 	} else {
+ 184:application/src/imu/imu.c **** 		// 未校准过，进行校准
+ 185:application/src/imu/imu.c **** 		LOG_INFO("Start IMU calibration");
+ 186:application/src/imu/imu.c **** 		imu_do_calibration();
+ 187:application/src/imu/imu.c **** 	}
+ 188:application/src/imu/imu.c **** 
+ 189:application/src/imu/imu.c **** 	// 初始位姿
+ 190:application/src/imu/imu.c **** 	data.orientation.w = 1.0;
+ 505              		.loc 1 190 2 is_stmt 1 view .LVU120
+ 191:application/src/imu/imu.c **** 	data.orientation.x = 0.0;
+ 506              		.loc 1 191 21 is_stmt 0 view .LVU121
+ 507 007c 9FED608A 		vldr.32	s16, .L121+32
+ 508              	.LBB56:
+ 509              	.LBB57:
+ 510              	.LBB58:
+  69:application/src/imu/imu.c **** }
+ 511              		.loc 1 69 2 view .LVU122
+ 512 0080 DFF898A1 		ldr	r10, .L121+60
+ 513              	.LBE58:
+ 514              	.LBE57:
+ 515              	.LBE56:
+ 516              		.loc 1 191 21 view .LVU123
+ 517 0084 84ED098A 		vstr.32	s16, [r4, #36]
+ 190:application/src/imu/imu.c **** 	data.orientation.x = 0.0;
+ 518              		.loc 1 190 21 view .LVU124
+ 519 0088 4FF07E53 		mov	r3, #1065353216
+ 520 008c 2362     		str	r3, [r4, #32]	@ float
+ 521              		.loc 1 191 2 is_stmt 1 view .LVU125
+ 192:application/src/imu/imu.c **** 	data.orientation.y = 0.0;
+ 522              		.loc 1 192 2 view .LVU126
+ 523              		.loc 1 192 21 is_stmt 0 view .LVU127
+ 524 008e 84ED0A8A 		vstr.32	s16, [r4, #40]
+ 193:application/src/imu/imu.c **** 	data.orientation.z = 0.0;
+ 525              		.loc 1 193 2 is_stmt 1 view .LVU128
+ 526              		.loc 1 193 21 is_stmt 0 view .LVU129
+ 527 0092 84ED0B8A 		vstr.32	s16, [r4, #44]
+ 194:application/src/imu/imu.c **** 
+ 195:application/src/imu/imu.c **** 	TickType_t xLastWakeTime;
+ 528              		.loc 1 195 2 is_stmt 1 view .LVU130
+ 196:application/src/imu/imu.c **** 	xLastWakeTime = xTaskGetTickCount();
+ 529              		.loc 1 196 2 view .LVU131
+ 530              		.loc 1 196 18 is_stmt 0 view .LVU132
+ 531 0096 FFF7FEFF 		bl	xTaskGetTickCount
+ 532              	.LVL38:
+ 533 009a 5A4F     		ldr	r7, .L121+36
+ARM GAS  /tmp/ccLS7UkA.s 			page 15
+
+
+ 534              	.LBB71:
+ 535              	.LBB60:
+ 536              	.LBB61:
+  74:application/src/imu/imu.c **** 	                      IMU_TARGET_TEMPERATURE);
+ 537              		.loc 1 74 2 view .LVU133
+ 538 009c DFED5A9A 		vldr.32	s19, .L121+40
+ 539              	.LBE61:
+ 540              	.LBE60:
+ 197:application/src/imu/imu.c **** 
+ 198:application/src/imu/imu.c **** 	for (;;) {
+ 199:application/src/imu/imu.c **** 		read_bmi088_data();
+ 200:application/src/imu/imu.c **** 		run_temperature_control();
+ 201:application/src/imu/imu.c **** 
+ 202:application/src/imu/imu.c **** 		solve_gyro_accel();
+ 203:application/src/imu/imu.c **** 		madgwick_update_6d(&data.orientation, MADGWICK_BETA,
+ 541              		.loc 1 203 3 view .LVU134
+ 542 00a0 9FED5A9A 		vldr.32	s18, .L121+44
+ 543 00a4 DFED5A8A 		vldr.32	s17, .L121+48
+ 544              	.LBE71:
+ 196:application/src/imu/imu.c **** 
+ 545              		.loc 1 196 16 view .LVU135
+ 546 00a8 0490     		str	r0, [sp, #16]
+ 547              	.LBB72:
+ 548              		.loc 1 203 3 view .LVU136
+ 549 00aa AAF11008 		sub	r8, r10, #16
+ 550              	.L74:
+ 551              	.LBE72:
+ 198:application/src/imu/imu.c **** 		read_bmi088_data();
+ 552              		.loc 1 198 2 is_stmt 1 discriminator 2 view .LVU137
+ 553              	.LBB73:
+ 199:application/src/imu/imu.c **** 		run_temperature_control();
+ 554              		.loc 1 199 3 discriminator 2 view .LVU138
+ 555              	.LBB63:
+ 556              	.LBI57:
+  67:application/src/imu/imu.c **** 	data.epoch_ns = rmw_uros_epoch_nanos();
+ 557              		.loc 1 67 13 discriminator 2 view .LVU139
+ 558              	.LBB59:
+  68:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+ 559              		.loc 1 68 2 discriminator 2 view .LVU140
+  68:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+ 560              		.loc 1 68 18 is_stmt 0 discriminator 2 view .LVU141
+ 561 00ae FFF7FEFF 		bl	rmw_uros_epoch_nanos
+ 562              	.LVL39:
+  69:application/src/imu/imu.c **** }
+ 563              		.loc 1 69 2 discriminator 2 view .LVU142
+ 564 00b2 5246     		mov	r2, r10
+  68:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+ 565              		.loc 1 68 16 discriminator 2 view .LVU143
+ 566 00b4 C4E90001 		strd	r0, [r4]
+  69:application/src/imu/imu.c **** }
+ 567              		.loc 1 69 2 is_stmt 1 discriminator 2 view .LVU144
+ 568 00b8 5249     		ldr	r1, .L121+36
+ 569 00ba 5048     		ldr	r0, .L121+28
+ 570 00bc FFF7FEFF 		bl	BMI088_Read
+ 571              	.LVL40:
+ 572              	.LBE59:
+ 573              	.LBE63:
+ARM GAS  /tmp/ccLS7UkA.s 			page 16
+
+
+ 200:application/src/imu/imu.c **** 
+ 574              		.loc 1 200 3 discriminator 2 view .LVU145
+ 575              	.LBB64:
+ 576              	.LBI60:
+  73:application/src/imu/imu.c **** 	pid_controller_update(&heater_pid, data.temperature,
+ 577              		.loc 1 73 13 discriminator 2 view .LVU146
+ 578              	.LBB62:
+  74:application/src/imu/imu.c **** 	                      IMU_TARGET_TEMPERATURE);
+ 579              		.loc 1 74 2 discriminator 2 view .LVU147
+ 580 00c0 4848     		ldr	r0, .L121+4
+ 581 00c2 94ED0C0A 		vldr.32	s0, [r4, #48]
+ 582 00c6 F0EE690A 		vmov.f32	s1, s19
+ 583 00ca FFF7FEFF 		bl	pid_controller_update
+ 584              	.LVL41:
+  76:application/src/imu/imu.c **** 	if (heater_pid.out < 0) {
+ 585              		.loc 1 76 2 discriminator 2 view .LVU148
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 586              		.loc 1 77 2 discriminator 2 view .LVU149
+  80:application/src/imu/imu.c **** 	}
+ 587              		.loc 1 80 3 discriminator 2 view .LVU150
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 588              		.loc 1 77 16 is_stmt 0 discriminator 2 view .LVU151
+ 589 00ce D9ED0E7A 		vldr.32	s15, [r9, #56]
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 590              		.loc 1 77 5 discriminator 2 view .LVU152
+ 591 00d2 F5EEC07A 		vcmpe.f32	s15, #0
+ 592 00d6 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+  78:application/src/imu/imu.c **** 	} else {
+ 593              		.loc 1 78 7 discriminator 2 view .LVU153
+ 594 00da 4FF00000 		mov	r0, #0
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 595              		.loc 1 77 5 discriminator 2 view .LVU154
+ 596 00de 04D4     		bmi	.L73
+  80:application/src/imu/imu.c **** 	}
+ 597              		.loc 1 80 7 view .LVU155
+ 598 00e0 FCEEE77A 		vcvt.u32.f32	s15, s15
+ 599 00e4 17EE903A 		vmov	r3, s15	@ int
+ 600 00e8 98B2     		uxth	r0, r3
+ 601              	.LVL42:
+ 602              	.L73:
+  82:application/src/imu/imu.c **** }
+ 603              		.loc 1 82 2 is_stmt 1 view .LVU156
+ 604 00ea FFF7FEFF 		bl	imu_heater_set_pwm
+ 605              	.LVL43:
+  82:application/src/imu/imu.c **** }
+ 606              		.loc 1 82 2 is_stmt 0 view .LVU157
+ 607              	.LBE62:
+ 608              	.LBE64:
+ 202:application/src/imu/imu.c **** 		madgwick_update_6d(&data.orientation, MADGWICK_BETA,
+ 609              		.loc 1 202 3 is_stmt 1 view .LVU158
+ 610              	.LBB65:
+ 611              	.LBI65:
+ 147:application/src/imu/imu.c **** 	data.gx = gyro_raw[0] * imu_rotation_matrix[0][0] +
+ 612              		.loc 1 147 13 view .LVU159
+ 613              	.LBB66:
+ 148:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[0][1] +
+ 614              		.loc 1 148 2 view .LVU160
+ARM GAS  /tmp/ccLS7UkA.s 			page 17
+
+
+ 149:application/src/imu/imu.c **** 	          gyro_raw[2] * imu_rotation_matrix[0][2] - calibration.gx;
+ 615              		.loc 1 149 20 is_stmt 0 view .LVU161
+ 616 00ee 96ED011A 		vldr.32	s2, [r6, #4]
+ 148:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[0][1] +
+ 617              		.loc 1 148 20 view .LVU162
+ 618 00f2 96ED007A 		vldr.32	s14, [r6]
+ 158:application/src/imu/imu.c **** 	          accel_raw[2] * imu_rotation_matrix[0][2];
+ 619              		.loc 1 158 21 view .LVU163
+ 620 00f6 D7ED012A 		vldr.32	s5, [r7, #4]
+ 157:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[0][1] +
+ 621              		.loc 1 157 21 view .LVU164
+ 622 00fa D7ED006A 		vldr.32	s13, [r7]
+ 150:application/src/imu/imu.c **** 	data.gy = gyro_raw[0] * imu_rotation_matrix[1][0] +
+ 623              		.loc 1 150 20 view .LVU165
+ 624 00fe D6ED027A 		vldr.32	s15, [r6, #8]
+ 150:application/src/imu/imu.c **** 	data.gy = gyro_raw[0] * imu_rotation_matrix[1][0] +
+ 625              		.loc 1 150 52 view .LVU166
+ 626 0102 95ED006A 		vldr.32	s12, [r5]
+ 152:application/src/imu/imu.c **** 	          gyro_raw[2] * imu_rotation_matrix[1][2] - calibration.gy;
+ 627              		.loc 1 152 24 view .LVU167
+ 628 0106 61EE081A 		vmul.f32	s3, s2, s16
+ 148:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[0][1] +
+ 629              		.loc 1 148 52 view .LVU168
+ 630 010a A7EE081A 		vfma.f32	s2, s14, s16
+ 631              	.LBE66:
+ 632              	.LBE65:
+ 633              		.loc 1 203 3 view .LVU169
+ 634 010e 4046     		mov	r0, r8
+ 635              	.LBB69:
+ 636              	.LBB67:
+ 161:application/src/imu/imu.c **** 	          accel_raw[2] * imu_rotation_matrix[1][2];
+ 637              		.loc 1 161 25 view .LVU170
+ 638 0110 22EE883A 		vmul.f32	s6, s5, s16
+ 154:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[2][1] +
+ 639              		.loc 1 154 52 view .LVU171
+ 640 0114 B0EE612A 		vmov.f32	s4, s3
+ 641 0118 A7EE082A 		vfma.f32	s4, s14, s16
+ 157:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[0][1] +
+ 642              		.loc 1 157 53 view .LVU172
+ 643 011c E6EE882A 		vfma.f32	s5, s13, s16
+ 152:application/src/imu/imu.c **** 	          gyro_raw[2] * imu_rotation_matrix[1][2] - calibration.gy;
+ 644              		.loc 1 152 52 view .LVU173
+ 645 0120 71EEC71A 		vsub.f32	s3, s3, s14
+ 163:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[2][1] +
+ 646              		.loc 1 163 53 view .LVU174
+ 647 0124 F0EE433A 		vmov.f32	s7, s6
+ 159:application/src/imu/imu.c **** 	data.ay = accel_raw[0] * imu_rotation_matrix[1][0] +
+ 648              		.loc 1 159 21 view .LVU175
+ 649 0128 97ED027A 		vldr.32	s14, [r7, #8]
+ 149:application/src/imu/imu.c **** 	          gyro_raw[2] * imu_rotation_matrix[0][2] - calibration.gx;
+ 650              		.loc 1 149 52 view .LVU176
+ 651 012c A7EE881A 		vfma.f32	s2, s15, s16
+ 152:application/src/imu/imu.c **** 	          gyro_raw[2] * imu_rotation_matrix[1][2] - calibration.gy;
+ 652              		.loc 1 152 52 view .LVU177
+ 653 0130 E7EE881A 		vfma.f32	s3, s15, s16
+ 163:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[2][1] +
+ 654              		.loc 1 163 53 view .LVU178
+ARM GAS  /tmp/ccLS7UkA.s 			page 18
+
+
+ 655 0134 E6EE883A 		vfma.f32	s7, s13, s16
+ 161:application/src/imu/imu.c **** 	          accel_raw[2] * imu_rotation_matrix[1][2];
+ 656              		.loc 1 161 53 view .LVU179
+ 657 0138 33EE663A 		vsub.f32	s6, s6, s13
+ 155:application/src/imu/imu.c **** 	          gyro_raw[2] * imu_rotation_matrix[2][2] - calibration.gz;
+ 658              		.loc 1 155 52 view .LVU180
+ 659 013c 77EE827A 		vadd.f32	s15, s15, s4
+ 158:application/src/imu/imu.c **** 	          accel_raw[2] * imu_rotation_matrix[0][2];
+ 660              		.loc 1 158 53 view .LVU181
+ 661 0140 E7EE082A 		vfma.f32	s5, s14, s16
+ 161:application/src/imu/imu.c **** 	          accel_raw[2] * imu_rotation_matrix[1][2];
+ 662              		.loc 1 161 53 view .LVU182
+ 663 0144 A7EE083A 		vfma.f32	s6, s14, s16
+ 153:application/src/imu/imu.c **** 	data.gz = gyro_raw[0] * imu_rotation_matrix[2][0] +
+ 664              		.loc 1 153 52 view .LVU183
+ 665 0148 D5ED016A 		vldr.32	s13, [r5, #4]
+ 156:application/src/imu/imu.c **** 	data.ax = accel_raw[0] * imu_rotation_matrix[0][0] +
+ 666              		.loc 1 156 52 view .LVU184
+ 667 014c 95ED022A 		vldr.32	s4, [r5, #8]
+ 157:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[0][1] +
+ 668              		.loc 1 157 10 view .LVU185
+ 669 0150 C4ED022A 		vstr.32	s5, [r4, #8]
+ 150:application/src/imu/imu.c **** 	data.gy = gyro_raw[0] * imu_rotation_matrix[1][0] +
+ 670              		.loc 1 150 52 view .LVU186
+ 671 0154 31EE461A 		vsub.f32	s2, s2, s12
+ 153:application/src/imu/imu.c **** 	data.gz = gyro_raw[0] * imu_rotation_matrix[2][0] +
+ 672              		.loc 1 153 52 view .LVU187
+ 673 0158 71EEE61A 		vsub.f32	s3, s3, s13
+ 156:application/src/imu/imu.c **** 	data.ax = accel_raw[0] * imu_rotation_matrix[0][0] +
+ 674              		.loc 1 156 52 view .LVU188
+ 675 015c 37EEC22A 		vsub.f32	s4, s15, s4
+ 164:application/src/imu/imu.c **** 	          accel_raw[2] * imu_rotation_matrix[2][2];
+ 676              		.loc 1 164 53 view .LVU189
+ 677 0160 77EE233A 		vadd.f32	s7, s14, s7
+ 678              	.LBE67:
+ 679              	.LBE69:
+ 680              		.loc 1 203 3 view .LVU190
+ 681 0164 F0EE490A 		vmov.f32	s1, s18
+ 682 0168 B0EE680A 		vmov.f32	s0, s17
+ 683              	.LBB70:
+ 684              	.LBB68:
+ 148:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[0][1] +
+ 685              		.loc 1 148 10 view .LVU191
+ 686 016c 84ED051A 		vstr.32	s2, [r4, #20]
+ 151:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[1][1] +
+ 687              		.loc 1 151 2 is_stmt 1 view .LVU192
+ 151:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[1][1] +
+ 688              		.loc 1 151 10 is_stmt 0 view .LVU193
+ 689 0170 C4ED061A 		vstr.32	s3, [r4, #24]
+ 154:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[2][1] +
+ 690              		.loc 1 154 2 is_stmt 1 view .LVU194
+ 154:application/src/imu/imu.c **** 	          gyro_raw[1] * imu_rotation_matrix[2][1] +
+ 691              		.loc 1 154 10 is_stmt 0 view .LVU195
+ 692 0174 84ED072A 		vstr.32	s4, [r4, #28]
+ 157:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[0][1] +
+ 693              		.loc 1 157 2 is_stmt 1 view .LVU196
+ 160:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[1][1] +
+ARM GAS  /tmp/ccLS7UkA.s 			page 19
+
+
+ 694              		.loc 1 160 2 view .LVU197
+ 160:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[1][1] +
+ 695              		.loc 1 160 10 is_stmt 0 view .LVU198
+ 696 0178 84ED033A 		vstr.32	s6, [r4, #12]
+ 163:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[2][1] +
+ 697              		.loc 1 163 2 is_stmt 1 view .LVU199
+ 163:application/src/imu/imu.c **** 	          accel_raw[1] * imu_rotation_matrix[2][1] +
+ 698              		.loc 1 163 10 is_stmt 0 view .LVU200
+ 699 017c C4ED043A 		vstr.32	s7, [r4, #16]
+ 700              	.LBE68:
+ 701              	.LBE70:
+ 702              		.loc 1 203 3 is_stmt 1 view .LVU201
+ 703 0180 FFF7FEFF 		bl	madgwick_update_6d
+ 704              	.LVL44:
+ 204:application/src/imu/imu.c **** 		                   1.0 / IMU_UPDATE_HZ, data.gx, data.gy, data.gz,
+ 205:application/src/imu/imu.c **** 		                   data.ax, data.ay, data.az);
+ 206:application/src/imu/imu.c **** 
+ 207:application/src/imu/imu.c **** 		microros_publish_imu_data(&data);
+ 705              		.loc 1 207 3 view .LVU202
+ 706 0184 1C48     		ldr	r0, .L121+24
+ 707 0186 FFF7FEFF 		bl	microros_publish_imu_data
+ 708              	.LVL45:
+ 208:application/src/imu/imu.c **** 
+ 209:application/src/imu/imu.c **** 		float yaw, pitch, roll;
+ 709              		.loc 1 209 3 view .LVU203
+ 210:application/src/imu/imu.c **** 		quaternion_to_rpy(&data.orientation, &yaw, &pitch, &roll);
+ 710              		.loc 1 210 3 view .LVU204
+ 711 018a 05A9     		add	r1, sp, #20
+ 712 018c 4046     		mov	r0, r8
+ 713 018e 07AB     		add	r3, sp, #28
+ 714 0190 06AA     		add	r2, sp, #24
+ 715 0192 FFF7FEFF 		bl	quaternion_to_rpy
+ 716              	.LVL46:
+ 211:application/src/imu/imu.c **** 		// LOG_INFO("yaw: %f, pitch: %f, roll: %f", yaw * 180.0 / M_PI,
+ 212:application/src/imu/imu.c **** 		//          pitch * 180.0 / M_PI, roll * 180.0 / M_PI);
+ 213:application/src/imu/imu.c **** 		// printf("yaw: %f, pitch: %f, roll: %f\n", yaw * 180.0 / M_PI,
+ 214:application/src/imu/imu.c **** 		//          pitch * 180.0 / M_PI, roll * 180.0 / M_PI);
+ 215:application/src/imu/imu.c **** 		
+ 216:application/src/imu/imu.c **** 		vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1000 / IMU_UPDATE_HZ));
+ 717              		.loc 1 216 3 view .LVU205
+ 718 0196 0521     		movs	r1, #5
+ 719 0198 04A8     		add	r0, sp, #16
+ 720 019a FFF7FEFF 		bl	vTaskDelayUntil
+ 721              	.LVL47:
+ 722              	.LBE73:
+ 198:application/src/imu/imu.c **** 		read_bmi088_data();
+ 723              		.loc 1 198 8 view .LVU206
+ 724 019e 86E7     		b	.L74
+ 725              	.L43:
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 726              		.loc 1 185 3 view .LVU207
+ 727              	.LBB74:
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 728              		.loc 1 185 3 view .LVU208
+ 729 01a0 FFF7FEFF 		bl	logging_get_logger_name
+ 730              	.LVL48:
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ARM GAS  /tmp/ccLS7UkA.s 			page 20
+
+
+ 731              		.loc 1 185 3 view .LVU209
+ 732              	.LBB75:
+ 733 01a4 0E4B     		ldr	r3, .L121
+ 734 01a6 0393     		str	r3, [sp, #12]
+ 735              	.LBE75:
+ 736 01a8 0446     		mov	r4, r0
+ 737 01aa 70B1     		cbz	r0, .L51
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 738              		.loc 1 185 3 discriminator 1 view .LVU210
+ 739              	.LBB76:
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 740              		.loc 1 185 3 discriminator 1 view .LVU211
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 741              		.loc 1 185 3 discriminator 1 view .LVU212
+ 742 01ac 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 743 01ae 002B     		cmp	r3, #0
+ 744 01b0 00F00881 		beq	.L117
+ 745              	.LVL49:
+ 746              	.L53:
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 747              		.loc 1 185 3 discriminator 7 view .LVU213
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 748              		.loc 1 185 3 discriminator 7 view .LVU214
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 749              		.loc 1 185 3 discriminator 7 view .LVU215
+ 750 01b4 1421     		movs	r1, #20
+ 751 01b6 2046     		mov	r0, r4
+ 752 01b8 FFF7FEFF 		bl	rcutils_logging_logger_is_enabled_for
+ 753              	.LVL50:
+ 754 01bc 28B1     		cbz	r0, .L51
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 755              		.loc 1 185 3 discriminator 8 view .LVU216
+ 756 01be 154B     		ldr	r3, .L121+52
+ 757 01c0 1548     		ldr	r0, .L121+56
+ 758 01c2 2246     		mov	r2, r4
+ 759 01c4 1421     		movs	r1, #20
+ 760 01c6 FFF7FEFF 		bl	rcutils_log
+ 761              	.LVL51:
+ 762              	.L51:
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 763              		.loc 1 185 3 is_stmt 0 discriminator 8 view .LVU217
+ 764 01ca 0B4C     		ldr	r4, .L121+24
+ 765              	.LVL52:
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 766              		.loc 1 185 3 discriminator 8 view .LVU218
+ 767 01cc DFF81490 		ldr	r9, .L121+4
+ 768              	.LBE76:
+ 769              	.LBE74:
+ 770              	.LBB78:
+ 771              	.LBB79:
+ 772              	.LBB80:
+ 773              	.LBB81:
+  69:application/src/imu/imu.c **** }
+ 774              		.loc 1 69 2 view .LVU219
+ 775 01d0 DFF83080 		ldr	r8, .L121+36
+ 776              	.LBE81:
+ 777              	.LBE80:
+ARM GAS  /tmp/ccLS7UkA.s 			page 21
+
+
+ 778              	.LBB84:
+ 779              	.LBB85:
+  74:application/src/imu/imu.c **** 	                      IMU_TARGET_TEMPERATURE);
+ 780              		.loc 1 74 2 view .LVU220
+ 781 01d4 9FED0C8A 		vldr.32	s16, .L121+40
+ 782              	.LBE85:
+ 783              	.LBE84:
+ 784              	.LBB87:
+ 785              	.LBB82:
+  69:application/src/imu/imu.c **** }
+ 786              		.loc 1 69 2 view .LVU221
+ 787 01d8 04F13005 		add	r5, r4, #48
+ 788 01dc 22E0     		b	.L58
+ 789              	.L122:
+ 790 01de 00BF     		.align	2
+ 791              	.L121:
+ 792 01e0 00000000 		.word	g_rcutils_logging_initialized
+ 793 01e4 00000000 		.word	.LANCHOR3
+ 794 01e8 00000000 		.word	.LANCHOR2
+ 795 01ec 00000000 		.word	.LANCHOR4
+ 796 01f0 20000000 		.word	.LC3
+ 797 01f4 00000000 		.word	.LANCHOR5
+ 798 01f8 00000000 		.word	.LANCHOR7
+ 799 01fc 00000000 		.word	.LANCHOR9
+ 800 0200 00000000 		.word	0
+ 801 0204 00000000 		.word	.LANCHOR8
+ 802 0208 00002042 		.word	1109393408
+ 803 020c 0AD7A33B 		.word	1000593162
+ 804 0210 CDCCCC3D 		.word	1036831949
+ 805 0214 48000000 		.word	.LC4
+ 806 0218 00000000 		.word	.LANCHOR6
+ 807 021c 30000000 		.word	.LANCHOR7+48
+ 808              	.L118:
+ 809              	.LBE82:
+ 810              	.LBE87:
+ 115:application/src/imu/imu.c **** 	}
+ 811              		.loc 1 115 3 view .LVU222
+ 812 0220 FFF7FEFF 		bl	HAL_Delay
+ 813              	.LVL53:
+ 107:application/src/imu/imu.c **** 		read_bmi088_data();
+ 814              		.loc 1 107 8 is_stmt 1 view .LVU223
+ 815              	.L58:
+ 107:application/src/imu/imu.c **** 		read_bmi088_data();
+ 816              		.loc 1 107 2 view .LVU224
+ 108:application/src/imu/imu.c **** 		run_temperature_control();
+ 817              		.loc 1 108 3 view .LVU225
+ 818              	.LBB88:
+ 819              	.LBI80:
+  67:application/src/imu/imu.c **** 	data.epoch_ns = rmw_uros_epoch_nanos();
+ 820              		.loc 1 67 13 view .LVU226
+ 821              	.LBB83:
+  68:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+ 822              		.loc 1 68 2 view .LVU227
+  68:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+ 823              		.loc 1 68 18 is_stmt 0 view .LVU228
+ 824 0224 FFF7FEFF 		bl	rmw_uros_epoch_nanos
+ 825              	.LVL54:
+ARM GAS  /tmp/ccLS7UkA.s 			page 22
+
+
+  69:application/src/imu/imu.c **** }
+ 826              		.loc 1 69 2 view .LVU229
+ 827 0228 2A46     		mov	r2, r5
+  68:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+ 828              		.loc 1 68 18 view .LVU230
+ 829 022a 0646     		mov	r6, r0
+ 830 022c 0F46     		mov	r7, r1
+  69:application/src/imu/imu.c **** }
+ 831              		.loc 1 69 2 view .LVU231
+ 832 022e 7548     		ldr	r0, .L123
+ 833 0230 4146     		mov	r1, r8
+  68:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+ 834              		.loc 1 68 16 view .LVU232
+ 835 0232 C4E90067 		strd	r6, [r4]
+  69:application/src/imu/imu.c **** }
+ 836              		.loc 1 69 2 is_stmt 1 view .LVU233
+ 837 0236 FFF7FEFF 		bl	BMI088_Read
+ 838              	.LVL55:
+ 839              	.LBE83:
+ 840              	.LBE88:
+ 109:application/src/imu/imu.c **** 
+ 841              		.loc 1 109 3 view .LVU234
+ 842              	.LBB89:
+ 843              	.LBI84:
+  73:application/src/imu/imu.c **** 	pid_controller_update(&heater_pid, data.temperature,
+ 844              		.loc 1 73 13 view .LVU235
+ 845              	.LBB86:
+  74:application/src/imu/imu.c **** 	                      IMU_TARGET_TEMPERATURE);
+ 846              		.loc 1 74 2 view .LVU236
+ 847 023a 7348     		ldr	r0, .L123+4
+ 848 023c 94ED0C0A 		vldr.32	s0, [r4, #48]
+ 849 0240 F0EE480A 		vmov.f32	s1, s16
+ 850 0244 FFF7FEFF 		bl	pid_controller_update
+ 851              	.LVL56:
+  76:application/src/imu/imu.c **** 	if (heater_pid.out < 0) {
+ 852              		.loc 1 76 2 view .LVU237
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 853              		.loc 1 77 2 view .LVU238
+  80:application/src/imu/imu.c **** 	}
+ 854              		.loc 1 80 3 view .LVU239
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 855              		.loc 1 77 16 is_stmt 0 view .LVU240
+ 856 0248 D9ED0E7A 		vldr.32	s15, [r9, #56]
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 857              		.loc 1 77 5 view .LVU241
+ 858 024c F5EEC07A 		vcmpe.f32	s15, #0
+ 859 0250 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+  78:application/src/imu/imu.c **** 	} else {
+ 860              		.loc 1 78 7 view .LVU242
+ 861 0254 4FF00000 		mov	r0, #0
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 862              		.loc 1 77 5 view .LVU243
+ 863 0258 04D4     		bmi	.L56
+  80:application/src/imu/imu.c **** 	}
+ 864              		.loc 1 80 7 view .LVU244
+ 865 025a FCEEE77A 		vcvt.u32.f32	s15, s15
+ 866 025e 17EE903A 		vmov	r3, s15	@ int
+ARM GAS  /tmp/ccLS7UkA.s 			page 23
+
+
+ 867 0262 98B2     		uxth	r0, r3
+ 868              	.LVL57:
+ 869              	.L56:
+  82:application/src/imu/imu.c **** }
+ 870              		.loc 1 82 2 is_stmt 1 view .LVU245
+ 871 0264 FFF7FEFF 		bl	imu_heater_set_pwm
+ 872              	.LVL58:
+  82:application/src/imu/imu.c **** }
+ 873              		.loc 1 82 2 is_stmt 0 view .LVU246
+ 874              	.LBE86:
+ 875              	.LBE89:
+ 111:application/src/imu/imu.c **** 		    IMU_CALIBRATION_TEMPERATURE_TOLERANCE)
+ 876              		.loc 1 111 3 is_stmt 1 view .LVU247
+ 115:application/src/imu/imu.c **** 	}
+ 877              		.loc 1 115 3 view .LVU248
+ 111:application/src/imu/imu.c **** 		    IMU_CALIBRATION_TEMPERATURE_TOLERANCE)
+ 878              		.loc 1 111 30 is_stmt 0 view .LVU249
+ 879 0268 D4ED0C7A 		vldr.32	s15, [r4, #48]
+ 880 026c 77EEC87A 		vsub.f32	s15, s15, s16
+ 111:application/src/imu/imu.c **** 		    IMU_CALIBRATION_TEMPERATURE_TOLERANCE)
+ 881              		.loc 1 111 6 view .LVU250
+ 882 0270 B7EE007A 		vmov.f32	s14, #1.0e+0
+ 111:application/src/imu/imu.c **** 		    IMU_CALIBRATION_TEMPERATURE_TOLERANCE)
+ 883              		.loc 1 111 7 view .LVU251
+ 884 0274 F0EEE77A 		vabs.f32	s15, s15
+ 111:application/src/imu/imu.c **** 		    IMU_CALIBRATION_TEMPERATURE_TOLERANCE)
+ 885              		.loc 1 111 6 view .LVU252
+ 886 0278 F4EEC77A 		vcmpe.f32	s15, s14
+ 887 027c F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 115:application/src/imu/imu.c **** 	}
+ 888              		.loc 1 115 3 view .LVU253
+ 889 0280 4FF00500 		mov	r0, #5
+ 111:application/src/imu/imu.c **** 		    IMU_CALIBRATION_TEMPERATURE_TOLERANCE)
+ 890              		.loc 1 111 6 view .LVU254
+ 891 0284 CCD5     		bpl	.L118
+ 118:application/src/imu/imu.c **** 
+ 892              		.loc 1 118 2 is_stmt 1 view .LVU255
+ 893              	.LBB90:
+ 118:application/src/imu/imu.c **** 
+ 894              		.loc 1 118 2 view .LVU256
+ 895 0286 FFF7FEFF 		bl	logging_get_logger_name
+ 896              	.LVL59:
+ 118:application/src/imu/imu.c **** 
+ 897              		.loc 1 118 2 view .LVU257
+ 898 028a 0546     		mov	r5, r0
+ 899 028c A0B1     		cbz	r0, .L60
+ 118:application/src/imu/imu.c **** 
+ 900              		.loc 1 118 2 view .LVU258
+ 901              	.LBB91:
+ 118:application/src/imu/imu.c **** 
+ 902              		.loc 1 118 2 view .LVU259
+ 118:application/src/imu/imu.c **** 
+ 903              		.loc 1 118 2 view .LVU260
+ 904 028e 039B     		ldr	r3, [sp, #12]
+ 905 0290 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 906 0292 002B     		cmp	r3, #0
+ 907 0294 00F0A680 		beq	.L119
+ARM GAS  /tmp/ccLS7UkA.s 			page 24
+
+
+ 908              	.LVL60:
+ 909              	.L62:
+ 118:application/src/imu/imu.c **** 
+ 910              		.loc 1 118 2 view .LVU261
+ 118:application/src/imu/imu.c **** 
+ 911              		.loc 1 118 2 view .LVU262
+ 118:application/src/imu/imu.c **** 
+ 912              		.loc 1 118 2 view .LVU263
+ 913 0298 1421     		movs	r1, #20
+ 914 029a 2846     		mov	r0, r5
+ 915 029c FFF7FEFF 		bl	rcutils_logging_logger_is_enabled_for
+ 916              	.LVL61:
+ 917 02a0 50B1     		cbz	r0, .L60
+ 118:application/src/imu/imu.c **** 
+ 918              		.loc 1 118 2 view .LVU264
+ 919 02a2 206B     		ldr	r0, [r4, #48]	@ float
+ 920 02a4 FFF7FEFF 		bl	__aeabi_f2d
+ 921              	.LVL62:
+ 922 02a8 584B     		ldr	r3, .L123+8
+ 923 02aa CDE90001 		strd	r0, [sp]
+ 924 02ae 2A46     		mov	r2, r5
+ 925 02b0 5748     		ldr	r0, .L123+12
+ 926 02b2 1421     		movs	r1, #20
+ 927 02b4 FFF7FEFF 		bl	rcutils_log
+ 928              	.LVL63:
+ 929              	.L60:
+ 118:application/src/imu/imu.c **** 
+ 930              		.loc 1 118 2 is_stmt 0 view .LVU265
+ 931              	.LBE91:
+ 118:application/src/imu/imu.c **** 
+ 932              		.loc 1 118 2 is_stmt 1 view .LVU266
+ 933              	.LBE90:
+ 118:application/src/imu/imu.c **** 
+ 934              		.loc 1 118 2 view .LVU267
+ 121:application/src/imu/imu.c **** 	calibration.gy = 0;
+ 935              		.loc 1 121 2 view .LVU268
+ 121:application/src/imu/imu.c **** 	calibration.gy = 0;
+ 936              		.loc 1 121 17 is_stmt 0 view .LVU269
+ 937 02b8 564D     		ldr	r5, .L123+16
+ 938              	.LVL64:
+ 121:application/src/imu/imu.c **** 	calibration.gy = 0;
+ 939              		.loc 1 121 17 view .LVU270
+ 940 02ba 524E     		ldr	r6, .L123
+ 941              	.LBB93:
+ 942              	.LBB94:
+ 943              	.LBB95:
+  69:application/src/imu/imu.c **** }
+ 944              		.loc 1 69 2 view .LVU271
+ 945 02bc DFF870A1 		ldr	r10, .L123+44
+ 946 02c0 DFF87081 		ldr	r8, .L123+48
+ 947              	.LBE95:
+ 948              	.LBE94:
+ 949              	.LBB97:
+ 950              	.LBB98:
+  74:application/src/imu/imu.c **** 	                      IMU_TARGET_TEMPERATURE);
+ 951              		.loc 1 74 2 view .LVU272
+ 952 02c4 9FED548A 		vldr.32	s16, .L123+20
+ARM GAS  /tmp/ccLS7UkA.s 			page 25
+
+
+ 953              	.LBE98:
+ 954              	.LBE97:
+ 955              	.LBE93:
+ 121:application/src/imu/imu.c **** 	calibration.gy = 0;
+ 956              		.loc 1 121 17 view .LVU273
+ 957 02c8 0023     		movs	r3, #0
+ 958 02ca 2B60     		str	r3, [r5]	@ float
+ 122:application/src/imu/imu.c **** 	calibration.gz = 0;
+ 959              		.loc 1 122 2 is_stmt 1 view .LVU274
+ 122:application/src/imu/imu.c **** 	calibration.gz = 0;
+ 960              		.loc 1 122 17 is_stmt 0 view .LVU275
+ 961 02cc 6B60     		str	r3, [r5, #4]	@ float
+ 123:application/src/imu/imu.c **** 
+ 962              		.loc 1 123 2 is_stmt 1 view .LVU276
+ 123:application/src/imu/imu.c **** 
+ 963              		.loc 1 123 17 is_stmt 0 view .LVU277
+ 964 02ce AB60     		str	r3, [r5, #8]	@ float
+ 125:application/src/imu/imu.c **** 		read_bmi088_data();
+ 965              		.loc 1 125 2 is_stmt 1 view .LVU278
+ 966              	.LBB102:
+ 125:application/src/imu/imu.c **** 		read_bmi088_data();
+ 967              		.loc 1 125 7 view .LVU279
+ 968              	.LVL65:
+ 125:application/src/imu/imu.c **** 		read_bmi088_data();
+ 969              		.loc 1 125 18 view .LVU280
+ 970              	.LBE102:
+ 123:application/src/imu/imu.c **** 
+ 971              		.loc 1 123 17 is_stmt 0 view .LVU281
+ 972 02d0 4FF49677 		mov	r7, #300
+ 973              	.LVL66:
+ 974              	.L66:
+ 975              	.LBB103:
+ 126:application/src/imu/imu.c **** 		run_temperature_control();
+ 976              		.loc 1 126 3 is_stmt 1 view .LVU282
+ 977              	.LBB100:
+ 978              	.LBI94:
+  67:application/src/imu/imu.c **** 	data.epoch_ns = rmw_uros_epoch_nanos();
+ 979              		.loc 1 67 13 view .LVU283
+ 980              	.LBB96:
+  68:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+ 981              		.loc 1 68 2 view .LVU284
+  68:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+ 982              		.loc 1 68 18 is_stmt 0 view .LVU285
+ 983 02d4 FFF7FEFF 		bl	rmw_uros_epoch_nanos
+ 984              	.LVL67:
+  69:application/src/imu/imu.c **** }
+ 985              		.loc 1 69 2 view .LVU286
+ 986 02d8 5246     		mov	r2, r10
+  68:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+ 987              		.loc 1 68 18 view .LVU287
+ 988 02da 8C46     		mov	ip, r1
+ 989 02dc 8346     		mov	fp, r0
+  69:application/src/imu/imu.c **** }
+ 990              		.loc 1 69 2 view .LVU288
+ 991 02de 4146     		mov	r1, r8
+ 992 02e0 4848     		ldr	r0, .L123
+  68:application/src/imu/imu.c **** 	BMI088_Read(gyro_raw, accel_raw, &data.temperature);
+ARM GAS  /tmp/ccLS7UkA.s 			page 26
+
+
+ 993              		.loc 1 68 16 view .LVU289
+ 994 02e2 C4E900BC 		strd	fp, [r4]
+  69:application/src/imu/imu.c **** }
+ 995              		.loc 1 69 2 is_stmt 1 view .LVU290
+ 996 02e6 FFF7FEFF 		bl	BMI088_Read
+ 997              	.LVL68:
+ 998              	.LBE96:
+ 999              	.LBE100:
+ 127:application/src/imu/imu.c **** 
+ 1000              		.loc 1 127 3 view .LVU291
+ 1001              	.LBB101:
+ 1002              	.LBI97:
+  73:application/src/imu/imu.c **** 	pid_controller_update(&heater_pid, data.temperature,
+ 1003              		.loc 1 73 13 view .LVU292
+ 1004              	.LBB99:
+  74:application/src/imu/imu.c **** 	                      IMU_TARGET_TEMPERATURE);
+ 1005              		.loc 1 74 2 view .LVU293
+ 1006 02ea 4748     		ldr	r0, .L123+4
+ 1007 02ec 94ED0C0A 		vldr.32	s0, [r4, #48]
+ 1008 02f0 F0EE480A 		vmov.f32	s1, s16
+ 1009 02f4 FFF7FEFF 		bl	pid_controller_update
+ 1010              	.LVL69:
+  76:application/src/imu/imu.c **** 	if (heater_pid.out < 0) {
+ 1011              		.loc 1 76 2 view .LVU294
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 1012              		.loc 1 77 2 view .LVU295
+  80:application/src/imu/imu.c **** 	}
+ 1013              		.loc 1 80 3 view .LVU296
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 1014              		.loc 1 77 16 is_stmt 0 view .LVU297
+ 1015 02f8 D9ED0E7A 		vldr.32	s15, [r9, #56]
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 1016              		.loc 1 77 5 view .LVU298
+ 1017 02fc F5EEC07A 		vcmpe.f32	s15, #0
+ 1018 0300 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+  78:application/src/imu/imu.c **** 	} else {
+ 1019              		.loc 1 78 7 view .LVU299
+ 1020 0304 4FF00000 		mov	r0, #0
+  77:application/src/imu/imu.c **** 		pwm = 0;
+ 1021              		.loc 1 77 5 view .LVU300
+ 1022 0308 04D4     		bmi	.L65
+  80:application/src/imu/imu.c **** 	}
+ 1023              		.loc 1 80 7 view .LVU301
+ 1024 030a FCEEE77A 		vcvt.u32.f32	s15, s15
+ 1025 030e 17EE903A 		vmov	r3, s15	@ int
+ 1026 0312 98B2     		uxth	r0, r3
+ 1027              	.LVL70:
+ 1028              	.L65:
+  82:application/src/imu/imu.c **** }
+ 1029              		.loc 1 82 2 is_stmt 1 view .LVU302
+ 1030 0314 FFF7FEFF 		bl	imu_heater_set_pwm
+ 1031              	.LVL71:
+  82:application/src/imu/imu.c **** }
+ 1032              		.loc 1 82 2 is_stmt 0 view .LVU303
+ 1033              	.LBE99:
+ 1034              	.LBE101:
+ 129:application/src/imu/imu.c **** 		calibration.gy += gyro_raw[1];
+ARM GAS  /tmp/ccLS7UkA.s 			page 27
+
+
+ 1035              		.loc 1 129 3 is_stmt 1 view .LVU304
+ 129:application/src/imu/imu.c **** 		calibration.gy += gyro_raw[1];
+ 1036              		.loc 1 129 18 is_stmt 0 view .LVU305
+ 1037 0318 D5ED006A 		vldr.32	s13, [r5]
+ 130:application/src/imu/imu.c **** 		calibration.gz += gyro_raw[2];
+ 1038              		.loc 1 130 18 view .LVU306
+ 1039 031c 95ED017A 		vldr.32	s14, [r5, #4]
+ 131:application/src/imu/imu.c **** 
+ 1040              		.loc 1 131 18 view .LVU307
+ 1041 0320 D5ED027A 		vldr.32	s15, [r5, #8]
+ 129:application/src/imu/imu.c **** 		calibration.gy += gyro_raw[1];
+ 1042              		.loc 1 129 18 view .LVU308
+ 1043 0324 96ED005A 		vldr.32	s10, [r6]
+ 130:application/src/imu/imu.c **** 		calibration.gz += gyro_raw[2];
+ 1044              		.loc 1 130 18 view .LVU309
+ 1045 0328 D6ED015A 		vldr.32	s11, [r6, #4]
+ 131:application/src/imu/imu.c **** 
+ 1046              		.loc 1 131 18 view .LVU310
+ 1047 032c 96ED026A 		vldr.32	s12, [r6, #8]
+ 129:application/src/imu/imu.c **** 		calibration.gy += gyro_raw[1];
+ 1048              		.loc 1 129 18 view .LVU311
+ 1049 0330 76EE856A 		vadd.f32	s13, s13, s10
+ 130:application/src/imu/imu.c **** 		calibration.gz += gyro_raw[2];
+ 1050              		.loc 1 130 18 view .LVU312
+ 1051 0334 37EE257A 		vadd.f32	s14, s14, s11
+ 131:application/src/imu/imu.c **** 
+ 1052              		.loc 1 131 18 view .LVU313
+ 1053 0338 77EE867A 		vadd.f32	s15, s15, s12
+ 133:application/src/imu/imu.c **** 	}
+ 1054              		.loc 1 133 3 view .LVU314
+ 1055 033c 0520     		movs	r0, #5
+ 129:application/src/imu/imu.c **** 		calibration.gy += gyro_raw[1];
+ 1056              		.loc 1 129 18 view .LVU315
+ 1057 033e C5ED006A 		vstr.32	s13, [r5]
+ 130:application/src/imu/imu.c **** 		calibration.gz += gyro_raw[2];
+ 1058              		.loc 1 130 3 is_stmt 1 view .LVU316
+ 130:application/src/imu/imu.c **** 		calibration.gz += gyro_raw[2];
+ 1059              		.loc 1 130 18 is_stmt 0 view .LVU317
+ 1060 0342 85ED017A 		vstr.32	s14, [r5, #4]
+ 131:application/src/imu/imu.c **** 
+ 1061              		.loc 1 131 3 is_stmt 1 view .LVU318
+ 131:application/src/imu/imu.c **** 
+ 1062              		.loc 1 131 18 is_stmt 0 view .LVU319
+ 1063 0346 C5ED027A 		vstr.32	s15, [r5, #8]
+ 133:application/src/imu/imu.c **** 	}
+ 1064              		.loc 1 133 3 is_stmt 1 view .LVU320
+ 1065 034a FFF7FEFF 		bl	HAL_Delay
+ 1066              	.LVL72:
+ 125:application/src/imu/imu.c **** 		read_bmi088_data();
+ 1067              		.loc 1 125 47 view .LVU321
+ 125:application/src/imu/imu.c **** 		read_bmi088_data();
+ 1068              		.loc 1 125 18 view .LVU322
+ 125:application/src/imu/imu.c **** 		read_bmi088_data();
+ 1069              		.loc 1 125 2 is_stmt 0 view .LVU323
+ 1070 034e 013F     		subs	r7, r7, #1
+ 1071              	.LVL73:
+ 125:application/src/imu/imu.c **** 		read_bmi088_data();
+ARM GAS  /tmp/ccLS7UkA.s 			page 28
+
+
+ 1072              		.loc 1 125 2 view .LVU324
+ 1073 0350 C0D1     		bne	.L66
+ 1074              	.LBE103:
+ 136:application/src/imu/imu.c **** 	calibration.gy /= IMU_CALIBRATION_SAMPLES;
+ 1075              		.loc 1 136 2 is_stmt 1 view .LVU325
+ 136:application/src/imu/imu.c **** 	calibration.gy /= IMU_CALIBRATION_SAMPLES;
+ 1076              		.loc 1 136 17 is_stmt 0 view .LVU326
+ 1077 0352 D5ED006A 		vldr.32	s13, [r5]
+ 1078 0356 DFED317A 		vldr.32	s15, .L123+24
+ 137:application/src/imu/imu.c **** 	calibration.gz /= IMU_CALIBRATION_SAMPLES;
+ 1079              		.loc 1 137 17 view .LVU327
+ 1080 035a 95ED017A 		vldr.32	s14, [r5, #4]
+ 138:application/src/imu/imu.c **** 
+ 1081              		.loc 1 138 17 view .LVU328
+ 1082 035e D5ED025A 		vldr.32	s11, [r5, #8]
+ 136:application/src/imu/imu.c **** 	calibration.gy /= IMU_CALIBRATION_SAMPLES;
+ 1083              		.loc 1 136 17 view .LVU329
+ 1084 0362 86EEA76A 		vdiv.f32	s12, s13, s15
+ 137:application/src/imu/imu.c **** 	calibration.gz /= IMU_CALIBRATION_SAMPLES;
+ 1085              		.loc 1 137 17 view .LVU330
+ 1086 0366 C7EE276A 		vdiv.f32	s13, s14, s15
+ 138:application/src/imu/imu.c **** 
+ 1087              		.loc 1 138 17 view .LVU331
+ 1088 036a 85EEA77A 		vdiv.f32	s14, s11, s15
+ 136:application/src/imu/imu.c **** 	calibration.gy /= IMU_CALIBRATION_SAMPLES;
+ 1089              		.loc 1 136 17 view .LVU332
+ 1090 036e 85ED006A 		vstr.32	s12, [r5]
+ 137:application/src/imu/imu.c **** 	calibration.gz /= IMU_CALIBRATION_SAMPLES;
+ 1091              		.loc 1 137 2 is_stmt 1 view .LVU333
+ 137:application/src/imu/imu.c **** 	calibration.gz /= IMU_CALIBRATION_SAMPLES;
+ 1092              		.loc 1 137 17 is_stmt 0 view .LVU334
+ 1093 0372 C5ED016A 		vstr.32	s13, [r5, #4]
+ 138:application/src/imu/imu.c **** 
+ 1094              		.loc 1 138 2 is_stmt 1 view .LVU335
+ 138:application/src/imu/imu.c **** 
+ 1095              		.loc 1 138 17 is_stmt 0 view .LVU336
+ 1096 0376 85ED027A 		vstr.32	s14, [r5, #8]
+ 140:application/src/imu/imu.c **** 
+ 1097              		.loc 1 140 2 is_stmt 1 view .LVU337
+ 1098              	.LBB104:
+ 140:application/src/imu/imu.c **** 
+ 1099              		.loc 1 140 2 view .LVU338
+ 1100 037a FFF7FEFF 		bl	logging_get_logger_name
+ 1101              	.LVL74:
+ 140:application/src/imu/imu.c **** 
+ 1102              		.loc 1 140 2 view .LVU339
+ 1103 037e 0746     		mov	r7, r0
+ 1104              	.LVL75:
+ 140:application/src/imu/imu.c **** 
+ 1105              		.loc 1 140 2 is_stmt 0 view .LVU340
+ 1106 0380 68B1     		cbz	r0, .L68
+ 140:application/src/imu/imu.c **** 
+ 1107              		.loc 1 140 2 is_stmt 1 view .LVU341
+ 1108              	.LBB105:
+ 140:application/src/imu/imu.c **** 
+ 1109              		.loc 1 140 2 view .LVU342
+ 140:application/src/imu/imu.c **** 
+ARM GAS  /tmp/ccLS7UkA.s 			page 29
+
+
+ 1110              		.loc 1 140 2 view .LVU343
+ 1111 0382 039B     		ldr	r3, [sp, #12]
+ 1112 0384 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1113 0386 ABB3     		cbz	r3, .L120
+ 1114              	.LVL76:
+ 1115              	.L70:
+ 140:application/src/imu/imu.c **** 
+ 1116              		.loc 1 140 2 view .LVU344
+ 140:application/src/imu/imu.c **** 
+ 1117              		.loc 1 140 2 view .LVU345
+ 140:application/src/imu/imu.c **** 
+ 1118              		.loc 1 140 2 view .LVU346
+ 1119 0388 1421     		movs	r1, #20
+ 1120 038a 3846     		mov	r0, r7
+ 1121 038c FFF7FEFF 		bl	rcutils_logging_logger_is_enabled_for
+ 1122              	.LVL77:
+ 1123 0390 28B1     		cbz	r0, .L68
+ 140:application/src/imu/imu.c **** 
+ 1124              		.loc 1 140 2 view .LVU347
+ 1125 0392 234B     		ldr	r3, .L123+28
+ 1126 0394 2348     		ldr	r0, .L123+32
+ 1127 0396 3A46     		mov	r2, r7
+ 1128 0398 1421     		movs	r1, #20
+ 1129 039a FFF7FEFF 		bl	rcutils_log
+ 1130              	.LVL78:
+ 1131              	.L68:
+ 140:application/src/imu/imu.c **** 
+ 1132              		.loc 1 140 2 is_stmt 0 view .LVU348
+ 1133              	.LBE105:
+ 140:application/src/imu/imu.c **** 
+ 1134              		.loc 1 140 2 is_stmt 1 view .LVU349
+ 1135              	.LBE104:
+ 140:application/src/imu/imu.c **** 
+ 1136              		.loc 1 140 2 view .LVU350
+ 143:application/src/imu/imu.c **** }
+ 1137              		.loc 1 143 2 view .LVU351
+ 1138 039e 1D48     		ldr	r0, .L123+16
+ 1139 03a0 FFF7FEFF 		bl	imu_write_stored_calibration
+ 1140              	.LVL79:
+ 144:application/src/imu/imu.c **** 
+ 1141              		.loc 1 144 1 is_stmt 0 view .LVU352
+ 1142 03a4 6AE6     		b	.L45
+ 1143              	.LVL80:
+ 1144              	.L115:
+ 144:application/src/imu/imu.c **** 
+ 1145              		.loc 1 144 1 view .LVU353
+ 1146              	.LBE79:
+ 1147              	.LBE78:
+ 1148              	.LBB110:
+ 1149              	.LBB51:
+ 171:application/src/imu/imu.c **** 		for (;;)
+ 1150              		.loc 1 171 3 is_stmt 1 discriminator 8 view .LVU354
+ 1151 03a6 204B     		ldr	r3, .L123+36
+ 1152 03a8 2048     		ldr	r0, .L123+40
+ 1153 03aa 2246     		mov	r2, r4
+ 1154 03ac 2821     		movs	r1, #40
+ 1155 03ae FFF7FEFF 		bl	rcutils_log
+ARM GAS  /tmp/ccLS7UkA.s 			page 30
+
+
+ 1156              	.LVL81:
+ 1157 03b2 3DE6     		b	.L109
+ 1158              	.LVL82:
+ 1159              	.L114:
+ 171:application/src/imu/imu.c **** 		for (;;)
+ 1160              		.loc 1 171 3 discriminator 3 view .LVU355
+ 1161 03b4 FFF7FEFF 		bl	rcutils_logging_initialize
+ 1162              	.LVL83:
+ 171:application/src/imu/imu.c **** 		for (;;)
+ 1163              		.loc 1 171 3 is_stmt 0 discriminator 3 view .LVU356
+ 1164 03b8 0028     		cmp	r0, #0
+ 1165 03ba 3FF432AE 		beq	.L41
+ 171:application/src/imu/imu.c **** 		for (;;)
+ 1166              		.loc 1 171 3 is_stmt 1 discriminator 5 view .LVU357
+ 171:application/src/imu/imu.c **** 		for (;;)
+ 1167              		.loc 1 171 3 discriminator 5 view .LVU358
+ 171:application/src/imu/imu.c **** 		for (;;)
+ 1168              		.loc 1 171 3 discriminator 5 view .LVU359
+ 171:application/src/imu/imu.c **** 		for (;;)
+ 1169              		.loc 1 171 3 discriminator 5 view .LVU360
+ 1170 03be FFF7FEFF 		bl	rcutils_reset_error
+ 1171              	.LVL84:
+ 1172 03c2 2EE6     		b	.L41
+ 1173              	.LVL85:
+ 1174              	.L117:
+ 171:application/src/imu/imu.c **** 		for (;;)
+ 1175              		.loc 1 171 3 is_stmt 0 discriminator 5 view .LVU361
+ 1176              	.LBE51:
+ 1177              	.LBE110:
+ 1178              	.LBB111:
+ 1179              	.LBB77:
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 1180              		.loc 1 185 3 is_stmt 1 discriminator 3 view .LVU362
+ 1181 03c4 FFF7FEFF 		bl	rcutils_logging_initialize
+ 1182              	.LVL86:
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 1183              		.loc 1 185 3 is_stmt 0 discriminator 3 view .LVU363
+ 1184 03c8 0028     		cmp	r0, #0
+ 1185 03ca 3FF4F3AE 		beq	.L53
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 1186              		.loc 1 185 3 is_stmt 1 discriminator 5 view .LVU364
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 1187              		.loc 1 185 3 discriminator 5 view .LVU365
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 1188              		.loc 1 185 3 discriminator 5 view .LVU366
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 1189              		.loc 1 185 3 discriminator 5 view .LVU367
+ 1190 03ce FFF7FEFF 		bl	rcutils_reset_error
+ 1191              	.LVL87:
+ 1192 03d2 EFE6     		b	.L53
+ 1193              	.LVL88:
+ 1194              	.L116:
+ 185:application/src/imu/imu.c **** 		imu_do_calibration();
+ 1195              		.loc 1 185 3 is_stmt 0 discriminator 5 view .LVU368
+ 1196              	.LBE77:
+ 1197              	.LBE111:
+ 1198              	.LBB112:
+ARM GAS  /tmp/ccLS7UkA.s 			page 31
+
+
+ 1199              	.LBB55:
+ 182:application/src/imu/imu.c **** 	} else {
+ 1200              		.loc 1 182 3 is_stmt 1 discriminator 3 view .LVU369
+ 1201 03d4 FFF7FEFF 		bl	rcutils_logging_initialize
+ 1202              	.LVL89:
+ 182:application/src/imu/imu.c **** 	} else {
+ 1203              		.loc 1 182 3 is_stmt 0 discriminator 3 view .LVU370
+ 1204 03d8 0028     		cmp	r0, #0
+ 1205 03da 3FF43FAE 		beq	.L47
+ 182:application/src/imu/imu.c **** 	} else {
+ 1206              		.loc 1 182 3 is_stmt 1 discriminator 5 view .LVU371
+ 182:application/src/imu/imu.c **** 	} else {
+ 1207              		.loc 1 182 3 discriminator 5 view .LVU372
+ 182:application/src/imu/imu.c **** 	} else {
+ 1208              		.loc 1 182 3 discriminator 5 view .LVU373
+ 182:application/src/imu/imu.c **** 	} else {
+ 1209              		.loc 1 182 3 discriminator 5 view .LVU374
+ 1210 03de FFF7FEFF 		bl	rcutils_reset_error
+ 1211              	.LVL90:
+ 1212 03e2 3BE6     		b	.L47
+ 1213              	.LVL91:
+ 1214              	.L119:
+ 182:application/src/imu/imu.c **** 	} else {
+ 1215              		.loc 1 182 3 is_stmt 0 discriminator 5 view .LVU375
+ 1216              	.LBE55:
+ 1217              	.LBE112:
+ 1218              	.LBB113:
+ 1219              	.LBB109:
+ 1220              	.LBB107:
+ 1221              	.LBB92:
+ 118:application/src/imu/imu.c **** 
+ 1222              		.loc 1 118 2 is_stmt 1 view .LVU376
+ 1223 03e4 FFF7FEFF 		bl	rcutils_logging_initialize
+ 1224              	.LVL92:
+ 118:application/src/imu/imu.c **** 
+ 1225              		.loc 1 118 2 is_stmt 0 view .LVU377
+ 1226 03e8 0028     		cmp	r0, #0
+ 1227 03ea 3FF455AF 		beq	.L62
+ 118:application/src/imu/imu.c **** 
+ 1228              		.loc 1 118 2 is_stmt 1 view .LVU378
+ 118:application/src/imu/imu.c **** 
+ 1229              		.loc 1 118 2 view .LVU379
+ 118:application/src/imu/imu.c **** 
+ 1230              		.loc 1 118 2 view .LVU380
+ 118:application/src/imu/imu.c **** 
+ 1231              		.loc 1 118 2 view .LVU381
+ 1232 03ee FFF7FEFF 		bl	rcutils_reset_error
+ 1233              	.LVL93:
+ 1234 03f2 51E7     		b	.L62
+ 1235              	.LVL94:
+ 1236              	.L120:
+ 118:application/src/imu/imu.c **** 
+ 1237              		.loc 1 118 2 is_stmt 0 view .LVU382
+ 1238              	.LBE92:
+ 1239              	.LBE107:
+ 1240              	.LBB108:
+ 1241              	.LBB106:
+ARM GAS  /tmp/ccLS7UkA.s 			page 32
+
+
+ 140:application/src/imu/imu.c **** 
+ 1242              		.loc 1 140 2 is_stmt 1 view .LVU383
+ 1243 03f4 FFF7FEFF 		bl	rcutils_logging_initialize
+ 1244              	.LVL95:
+ 140:application/src/imu/imu.c **** 
+ 1245              		.loc 1 140 2 is_stmt 0 view .LVU384
+ 1246 03f8 0028     		cmp	r0, #0
+ 1247 03fa C5D0     		beq	.L70
+ 140:application/src/imu/imu.c **** 
+ 1248              		.loc 1 140 2 is_stmt 1 view .LVU385
+ 140:application/src/imu/imu.c **** 
+ 1249              		.loc 1 140 2 view .LVU386
+ 140:application/src/imu/imu.c **** 
+ 1250              		.loc 1 140 2 view .LVU387
+ 140:application/src/imu/imu.c **** 
+ 1251              		.loc 1 140 2 view .LVU388
+ 1252 03fc FFF7FEFF 		bl	rcutils_reset_error
+ 1253              	.LVL96:
+ 1254 0400 C2E7     		b	.L70
+ 1255              	.L124:
+ 1256 0402 00BF     		.align	2
+ 1257              	.L123:
+ 1258 0404 00000000 		.word	.LANCHOR9
+ 1259 0408 00000000 		.word	.LANCHOR3
+ 1260 040c 60000000 		.word	.LC5
+ 1261 0410 00000000 		.word	.LANCHOR10
+ 1262 0414 00000000 		.word	.LANCHOR4
+ 1263 0418 00002042 		.word	1109393408
+ 1264 041c 00009643 		.word	1133903872
+ 1265 0420 7C000000 		.word	.LC6
+ 1266 0424 00000000 		.word	.LANCHOR11
+ 1267 0428 00000000 		.word	.LC2
+ 1268 042c 00000000 		.word	.LANCHOR1
+ 1269 0430 30000000 		.word	.LANCHOR7+48
+ 1270 0434 00000000 		.word	.LANCHOR8
+ 1271              	.LBE106:
+ 1272              	.LBE108:
+ 1273              	.LBE109:
+ 1274              	.LBE113:
+ 1275              		.cfi_endproc
+ 1276              	.LFE252:
+ 1278              		.section	.rodata.str1.4,"aMS",%progbits,1
+ 1279              		.align	2
+ 1280              	.LC7:
+ 1281 0000 6170706C 		.ascii	"application/src/imu/imu.c\000"
+ 1281      69636174 
+ 1281      696F6E2F 
+ 1281      7372632F 
+ 1281      696D752F 
+ 1282              		.section	.bss.accel_raw,"aw",%nobits
+ 1283              		.align	2
+ 1284              		.set	.LANCHOR8,. + 0
+ 1287              	accel_raw:
+ 1288 0000 00000000 		.space	12
+ 1288      00000000 
+ 1288      00000000 
+ 1289              		.section	.bss.calibration,"aw",%nobits
+ARM GAS  /tmp/ccLS7UkA.s 			page 33
+
+
+ 1290              		.align	2
+ 1291              		.set	.LANCHOR4,. + 0
+ 1294              	calibration:
+ 1295 0000 00000000 		.space	12
+ 1295      00000000 
+ 1295      00000000 
+ 1296              		.section	.bss.data,"aw",%nobits
+ 1297              		.align	3
+ 1298              		.set	.LANCHOR7,. + 0
+ 1301              	data:
+ 1302 0000 00000000 		.space	56
+ 1302      00000000 
+ 1302      00000000 
+ 1302      00000000 
+ 1302      00000000 
+ 1303              		.section	.bss.gyro_raw,"aw",%nobits
+ 1304              		.align	2
+ 1305              		.set	.LANCHOR9,. + 0
+ 1308              	gyro_raw:
+ 1309 0000 00000000 		.space	12
+ 1309      00000000 
+ 1309      00000000 
+ 1310              		.section	.bss.heater_pid,"aw",%nobits
+ 1311              		.align	2
+ 1312              		.set	.LANCHOR3,. + 0
+ 1315              	heater_pid:
+ 1316 0000 00000000 		.space	60
+ 1316      00000000 
+ 1316      00000000 
+ 1316      00000000 
+ 1316      00000000 
+ 1317              		.section	.data.__rcutils_logging_location.1,"aw"
+ 1318              		.align	2
+ 1319              		.set	.LANCHOR11,. + 0
+ 1322              	__rcutils_logging_location.1:
+ 1323 0000 00000000 		.word	__func__.0
+ 1324 0004 00000000 		.word	.LC7
+ 1325 0008 8C000000 		.word	140
+ 1326              		.section	.data.__rcutils_logging_location.2,"aw"
+ 1327              		.align	2
+ 1328              		.set	.LANCHOR10,. + 0
+ 1331              	__rcutils_logging_location.2:
+ 1332 0000 00000000 		.word	__func__.0
+ 1333 0004 00000000 		.word	.LC7
+ 1334 0008 76000000 		.word	118
+ 1335              		.section	.data.__rcutils_logging_location.4,"aw"
+ 1336              		.align	2
+ 1337              		.set	.LANCHOR6,. + 0
+ 1340              	__rcutils_logging_location.4:
+ 1341 0000 00000000 		.word	__func__.3
+ 1342 0004 00000000 		.word	.LC7
+ 1343 0008 B9000000 		.word	185
+ 1344              		.section	.data.__rcutils_logging_location.5,"aw"
+ 1345              		.align	2
+ 1346              		.set	.LANCHOR5,. + 0
+ 1349              	__rcutils_logging_location.5:
+ 1350 0000 00000000 		.word	__func__.3
+ARM GAS  /tmp/ccLS7UkA.s 			page 34
+
+
+ 1351 0004 00000000 		.word	.LC7
+ 1352 0008 B6000000 		.word	182
+ 1353              		.section	.data.__rcutils_logging_location.6,"aw"
+ 1354              		.align	2
+ 1355              		.set	.LANCHOR1,. + 0
+ 1358              	__rcutils_logging_location.6:
+ 1359 0000 00000000 		.word	__func__.3
+ 1360 0004 00000000 		.word	.LC7
+ 1361 0008 AB000000 		.word	171
+ 1362              		.section	.data.__rcutils_logging_location.8,"aw"
+ 1363              		.align	2
+ 1364              		.set	.LANCHOR0,. + 0
+ 1367              	__rcutils_logging_location.8:
+ 1368 0000 00000000 		.word	__func__.7
+ 1369 0004 00000000 		.word	.LC7
+ 1370 0008 63000000 		.word	99
+ 1371              		.section	.data.heater_pid_param,"aw"
+ 1372              		.align	2
+ 1373              		.set	.LANCHOR2,. + 0
+ 1376              	heater_pid_param:
+ 1377 0000 00       		.byte	0
+ 1378 0001 000000   		.space	3
+ 1379 0004 00004844 		.word	1145569280
+ 1380 0008 00002041 		.word	1092616192
+ 1381 000c 00000000 		.word	0
+ 1382 0010 0000FA45 		.word	1174011904
+ 1383 0014 00409C46 		.word	1184645120
+ 1384              		.section	.rodata.__func__.0,"a"
+ 1385              		.align	2
+ 1388              	__func__.0:
+ 1389 0000 696D755F 		.ascii	"imu_do_calibration\000"
+ 1389      646F5F63 
+ 1389      616C6962 
+ 1389      72617469 
+ 1389      6F6E00
+ 1390              		.section	.rodata.__func__.3,"a"
+ 1391              		.align	2
+ 1394              	__func__.3:
+ 1395 0000 696D755F 		.ascii	"imu_task\000"
+ 1395      7461736B 
+ 1395      00
+ 1396              		.section	.rodata.__func__.7,"a"
+ 1397              		.align	2
+ 1400              	__func__.7:
+ 1401 0000 696D755F 		.ascii	"imu_write_stored_calibration\000"
+ 1401      77726974 
+ 1401      655F7374 
+ 1401      6F726564 
+ 1401      5F63616C 
+ 1402              		.text
+ 1403              	.Letext0:
+ 1404              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 1405              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 1406              		.file 4 "application/include/pid_controller.h"
+ 1407              		.file 5 "application/include/quaternion.h"
+ 1408              		.file 6 "application/include/imu.h"
+ 1409              		.file 7 "bmi088/include/BMI088driver.h"
+ARM GAS  /tmp/ccLS7UkA.s 			page 35
+
+
+ 1410              		.file 8 "/opt/gcc-arm-none-eabi-10.3-2021.10/lib/gcc/arm-none-eabi/10.3.1/include/stddef.h"
+ 1411              		.file 9 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h"
+ 1412              		.file 10 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 1413              		.file 11 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 1414              		.file 12 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 1415              		.file 13 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h"
+ 1416              		.file 14 "easyflash/inc/ef_def.h"
+ 1417              		.file 15 "micro-ros/src/install/rcutils/include/rcutils/logging.h"
+ 1418              		.file 16 "micro-ros/src/install/rmw/include/rmw/rmw/time.h"
+ 1419              		.file 17 "micro-ros/src/install/rmw/include/rmw/rmw/types.h"
+ 1420              		.file 18 "micro-ros/src/install/rmw/include/rmw/rmw/qos_profiles.h"
+ 1421              		.file 19 "Core/Inc/usart.h"
+ 1422              		.file 20 "micro-ros/src/install/rcutils/include/rcutils/error_handling.h"
+ 1423              		.file 21 "application/include/logging.h"
+ 1424              		.file 22 "micro-ros/src/install/rmw_microxrcedds/include/rmw_microros/time_sync.h"
+ 1425              		.file 23 "bmi088/include/imu_heater.h"
+ 1426              		.file 24 "application/src/imu/madgwick.h"
+ 1427              		.file 25 "application/include/microros.h"
+ 1428              		.file 26 "Middlewares/Third_Party/FreeRTOS/Source/include/task.h"
+ 1429              		.file 27 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
+ 1430              		.file 28 "easyflash/inc/easyflash.h"
+ARM GAS  /tmp/ccLS7UkA.s 			page 36
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 imu.c
+     /tmp/ccLS7UkA.s:20     .text.__io_putchar:0000000000000000 $t
+     /tmp/ccLS7UkA.s:27     .text.__io_putchar:0000000000000000 __io_putchar
+     /tmp/ccLS7UkA.s:64     .text.__io_putchar:000000000000001c $d
+     /tmp/ccLS7UkA.s:69     .text._write:0000000000000000 $t
+     /tmp/ccLS7UkA.s:76     .text._write:0000000000000000 _write
+     /tmp/ccLS7UkA.s:153    .text._write:0000000000000034 $d
+     /tmp/ccLS7UkA.s:158    .rodata.imu_read_stored_calibration.str1.4:0000000000000000 $d
+     /tmp/ccLS7UkA.s:162    .text.imu_read_stored_calibration:0000000000000000 $t
+     /tmp/ccLS7UkA.s:169    .text.imu_read_stored_calibration:0000000000000000 imu_read_stored_calibration
+     /tmp/ccLS7UkA.s:208    .text.imu_read_stored_calibration:0000000000000024 $d
+     /tmp/ccLS7UkA.s:213    .rodata.imu_write_stored_calibration.str1.4:0000000000000000 $d
+     /tmp/ccLS7UkA.s:217    .text.imu_write_stored_calibration:0000000000000000 $t
+     /tmp/ccLS7UkA.s:224    .text.imu_write_stored_calibration:0000000000000000 imu_write_stored_calibration
+     /tmp/ccLS7UkA.s:328    .text.imu_write_stored_calibration:0000000000000048 $d
+     /tmp/ccLS7UkA.s:340    .rodata.imu_task.str1.4:0000000000000000 $d
+     /tmp/ccLS7UkA.s:357    .text.imu_task:0000000000000000 $t
+     /tmp/ccLS7UkA.s:364    .text.imu_task:0000000000000000 imu_task
+     /tmp/ccLS7UkA.s:792    .text.imu_task:00000000000001e0 $d
+     /tmp/ccLS7UkA.s:812    .text.imu_task:0000000000000220 $t
+     /tmp/ccLS7UkA.s:1258   .text.imu_task:0000000000000404 $d
+     /tmp/ccLS7UkA.s:1279   .rodata.str1.4:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1283   .bss.accel_raw:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1287   .bss.accel_raw:0000000000000000 accel_raw
+     /tmp/ccLS7UkA.s:1290   .bss.calibration:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1294   .bss.calibration:0000000000000000 calibration
+     /tmp/ccLS7UkA.s:1297   .bss.data:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1301   .bss.data:0000000000000000 data
+     /tmp/ccLS7UkA.s:1304   .bss.gyro_raw:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1308   .bss.gyro_raw:0000000000000000 gyro_raw
+     /tmp/ccLS7UkA.s:1311   .bss.heater_pid:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1315   .bss.heater_pid:0000000000000000 heater_pid
+     /tmp/ccLS7UkA.s:1318   .data.__rcutils_logging_location.1:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1322   .data.__rcutils_logging_location.1:0000000000000000 __rcutils_logging_location.1
+     /tmp/ccLS7UkA.s:1388   .rodata.__func__.0:0000000000000000 __func__.0
+     /tmp/ccLS7UkA.s:1327   .data.__rcutils_logging_location.2:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1331   .data.__rcutils_logging_location.2:0000000000000000 __rcutils_logging_location.2
+     /tmp/ccLS7UkA.s:1336   .data.__rcutils_logging_location.4:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1340   .data.__rcutils_logging_location.4:0000000000000000 __rcutils_logging_location.4
+     /tmp/ccLS7UkA.s:1394   .rodata.__func__.3:0000000000000000 __func__.3
+     /tmp/ccLS7UkA.s:1345   .data.__rcutils_logging_location.5:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1349   .data.__rcutils_logging_location.5:0000000000000000 __rcutils_logging_location.5
+     /tmp/ccLS7UkA.s:1354   .data.__rcutils_logging_location.6:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1358   .data.__rcutils_logging_location.6:0000000000000000 __rcutils_logging_location.6
+     /tmp/ccLS7UkA.s:1363   .data.__rcutils_logging_location.8:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1367   .data.__rcutils_logging_location.8:0000000000000000 __rcutils_logging_location.8
+     /tmp/ccLS7UkA.s:1400   .rodata.__func__.7:0000000000000000 __func__.7
+     /tmp/ccLS7UkA.s:1372   .data.heater_pid_param:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1376   .data.heater_pid_param:0000000000000000 heater_pid_param
+     /tmp/ccLS7UkA.s:1385   .rodata.__func__.0:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1391   .rodata.__func__.3:0000000000000000 $d
+     /tmp/ccLS7UkA.s:1397   .rodata.__func__.7:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+HAL_UART_Transmit
+huart1
+ARM GAS  /tmp/ccLS7UkA.s 			page 37
+
+
+ef_get_env_blob
+ef_set_env_blob
+logging_get_logger_name
+rcutils_logging_logger_is_enabled_for
+rcutils_log
+rcutils_logging_initialize
+rcutils_reset_error
+g_rcutils_logging_initialized
+__aeabi_f2d
+BMI088_Init
+imu_heater_init
+pid_controller_init
+xTaskGetTickCount
+rmw_uros_epoch_nanos
+BMI088_Read
+pid_controller_update
+imu_heater_set_pwm
+madgwick_update_6d
+microros_publish_imu_data
+quaternion_to_rpy
+vTaskDelayUntil
+HAL_Delay

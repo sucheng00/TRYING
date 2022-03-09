@@ -1,0 +1,388 @@
+ARM GAS  /tmp/ccXD8PGk.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 2
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"rtc.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.MX_RTC_Init,"ax",%progbits
+  20              		.align	1
+  21              		.p2align 2,,3
+  22              		.global	MX_RTC_Init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	MX_RTC_Init:
+  28              	.LFB235:
+  29              		.file 1 "Core/Src/rtc.c"
+   1:Core/Src/rtc.c **** /* USER CODE BEGIN Header */
+   2:Core/Src/rtc.c **** /**
+   3:Core/Src/rtc.c ****   ******************************************************************************
+   4:Core/Src/rtc.c ****   * @file    rtc.c
+   5:Core/Src/rtc.c ****   * @brief   This file provides code for the configuration
+   6:Core/Src/rtc.c ****   *          of the RTC instances.
+   7:Core/Src/rtc.c ****   ******************************************************************************
+   8:Core/Src/rtc.c ****   * @attention
+   9:Core/Src/rtc.c ****   *
+  10:Core/Src/rtc.c ****   * Copyright (c) 2022 STMicroelectronics.
+  11:Core/Src/rtc.c ****   * All rights reserved.
+  12:Core/Src/rtc.c ****   *
+  13:Core/Src/rtc.c ****   * This software is licensed under terms that can be found in the LICENSE file
+  14:Core/Src/rtc.c ****   * in the root directory of this software component.
+  15:Core/Src/rtc.c ****   * If no LICENSE file comes with this software, it is provided AS-IS.
+  16:Core/Src/rtc.c ****   *
+  17:Core/Src/rtc.c ****   ******************************************************************************
+  18:Core/Src/rtc.c ****   */
+  19:Core/Src/rtc.c **** /* USER CODE END Header */
+  20:Core/Src/rtc.c **** /* Includes ------------------------------------------------------------------*/
+  21:Core/Src/rtc.c **** #include "rtc.h"
+  22:Core/Src/rtc.c **** 
+  23:Core/Src/rtc.c **** /* USER CODE BEGIN 0 */
+  24:Core/Src/rtc.c **** 
+  25:Core/Src/rtc.c **** /* USER CODE END 0 */
+  26:Core/Src/rtc.c **** 
+  27:Core/Src/rtc.c **** RTC_HandleTypeDef hrtc;
+  28:Core/Src/rtc.c **** 
+  29:Core/Src/rtc.c **** /* RTC init function */
+ARM GAS  /tmp/ccXD8PGk.s 			page 2
+
+
+  30:Core/Src/rtc.c **** void MX_RTC_Init(void)
+  31:Core/Src/rtc.c **** {
+  30              		.loc 1 31 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  32:Core/Src/rtc.c **** 
+  33:Core/Src/rtc.c ****   /* USER CODE BEGIN RTC_Init 0 */
+  34:Core/Src/rtc.c **** 
+  35:Core/Src/rtc.c ****   /* USER CODE END RTC_Init 0 */
+  36:Core/Src/rtc.c **** 
+  37:Core/Src/rtc.c ****   /* USER CODE BEGIN RTC_Init 1 */
+  38:Core/Src/rtc.c **** 
+  39:Core/Src/rtc.c ****   /* USER CODE END RTC_Init 1 */
+  40:Core/Src/rtc.c ****   /** Initialize RTC Only
+  41:Core/Src/rtc.c ****   */
+  42:Core/Src/rtc.c ****   hrtc.Instance = RTC;
+  34              		.loc 1 42 3 view .LVU1
+  31:Core/Src/rtc.c **** 
+  35              		.loc 1 31 1 is_stmt 0 view .LVU2
+  36 0000 10B5     		push	{r4, lr}
+  37              		.cfi_def_cfa_offset 8
+  38              		.cfi_offset 4, -8
+  39              		.cfi_offset 14, -4
+  40              		.loc 1 42 17 view .LVU3
+  41 0002 0A48     		ldr	r0, .L6
+  42 0004 0A4C     		ldr	r4, .L6+4
+  43:Core/Src/rtc.c ****   hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  43              		.loc 1 43 24 view .LVU4
+  44 0006 0023     		movs	r3, #0
+  44:Core/Src/rtc.c ****   hrtc.Init.AsynchPrediv = 124;
+  45              		.loc 1 44 26 view .LVU5
+  46 0008 7C21     		movs	r1, #124
+  45:Core/Src/rtc.c ****   hrtc.Init.SynchPrediv = 3199;
+  47              		.loc 1 45 25 view .LVU6
+  48 000a 40F67F42 		movw	r2, #3199
+  43:Core/Src/rtc.c ****   hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  49              		.loc 1 43 24 view .LVU7
+  50 000e C0E90043 		strd	r4, r3, [r0]
+  44:Core/Src/rtc.c ****   hrtc.Init.AsynchPrediv = 124;
+  51              		.loc 1 44 3 is_stmt 1 view .LVU8
+  52              		.loc 1 45 25 is_stmt 0 view .LVU9
+  53 0012 C0E90212 		strd	r1, r2, [r0, #8]
+  46:Core/Src/rtc.c ****   hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  54              		.loc 1 46 3 is_stmt 1 view .LVU10
+  47:Core/Src/rtc.c ****   hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  55              		.loc 1 47 28 is_stmt 0 view .LVU11
+  56 0016 C0E90433 		strd	r3, r3, [r0, #16]
+  48:Core/Src/rtc.c ****   hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  57              		.loc 1 48 3 is_stmt 1 view .LVU12
+  58              		.loc 1 48 24 is_stmt 0 view .LVU13
+  59 001a 8361     		str	r3, [r0, #24]
+  49:Core/Src/rtc.c ****   if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  60              		.loc 1 49 3 is_stmt 1 view .LVU14
+  61              		.loc 1 49 7 is_stmt 0 view .LVU15
+  62 001c FFF7FEFF 		bl	HAL_RTC_Init
+  63              	.LVL0:
+ARM GAS  /tmp/ccXD8PGk.s 			page 3
+
+
+  64              		.loc 1 49 6 view .LVU16
+  65 0020 00B9     		cbnz	r0, .L5
+  50:Core/Src/rtc.c ****   {
+  51:Core/Src/rtc.c ****     Error_Handler();
+  52:Core/Src/rtc.c ****   }
+  53:Core/Src/rtc.c ****   /* USER CODE BEGIN RTC_Init 2 */
+  54:Core/Src/rtc.c **** 
+  55:Core/Src/rtc.c ****   /* USER CODE END RTC_Init 2 */
+  56:Core/Src/rtc.c **** 
+  57:Core/Src/rtc.c **** }
+  66              		.loc 1 57 1 view .LVU17
+  67 0022 10BD     		pop	{r4, pc}
+  68              	.L5:
+  51:Core/Src/rtc.c ****   }
+  69              		.loc 1 51 5 is_stmt 1 view .LVU18
+  70              		.loc 1 57 1 is_stmt 0 view .LVU19
+  71 0024 BDE81040 		pop	{r4, lr}
+  72              		.cfi_restore 14
+  73              		.cfi_restore 4
+  74              		.cfi_def_cfa_offset 0
+  51:Core/Src/rtc.c ****   }
+  75              		.loc 1 51 5 view .LVU20
+  76 0028 FFF7FEBF 		b	Error_Handler
+  77              	.LVL1:
+  78              	.L7:
+  79              		.align	2
+  80              	.L6:
+  81 002c 00000000 		.word	.LANCHOR0
+  82 0030 00280040 		.word	1073752064
+  83              		.cfi_endproc
+  84              	.LFE235:
+  86              		.section	.text.HAL_RTC_MspInit,"ax",%progbits
+  87              		.align	1
+  88              		.p2align 2,,3
+  89              		.global	HAL_RTC_MspInit
+  90              		.syntax unified
+  91              		.thumb
+  92              		.thumb_func
+  94              	HAL_RTC_MspInit:
+  95              	.LVL2:
+  96              	.LFB236:
+  58:Core/Src/rtc.c **** 
+  59:Core/Src/rtc.c **** void HAL_RTC_MspInit(RTC_HandleTypeDef* rtcHandle)
+  60:Core/Src/rtc.c **** {
+  97              		.loc 1 60 1 is_stmt 1 view -0
+  98              		.cfi_startproc
+  99              		@ args = 0, pretend = 0, frame = 16
+ 100              		@ frame_needed = 0, uses_anonymous_args = 0
+  61:Core/Src/rtc.c **** 
+  62:Core/Src/rtc.c ****   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+ 101              		.loc 1 62 3 view .LVU22
+  60:Core/Src/rtc.c **** 
+ 102              		.loc 1 60 1 is_stmt 0 view .LVU23
+ 103 0000 00B5     		push	{lr}
+ 104              		.cfi_def_cfa_offset 4
+ 105              		.cfi_offset 14, -4
+  63:Core/Src/rtc.c ****   if(rtcHandle->Instance==RTC)
+ARM GAS  /tmp/ccXD8PGk.s 			page 4
+
+
+ 106              		.loc 1 63 5 view .LVU24
+ 107 0002 0E4A     		ldr	r2, .L17
+ 108 0004 0168     		ldr	r1, [r0]
+  60:Core/Src/rtc.c **** 
+ 109              		.loc 1 60 1 view .LVU25
+ 110 0006 85B0     		sub	sp, sp, #20
+ 111              		.cfi_def_cfa_offset 24
+  62:Core/Src/rtc.c ****   if(rtcHandle->Instance==RTC)
+ 112              		.loc 1 62 28 view .LVU26
+ 113 0008 0023     		movs	r3, #0
+ 114              		.loc 1 63 5 view .LVU27
+ 115 000a 9142     		cmp	r1, r2
+  62:Core/Src/rtc.c ****   if(rtcHandle->Instance==RTC)
+ 116              		.loc 1 62 28 view .LVU28
+ 117 000c CDE90133 		strd	r3, r3, [sp, #4]
+ 118              		.loc 1 63 3 is_stmt 1 view .LVU29
+ 119              		.loc 1 63 5 is_stmt 0 view .LVU30
+ 120 0010 02D0     		beq	.L15
+  64:Core/Src/rtc.c ****   {
+  65:Core/Src/rtc.c ****   /* USER CODE BEGIN RTC_MspInit 0 */
+  66:Core/Src/rtc.c **** 
+  67:Core/Src/rtc.c ****   /* USER CODE END RTC_MspInit 0 */
+  68:Core/Src/rtc.c ****   /** Initializes the peripherals clock
+  69:Core/Src/rtc.c ****   */
+  70:Core/Src/rtc.c ****     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+  71:Core/Src/rtc.c ****     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_HSE_DIV30;
+  72:Core/Src/rtc.c ****     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  73:Core/Src/rtc.c ****     {
+  74:Core/Src/rtc.c ****       Error_Handler();
+  75:Core/Src/rtc.c ****     }
+  76:Core/Src/rtc.c **** 
+  77:Core/Src/rtc.c ****     /* RTC clock enable */
+  78:Core/Src/rtc.c ****     __HAL_RCC_RTC_ENABLE();
+  79:Core/Src/rtc.c ****   /* USER CODE BEGIN RTC_MspInit 1 */
+  80:Core/Src/rtc.c **** 
+  81:Core/Src/rtc.c ****   /* USER CODE END RTC_MspInit 1 */
+  82:Core/Src/rtc.c ****   }
+  83:Core/Src/rtc.c **** }
+ 121              		.loc 1 83 1 view .LVU31
+ 122 0012 05B0     		add	sp, sp, #20
+ 123              		.cfi_remember_state
+ 124              		.cfi_def_cfa_offset 4
+ 125              		@ sp needed
+ 126 0014 5DF804FB 		ldr	pc, [sp], #4
+ 127              	.L15:
+ 128              		.cfi_restore_state
+  70:Core/Src/rtc.c ****     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_HSE_DIV30;
+ 129              		.loc 1 70 5 is_stmt 1 view .LVU32
+  71:Core/Src/rtc.c ****     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+ 130              		.loc 1 71 43 is_stmt 0 view .LVU33
+ 131 0018 094B     		ldr	r3, .L17+4
+ 132 001a 0393     		str	r3, [sp, #12]
+  70:Core/Src/rtc.c ****     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_HSE_DIV30;
+ 133              		.loc 1 70 46 view .LVU34
+ 134 001c 0222     		movs	r2, #2
+  72:Core/Src/rtc.c ****     {
+ 135              		.loc 1 72 9 view .LVU35
+ARM GAS  /tmp/ccXD8PGk.s 			page 5
+
+
+ 136 001e 6846     		mov	r0, sp
+ 137              	.LVL3:
+  70:Core/Src/rtc.c ****     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_HSE_DIV30;
+ 138              		.loc 1 70 46 view .LVU36
+ 139 0020 0092     		str	r2, [sp]
+  71:Core/Src/rtc.c ****     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+ 140              		.loc 1 71 5 is_stmt 1 view .LVU37
+  72:Core/Src/rtc.c ****     {
+ 141              		.loc 1 72 5 view .LVU38
+  72:Core/Src/rtc.c ****     {
+ 142              		.loc 1 72 9 is_stmt 0 view .LVU39
+ 143 0022 FFF7FEFF 		bl	HAL_RCCEx_PeriphCLKConfig
+ 144              	.LVL4:
+  72:Core/Src/rtc.c ****     {
+ 145              		.loc 1 72 8 view .LVU40
+ 146 0026 30B9     		cbnz	r0, .L16
+ 147              	.L10:
+  78:Core/Src/rtc.c ****   /* USER CODE BEGIN RTC_MspInit 1 */
+ 148              		.loc 1 78 5 is_stmt 1 view .LVU41
+ 149 0028 064B     		ldr	r3, .L17+8
+ 150 002a 0122     		movs	r2, #1
+ 151 002c C3F83C2E 		str	r2, [r3, #3644]
+ 152              		.loc 1 83 1 is_stmt 0 view .LVU42
+ 153 0030 05B0     		add	sp, sp, #20
+ 154              		.cfi_remember_state
+ 155              		.cfi_def_cfa_offset 4
+ 156              		@ sp needed
+ 157 0032 5DF804FB 		ldr	pc, [sp], #4
+ 158              	.L16:
+ 159              		.cfi_restore_state
+  74:Core/Src/rtc.c ****     }
+ 160              		.loc 1 74 7 is_stmt 1 view .LVU43
+ 161 0036 FFF7FEFF 		bl	Error_Handler
+ 162              	.LVL5:
+ 163 003a F5E7     		b	.L10
+ 164              	.L18:
+ 165              		.align	2
+ 166              	.L17:
+ 167 003c 00280040 		.word	1073752064
+ 168 0040 00031E00 		.word	1966848
+ 169 0044 00004742 		.word	1111949312
+ 170              		.cfi_endproc
+ 171              	.LFE236:
+ 173              		.section	.text.HAL_RTC_MspDeInit,"ax",%progbits
+ 174              		.align	1
+ 175              		.p2align 2,,3
+ 176              		.global	HAL_RTC_MspDeInit
+ 177              		.syntax unified
+ 178              		.thumb
+ 179              		.thumb_func
+ 181              	HAL_RTC_MspDeInit:
+ 182              	.LVL6:
+ 183              	.LFB237:
+  84:Core/Src/rtc.c **** 
+  85:Core/Src/rtc.c **** void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
+  86:Core/Src/rtc.c **** {
+ 184              		.loc 1 86 1 view -0
+ARM GAS  /tmp/ccXD8PGk.s 			page 6
+
+
+ 185              		.cfi_startproc
+ 186              		@ args = 0, pretend = 0, frame = 0
+ 187              		@ frame_needed = 0, uses_anonymous_args = 0
+ 188              		@ link register save eliminated.
+  87:Core/Src/rtc.c **** 
+  88:Core/Src/rtc.c ****   if(rtcHandle->Instance==RTC)
+ 189              		.loc 1 88 3 view .LVU45
+ 190              		.loc 1 88 5 is_stmt 0 view .LVU46
+ 191 0000 044B     		ldr	r3, .L22
+ 192 0002 0268     		ldr	r2, [r0]
+ 193 0004 9A42     		cmp	r2, r3
+ 194 0006 00D0     		beq	.L21
+  89:Core/Src/rtc.c ****   {
+  90:Core/Src/rtc.c ****   /* USER CODE BEGIN RTC_MspDeInit 0 */
+  91:Core/Src/rtc.c **** 
+  92:Core/Src/rtc.c ****   /* USER CODE END RTC_MspDeInit 0 */
+  93:Core/Src/rtc.c ****     /* Peripheral clock disable */
+  94:Core/Src/rtc.c ****     __HAL_RCC_RTC_DISABLE();
+  95:Core/Src/rtc.c ****   /* USER CODE BEGIN RTC_MspDeInit 1 */
+  96:Core/Src/rtc.c **** 
+  97:Core/Src/rtc.c ****   /* USER CODE END RTC_MspDeInit 1 */
+  98:Core/Src/rtc.c ****   }
+  99:Core/Src/rtc.c **** }
+ 195              		.loc 1 99 1 view .LVU47
+ 196 0008 7047     		bx	lr
+ 197              	.L21:
+  94:Core/Src/rtc.c ****   /* USER CODE BEGIN RTC_MspDeInit 1 */
+ 198              		.loc 1 94 5 is_stmt 1 view .LVU48
+ 199 000a 034B     		ldr	r3, .L22+4
+ 200 000c 0022     		movs	r2, #0
+ 201 000e C3F83C2E 		str	r2, [r3, #3644]
+ 202              		.loc 1 99 1 is_stmt 0 view .LVU49
+ 203 0012 7047     		bx	lr
+ 204              	.L23:
+ 205              		.align	2
+ 206              	.L22:
+ 207 0014 00280040 		.word	1073752064
+ 208 0018 00004742 		.word	1111949312
+ 209              		.cfi_endproc
+ 210              	.LFE237:
+ 212              		.global	hrtc
+ 213              		.section	.bss.hrtc,"aw",%nobits
+ 214              		.align	2
+ 215              		.set	.LANCHOR0,. + 0
+ 218              	hrtc:
+ 219 0000 00000000 		.space	32
+ 219      00000000 
+ 219      00000000 
+ 219      00000000 
+ 219      00000000 
+ 220              		.text
+ 221              	.Letext0:
+ 222              		.file 2 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/machine/_default_types.h"
+ 223              		.file 3 "/opt/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include/sys/_stdint.h"
+ 224              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h"
+ 225              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h"
+ 226              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ARM GAS  /tmp/ccXD8PGk.s 			page 7
+
+
+ 227              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc_ex.h"
+ 228              		.file 8 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rtc.h"
+ 229              		.file 9 "Core/Inc/main.h"
+ 230              		.file 10 "Core/Inc/rtc.h"
+ARM GAS  /tmp/ccXD8PGk.s 			page 8
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 rtc.c
+     /tmp/ccXD8PGk.s:20     .text.MX_RTC_Init:0000000000000000 $t
+     /tmp/ccXD8PGk.s:27     .text.MX_RTC_Init:0000000000000000 MX_RTC_Init
+     /tmp/ccXD8PGk.s:81     .text.MX_RTC_Init:000000000000002c $d
+     /tmp/ccXD8PGk.s:87     .text.HAL_RTC_MspInit:0000000000000000 $t
+     /tmp/ccXD8PGk.s:94     .text.HAL_RTC_MspInit:0000000000000000 HAL_RTC_MspInit
+     /tmp/ccXD8PGk.s:167    .text.HAL_RTC_MspInit:000000000000003c $d
+     /tmp/ccXD8PGk.s:174    .text.HAL_RTC_MspDeInit:0000000000000000 $t
+     /tmp/ccXD8PGk.s:181    .text.HAL_RTC_MspDeInit:0000000000000000 HAL_RTC_MspDeInit
+     /tmp/ccXD8PGk.s:207    .text.HAL_RTC_MspDeInit:0000000000000014 $d
+     /tmp/ccXD8PGk.s:218    .bss.hrtc:0000000000000000 hrtc
+     /tmp/ccXD8PGk.s:214    .bss.hrtc:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+HAL_RTC_Init
+Error_Handler
+HAL_RCCEx_PeriphCLKConfig
